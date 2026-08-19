@@ -1,0 +1,129 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Tulivo Digital — Customer Journey Diagnostic.
+  Light-only by design: this is a consulting deliverable, and it should read
+  like paper on every device.
+*/
+:root {
+  --t-canvas: 250 247 243;
+  --t-card: 255 253 251;
+  --t-veil: 244 239 232;
+  --t-ink: 32 27 24;
+  --t-muted: 106 96 88;
+  --t-faint: 154 143 134;
+  --t-line: 232 224 213;
+  --t-hairline: 240 234 226;
+  --t-clay: 190 96 68;
+  --t-clay-deep: 154 71 47;
+  --t-clay-soft: 246 232 225;
+  --t-gold: 173 138 79;
+  --t-gold-soft: 246 238 224;
+  --t-green: 62 122 96;
+  --t-amber: 191 141 51;
+  --t-red: 178 66 51;
+
+  color-scheme: light;
+}
+
+body {
+  background-color: rgb(var(--t-canvas));
+  color: rgb(var(--t-ink));
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "cv05" 1, "ss01" 1;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--t-line)) transparent;
+}
+
+/* A soft warm halo behind the page. */
+.tulivo-wash {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60vmax 50vmax at 12% -8%, rgba(190, 96, 68, 0.09), transparent 62%),
+    radial-gradient(52vmax 42vmax at 92% 4%, rgba(173, 138, 79, 0.1), transparent 60%),
+    radial-gradient(70vmax 55vmax at 50% 108%, rgba(190, 96, 68, 0.06), transparent 65%);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Locked content: readable shapes, unreadable words. */
+.locked-blur {
+  filter: blur(6px);
+  opacity: 0.55;
+  user-select: none;
+  pointer-events: none;
+}
+
+@keyframes tulivo-fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.tulivo-fade-up {
+  animation: tulivo-fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tulivo-fade-up { animation: none; }
+}
+
+/* Slider — styled for thumbs, on a warm track with a clay fill. */
+input[type="range"].t-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 44px;
+  background: transparent;
+  cursor: pointer;
+}
+input[type="range"].t-range::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    rgb(var(--t-clay)) 0%,
+    rgb(var(--t-clay)) var(--fill, 0%),
+    rgb(var(--t-line)) var(--fill, 0%),
+    rgb(var(--t-line)) 100%
+  );
+}
+input[type="range"].t-range::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    rgb(var(--t-clay)) 0%,
+    rgb(var(--t-clay)) var(--fill, 0%),
+    rgb(var(--t-line)) var(--fill, 0%),
+    rgb(var(--t-line)) 100%
+  );
+}
+input[type="range"].t-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -11px;
+  height: 28px;
+  width: 28px;
+  border-radius: 50%;
+  background: rgb(var(--t-card));
+  border: 2px solid rgb(var(--t-clay));
+  box-shadow: 0 4px 14px -4px rgba(154, 71, 47, 0.6);
+}
+input[type="range"].t-range::-moz-range-thumb {
+  height: 26px;
+  width: 26px;
+  border-radius: 50%;
+  background: rgb(var(--t-card));
+  border: 2px solid rgb(var(--t-clay));
+  box-shadow: 0 4px 14px -4px rgba(154, 71, 47, 0.6);
+}
