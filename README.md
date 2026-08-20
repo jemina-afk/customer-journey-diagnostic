@@ -14,7 +14,8 @@ red/amber/green status, and the names of the top three priorities.
 
 ## The flow
 
-1. **Welcome** — name, email, business name, business type.
+1. **Welcome** — name, email, business name, business type, and their website
+   link (optional, so their site can be reviewed alongside their answers).
 2. **Eight stages**, one screen each, five questions per stage — multi-select,
    single choice, sliders, 1–5 scales and free text. A pinned progress bar,
    live tick marks as questions are answered, and thumb-sized targets, because
@@ -40,6 +41,19 @@ dropped connection never costs someone their progress.
 | 6 | Reminders & No-Show Prevention | Whether the diary you fill is the diary you work |
 | 7 | Reviews & Reputation | The proof that makes everything else work |
 | 8 | Retention & Re-engagement | Whether clients come back |
+
+Questions are written to be answerable. Where an owner genuinely might not know
+a number — their enquiry-to-client rate, their no-show rate — there's an
+explicit **I don't know**, which scores below a measured answer and produces a
+recommendation to start tracking it, rather than forcing a guess that would
+distort the whole report. Booking friction is asked as a list of things that
+actually happen ("they message to ask what availability you have") rather than
+as a self-rating nobody can honestly give.
+
+Stage 8 also asks **what one client is worth over their lifetime**. It doesn't
+affect the score — it's context — but it turns the rest of the report into
+pounds: *"At £150–£300 per client, one extra client a month is worth £2,700 a
+year to you — the bar every recommendation here has to clear."*
 
 ## How scoring works
 
@@ -92,12 +106,39 @@ environment variable appears.
 | `DIAGNOSTIC_UNLOCK_CODE` | A code you send after payment taken any other way; the client enters it on the results screen. |
 | `RESEND_API_KEY`, `DIAGNOSTIC_FROM_EMAIL`, `DIAGNOSTIC_NOTIFY_EMAIL` | Emails the report (PDF attached) to the client, and a summary to you — once on completion, again on purchase. |
 | `NEXT_PUBLIC_DIAGNOSTIC_PRICE`, `NEXT_PUBLIC_BOOKING_URL`, `NEXT_PUBLIC_CONTACT_EMAIL` | The price shown, your calendar link, your reply-to address. |
+| `NEXT_PUBLIC_TEST_MODE_KEY` | Switches test mode on for the live site — see [Test mode](#test-mode). |
 
 Scores are always recalculated on the server from the submitted answers rather
 than trusted from the browser.
 
+The lead email carries their name, business, type, **website link**, client
+value band, overall score, every stage score and their three priorities — enough
+to decide whether to follow up before you open anything else.
+
 Leads arrive by email rather than being stored in a database. If you want a
 stored history later, `src/lib/diagnostic/server.ts` is the one file to change.
+
+## Test mode
+
+A way to walk the entire flow — including the paid side — without paying or
+answering forty questions.
+
+Add `?test=` to the URL and a strip appears at the top with three controls:
+
+- **Fill sample answers** — completes a whole run and drops you on the results.
+  Press it again for a different set of scores.
+- **Unlock without paying** — reveals the paid report, exactly as a client sees
+  it, so you can check the recommendations, the PDF and the emails.
+- **Reset** — clears everything and starts over.
+
+Any email a test run sends is subject-prefixed `[TEST]`, so your inbox never
+confuses one for a real lead.
+
+**Where it works.** Local development and Vercel preview deployments have it on
+already — `http://localhost:3000/?test=1`. On the live production site it stays
+off unless you set `NEXT_PUBLIC_TEST_MODE_KEY` to a value only you know, and
+then only `/?test=<that value>` switches it on. That way nobody unlocks a £297
+report by guessing a query string.
 
 ## Running it
 

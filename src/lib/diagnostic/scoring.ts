@@ -1,6 +1,8 @@
 import { SECTIONS } from "./sections";
+import { UNKNOWN } from "./types";
 import type {
   Answers,
+  ClientValue,
   AnswerValue,
   Band,
   DiagnosticResult,
@@ -85,6 +87,7 @@ export function scoreQuestion(q: Question, value: AnswerValue | undefined): numb
     case "multi":
       return clamp01(q.scoreSelection(value as string[]));
     case "slider":
+      if (value === UNKNOWN) return q.unknown ? clamp01(q.unknown.score) : null;
       return clamp01(q.scoreValue(value as number));
     case "scale":
       return clamp01(((value as number) - 1) / 4);
@@ -112,6 +115,9 @@ function reviewQuestion(
     case "multi":
       return q.review?.(value as string[]) ?? {};
     case "slider":
+      if (value === UNKNOWN) {
+        return q.unknown ? { gap: q.unknown.gap, fix: q.unknown.fix } : {};
+      }
       return q.review?.(value as number) ?? {};
     case "scale":
       return q.review?.(value as number) ?? {};
@@ -201,8 +207,31 @@ export function scoreDiagnostic(answers: Answers): DiagnosticResult {
     priorities,
     quickWins,
     plan: buildPlan(priorities, quickWins),
+    clientValue: clientValueOf(answers),
     completedAt: new Date().toISOString(),
   };
+}
+
+/** The bands offered for "what is a client worth", and their midpoints. */
+const CLIENT_VALUE_BANDS: Record<string, ClientValue> = {
+  "under-50": { label: "under £50", midpoint: 40 },
+  "50-150": { label: "£50–£150", midpoint: 100 },
+  "150-300": { label: "£150–£300", midpoint: 225 },
+  "300-600": { label: "£300–£600", midpoint: 450 },
+  "600-1500": { label: "£600–£1,500", midpoint: 1000 },
+  "1500-plus": { label: "over £1,500", midpoint: 2000 },
+};
+
+export function clientValueOf(answers: Answers): ClientValue | null {
+  const answer = answers["retention.client-value"];
+  if (typeof answer !== "string") return null;
+  return CLIENT_VALUE_BANDS[answer] ?? null;
+}
+
+/** What one extra client a month is worth over a year, in round pounds. */
+export function annualValueOfOneMoreClientPerMonth(value: ClientValue): string {
+  const total = value.midpoint * 12;
+  return `£${total.toLocaleString("en-GB")}`;
 }
 
 function dedupeFixes(fixes: Fix[]): Fix[] {

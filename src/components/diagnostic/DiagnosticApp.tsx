@@ -14,7 +14,9 @@ import {
   type StoredSession,
 } from "@/lib/diagnostic/storage";
 import type { AnswerValue, Profile } from "@/lib/diagnostic/types";
+import { sampleAnswers, testKeyMatches, TEST_PROFILE } from "@/lib/diagnostic/testMode";
 import { ResultsScreen } from "./ResultsScreen";
+import { TestBar } from "./TestBar";
 import { SectionScreen } from "./SectionScreen";
 import { WelcomeScreen } from "./WelcomeScreen";
 
@@ -26,6 +28,8 @@ export function DiagnosticApp() {
   const [unlocking, setUnlocking] = useState(false);
   const [unlockError, setUnlockError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
+  const [testMode, setTestMode] = useState(false);
+  const testRuns = useRef(0);
   const submitted = useRef(false);
   const emailed = useRef(false);
 
@@ -41,6 +45,7 @@ export function DiagnosticApp() {
     }
 
     const params = new URLSearchParams(window.location.search);
+    if (testKeyMatches(params.get("test"))) setTestMode(true);
     const checkoutSession = params.get("session_id");
     if (checkoutSession) {
       verifyPayment(checkoutSession).then((ok) => {
@@ -112,6 +117,7 @@ export function DiagnosticApp() {
           answers: current.answers,
           startedAt: current.startedAt,
           completedAt: current.completedAt,
+          test: testMode,
         }),
       });
     } catch {
@@ -214,13 +220,32 @@ export function DiagnosticApp() {
             profile,
             answers: session.answers,
             pdf,
+            test: testMode,
           }),
         });
       } catch {
         // They can still download it from the results screen.
       }
     })();
-  }, [session?.unlocked, session?.profile, session?.id, session?.answers, result]);
+  }, [session?.unlocked, session?.profile, session?.id, session?.answers, result, testMode]);
+
+  /** Fill every answer with a plausible run so the results have something to say. */
+  function fillSample() {
+    testRuns.current += 1;
+    submitted.current = false;
+    emailed.current = false;
+    const filled: StoredSession = {
+      ...emptySession(),
+      profile: session?.profile ?? TEST_PROFILE,
+      answers: sampleAnswers(testRuns.current),
+      sectionIndex: SECTIONS.length - 1,
+      completedAt: new Date().toISOString(),
+      unlocked: false,
+    };
+    setSession(filled);
+    setStage("results");
+    window.scrollTo({ top: 0 });
+  }
 
   function restart() {
     clearSession();
@@ -235,7 +260,17 @@ export function DiagnosticApp() {
   }
 
   return (
-    <AnimatePresence mode="wait">
+    <>
+      {testMode && (
+        <TestBar
+          stage={stage}
+          unlocked={Boolean(session.unlocked)}
+          onFill={fillSample}
+          onUnlock={() => persist({ unlocked: true })}
+          onReset={restart}
+        />
+      )}
+      <AnimatePresence mode="wait">
       {stage === "welcome" && (
         <motion.div key="welcome" exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.3 }}>
           <WelcomeScreen initial={session.profile} onStart={start} />
@@ -277,6 +312,7 @@ export function DiagnosticApp() {
           />
         </motion.div>
       )}
-    </AnimatePresence>
+      </AnimatePresence>
+    </>
   );
 }

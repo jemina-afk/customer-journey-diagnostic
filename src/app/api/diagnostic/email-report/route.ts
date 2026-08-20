@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic";
   renderer producing both the download and the attachment.
 */
 export async function POST(request: Request) {
-  let body: { id?: string; profile?: Profile; answers?: Answers; pdf?: string };
+  let body: { id?: string; profile?: Profile; answers?: Answers; pdf?: string; test?: boolean };
   try {
     body = await request.json();
   } catch {
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
 
   const sent = await sendEmail({
     to: profile.email,
-    subject: "Your Customer Journey Diagnostic Report",
+    subject: `${body.test ? "[TEST] " : ""}Your Customer Journey Diagnostic Report`,
     html: clientReportEmail(profile, result),
     replyTo: SERVER_CONFIG.notifyEmail,
     attachments,
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
 
   await sendEmail({
     to: SERVER_CONFIG.notifyEmail,
-    subject: `Diagnostic purchased: ${profile.business} — ${result.overall}/100`,
+    subject: `${body.test ? "[TEST] " : ""}Diagnostic purchased: ${profile.business} — ${result.overall}/100`,
     html: notificationEmail(profile, result, "purchased"),
     replyTo: profile.email,
   });

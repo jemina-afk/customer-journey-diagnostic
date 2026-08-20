@@ -139,6 +139,8 @@ export function SectionScreen({
                     question={question}
                     value={answers[key]}
                     onChange={(value) => onAnswer(key, value)}
+                    detail={answers[`${key}.detail`]}
+                    onDetail={(value) => onAnswer(`${key}.detail`, value)}
                   />
                 </div>
               </Card>

@@ -6,7 +6,10 @@
   notifications, stored submissions) without duplication.
 */
 
+/** `"unknown"` is the sentinel a slider stores when someone doesn't track it. */
 export type AnswerValue = string | string[] | number;
+
+export const UNKNOWN = "unknown";
 
 export type Answers = Record<string, AnswerValue>;
 
@@ -49,6 +52,8 @@ export interface ChoiceQuestion extends BaseQuestion {
 export interface MultiQuestion extends BaseQuestion {
   kind: "multi";
   options: Option[];
+  /** Shows a free-text box when a particular option is picked (e.g. "Other"). */
+  specify?: { whenValue: string; prompt: string; placeholder?: string };
   /** Scores the whole selection (breadth matters more than any one option). */
   scoreSelection: (values: string[]) => number;
   /** Narrative for the selection as a whole. */
@@ -68,6 +73,14 @@ export interface SliderQuestion extends BaseQuestion {
   endLabels?: [string, string];
   scoreValue: (value: number) => number;
   review?: (value: number) => { strength?: string; gap?: string; fix?: Fix };
+  /** An honest way out for a number nobody tracks yet. */
+  unknown?: {
+    label: string;
+    /** Not knowing is itself a gap, so it scores below a measured answer. */
+    score: number;
+    gap: string;
+    fix: Fix;
+  };
 }
 
 export interface ScaleQuestion extends BaseQuestion {
@@ -114,6 +127,8 @@ export interface Profile {
   email: string;
   business: string;
   businessType: string;
+  /** Optional — so their site can be looked at alongside their answers. */
+  website?: string;
 }
 
 export type Band = "optimised" | "functional" | "leaking" | "critical";
@@ -135,6 +150,13 @@ export interface SectionResult {
   answered: boolean;
 }
 
+/** Roughly what a client is worth, taken from the band they picked. */
+export interface ClientValue {
+  label: string;
+  /** Middle of the band, used to size what a fix is worth. */
+  midpoint: number;
+}
+
 export interface DiagnosticResult {
   overall: number;
   band: Band;
@@ -144,6 +166,7 @@ export interface DiagnosticResult {
   priorities: SectionResult[];
   quickWins: Fix[];
   plan: { horizon: string; focus: string; steps: string[] }[];
+  clientValue: ClientValue | null;
   completedAt: string;
 }
 

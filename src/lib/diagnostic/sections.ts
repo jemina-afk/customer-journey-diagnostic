@@ -77,6 +77,11 @@ export const SECTIONS: Section[] = [
           { value: "referrals", label: "Referrals", score: 1 },
           { value: "other", label: "Other", score: 1 },
         ],
+        specify: {
+          whenValue: "other",
+          prompt: "Where else do enquiries come from?",
+          placeholder: "e.g. a local Facebook group, a gym I rent space in, an aesthetics directory…",
+        },
         scoreSelection: (values) => ladder(values.length, [0, 0.3, 0.55, 0.78, 0.92, 1]),
         review: (values) => {
           if (values.length >= 3) {
@@ -244,6 +249,15 @@ export const SECTIONS: Section[] = [
             },
           },
         ],
+      },
+      {
+        id: "website-url",
+        kind: "text",
+        prompt: "What's your website address?",
+        hint: "Paste the link and we'll look at it properly alongside your answers. Leave it blank if you don't have one yet.",
+        weight: 0,
+        placeholder: "www.yourbusiness.co.uk",
+        optional: true,
       },
       {
         id: "findability",
@@ -700,6 +714,59 @@ export const SECTIONS: Section[] = [
         ],
       },
       {
+        id: "website-capture",
+        kind: "choice",
+        prompt: "If someone isn't ready to book, can they leave their details on your website?",
+        hint: "An enquiry form, a callback request, a waitlist — anything that captures them before they leave.",
+        weight: 1,
+        options: [
+          {
+            value: "yes",
+            label: "Yes — a form or enquiry option",
+            score: 1,
+            strength:
+              "People who aren't ready to book can still leave their details, so browsing traffic doesn't disappear unrecorded.",
+          },
+          {
+            value: "contact-only",
+            label: "Only my phone number or email address",
+            score: 0.4,
+            gap: "Visitors have to compose a message themselves, which is enough friction that most simply leave.",
+            fix: {
+              action:
+                "Add a short enquiry form — name, contact, treatment they're interested in — to your main service pages, and reply to it with your standard first response.",
+              impact: "Captures the people who are interested but not ready, instead of losing them silently.",
+              effort: "quick",
+            },
+          },
+          {
+            value: "no",
+            label: "No",
+            score: 0.05,
+            gap: "There's no way to capture someone who isn't ready to book today, so every undecided visitor is lost for good.",
+            fix: {
+              action:
+                "Put a simple enquiry form on your site and connect it to your follow-up sequence, so interest is captured even when it isn't a booking yet.",
+              impact:
+                "Turns anonymous website traffic into enquiries you can follow up — usually the cheapest new leads available to you.",
+              effort: "project",
+            },
+          },
+          {
+            value: "none",
+            label: "I don't have a website",
+            score: 0.1,
+            gap: "With no website, there's nowhere for interested people to land or leave their details.",
+            fix: {
+              action:
+                "Launch a single page with your services, prices, photos and an enquiry form. It doesn't need to be big — it needs to exist.",
+              impact: "Gives every post, ad and referral somewhere to send people.",
+              effort: "project",
+            },
+          },
+        ],
+      },
+      {
         id: "conversion-rate",
         kind: "slider",
         prompt: "What percentage of initial enquiries become paying clients?",
@@ -718,6 +785,18 @@ export const SECTIONS: Section[] = [
             [50, 0.8],
             [70, 1],
           ]),
+        unknown: {
+          label: "I don't know",
+          score: 0.3,
+          gap: "You don't yet know what share of enquiries become clients, so you can't tell whether a change has helped or hurt.",
+          fix: {
+            action:
+              "Keep a one-line log for the next month: date, where the enquiry came from, whether they booked. That's your conversion rate.",
+            impact:
+              "Within four weeks you'll know your true number and which source is actually worth your time.",
+            effort: "quick",
+          },
+        },
         review: (v) =>
           v >= 50
             ? { strength: `Converting ${v}% of enquiries into clients is strong — your problem is volume, not persuasion.` }
@@ -922,23 +1001,90 @@ export const SECTIONS: Section[] = [
         ],
       },
       {
-        id: "friction",
-        kind: "scale",
-        prompt: "How much friction is there in your booking process?",
-        weight: 0.8,
-        lowLabel: "Very difficult",
-        highLabel: "Effortless",
-        review: (v) =>
-          v >= 4
-            ? { strength: "You rate booking as easy, and easy booking is what protects hard-won enquiries." }
-            : {
-                gap: "You know your booking process is harder than it should be — and clients feel it more than you do.",
-                fix: {
-                  action: "List every step a new client takes to book and delete the two that serve you rather than them.",
-                  impact: "Each step removed converts more of the people who already wanted to book.",
-                  effort: "quick",
-                },
-              },
+        id: "prices",
+        kind: "choice",
+        prompt: "Can people see your prices before they book?",
+        hint: "On your website, your profile, or wherever they find you.",
+        weight: 1,
+        options: [
+          {
+            value: "yes",
+            label: "Yes — prices are published",
+            score: 1,
+            strength:
+              "Publishing prices filters out the wrong enquiries and lets the right ones book without a conversation first.",
+          },
+          {
+            value: "from",
+            label: "Yes — a 'from' price or a range",
+            score: 0.8,
+            strength: "A guide price gives people enough to decide with, which keeps bookings moving.",
+          },
+          {
+            value: "on-request",
+            label: "Only if they ask",
+            score: 0.3,
+            gap: "Prices only appear on request, so everyone has to start a conversation — and most people won't.",
+            fix: {
+              action:
+                "Publish a price or a 'from' price for every core treatment. If prices vary, publish the range and say what moves it.",
+              impact:
+                "Fewer time-wasting enquiries, more people arriving ready to book, and far less back-and-forth for you.",
+              effort: "quick",
+            },
+          },
+          {
+            value: "no",
+            label: "No",
+            score: 0.15,
+            gap: "Nobody can find out what you charge without contacting you, which quietly filters out people who'd have booked.",
+            fix: {
+              action: "Publish 'from' prices for your main treatments this week — start with your three most-booked.",
+              impact:
+                "Removes the single most common reason people leave a wellness or beauty website without enquiring.",
+              effort: "quick",
+            },
+          },
+        ],
+      },
+      {
+        id: "friction-signals",
+        kind: "multi",
+        prompt: "Which of these happen when someone tries to book with you?",
+        hint: "Tick anything that sounds familiar — this is what friction looks like in practice.",
+        weight: 0.9,
+        options: [
+          { value: "asks-availability", label: "They message to ask what availability you have", score: 0 },
+          { value: "needs-me", label: "I have to reply before they can book anything", score: 0 },
+          { value: "no-prices", label: "They ask what it costs because prices aren't published", score: 0 },
+          { value: "office-hours", label: "Booking only really works during working hours", score: 0 },
+          { value: "forms-first", label: "They have to fill in forms before they can book", score: 0 },
+          { value: "drop-off", label: "People start booking and don't finish", score: 0 },
+          { value: "none", label: "None of these — they book in a couple of taps", score: 1 },
+        ],
+        scoreSelection: (values) => {
+          const signals = values.filter((v) => v !== "none");
+          if (signals.length === 0) return 1;
+          return ladder(signals.length, [1, 0.7, 0.45, 0.25, 0.1]);
+        },
+        review: (values) => {
+          const signals = values.filter((v) => v !== "none");
+          if (signals.length === 0) {
+            return {
+              strength: "Nothing gets between deciding and booking — which is exactly where you want to be.",
+            };
+          }
+          return {
+            gap: `You recognise ${signals.length} point${signals.length === 1 ? "" : "s"} of friction in your booking process, and each one loses people who had already decided to book.`,
+            fix: {
+              action:
+                "Book yourself in on your own phone, from your Instagram bio, timing each step. Remove the first thing that made you pause — usually a question the client shouldn't have to ask.",
+              impact:
+                "Every step removed converts more of the people who already wanted to book, at no extra marketing cost.",
+              effort: "quick",
+            },
+          };
+        },
       },
     ],
   },
@@ -1284,6 +1430,18 @@ export const SECTIONS: Section[] = [
             [20, 0.2],
             [30, 0],
           ]),
+        unknown: {
+          label: "I don't know",
+          score: 0.3,
+          gap: "You don't currently know your no-show rate, so the most expensive thing in your diary is happening unmeasured.",
+          fix: {
+            action:
+              "Mark every missed or late-cancelled appointment for the next month. Two minutes a week gives you the number.",
+            impact:
+              "You'll see what no-shows are actually costing you, and whether reminders and deposits are working.",
+            effort: "quick",
+          },
+        },
         review: (v) =>
           v <= 5
             ? { strength: `A ${v}% no-show rate is excellent — your diary is dependable.` }
@@ -1511,6 +1669,19 @@ export const SECTIONS: Section[] = [
         options: [
           { value: "all", label: "Yes — all of them", score: 1, strength: "Replying to every review signals care to future clients and helps your local ranking." },
           {
+            value: "none-yet",
+            label: "I don't have any reviews yet",
+            score: 0.15,
+            gap: "You have no reviews to respond to yet, which means new clients have nothing to reassure them before they enquire.",
+            fix: {
+              action:
+                "Ask your ten most recent happy clients directly this week, with a link straight to the review box. Then automate the same request for everyone who follows.",
+              impact:
+                "Your first ten reviews change how every other part of your marketing performs — they're the proof everything else relies on.",
+              effort: "quick",
+            },
+          },
+          {
             value: "most",
             label: "Most",
             score: 0.75,
@@ -1620,6 +1791,35 @@ export const SECTIONS: Section[] = [
       "A simple referral reward for existing clients",
     ],
     questions: [
+      {
+        id: "client-value",
+        kind: "choice",
+        prompt: "Roughly what is one new client worth to you, over the whole time they stay with you?",
+        hint: "A rough band is fine — it's what makes the rest of this report add up in pounds rather than percentages.",
+        // Context, not performance: this shapes the report but never the score.
+        weight: 0,
+        options: [
+          { value: "under-50", label: "Under £50", score: 1 },
+          { value: "50-150", label: "£50 – £150", score: 1 },
+          { value: "150-300", label: "£150 – £300", score: 1 },
+          { value: "300-600", label: "£300 – £600", score: 1 },
+          { value: "600-1500", label: "£600 – £1,500", score: 1 },
+          { value: "1500-plus", label: "More than £1,500", score: 1 },
+          {
+            value: "unknown",
+            label: "I don't know",
+            score: 1,
+            gap: "You don't yet know what a client is worth over their lifetime, so there's no way to judge what any gap in this journey is actually costing you.",
+            fix: {
+              action:
+                "Work out a rough figure: average spend per visit × visits per year × the number of years a typical client stays. A rough number beats no number.",
+              impact:
+                "Once you know it, every decision — deposits, follow-up, an hour spent on reviews — can be judged against what it returns.",
+              effort: "quick",
+            },
+          },
+        ],
+      },
       {
         id: "post-appointment",
         kind: "choice",

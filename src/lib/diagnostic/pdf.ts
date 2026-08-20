@@ -1,6 +1,6 @@
 import type { DiagnosticResult, Profile, SectionResult } from "./types";
 import { DIAGNOSTIC } from "./config";
-import { STATUS_LABEL } from "./scoring";
+import { STATUS_LABEL, annualValueOfOneMoreClientPerMonth } from "./scoring";
 
 /*
   The consulting deliverable. Drawn as vectors with jsPDF rather than a screen
@@ -260,6 +260,10 @@ function coverPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
   doc.text(profile.name, M, 232);
   setText(doc, 10.5, MUTED, "normal");
   doc.text(`${profile.business} · ${profile.businessType}`, M, 239);
+  if (profile.website) {
+    setText(doc, 9, FAINT, "normal");
+    doc.text(profile.website, M, 244.5);
+  }
 
   eyebrow(doc, "Prepared by", PAGE_W / 2 + 10, 224, FAINT);
   setText(doc, 14, INK, "bold");
@@ -316,6 +320,17 @@ function executiveSummary(doc: Doc, result: DiagnosticResult, profile: Profile) 
     textW,
     { size: 10, colour: MUTED, leading: 5 },
   );
+
+  if (result.clientValue) {
+    y = paragraph(
+      doc,
+      `At ${result.clientValue.label} per client, one extra client a month is worth ${annualValueOfOneMoreClientPerMonth(result.clientValue)} a year to you — the bar every recommendation in this report has to clear.`,
+      textX,
+      y + 5,
+      textW,
+      { size: 10, colour: INK, leading: 5 },
+    );
+  }
 
   y = Math.max(y, 108) + 10;
   rule(doc, y);

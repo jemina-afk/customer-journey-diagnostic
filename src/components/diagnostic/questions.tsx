@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { UNKNOWN } from "@/lib/diagnostic/types";
 import type {
   AnswerValue,
   ChoiceQuestion,
@@ -82,12 +83,17 @@ function MultiControl({
   question,
   value,
   onChange,
+  detail,
+  onDetail,
 }: {
   question: MultiQuestion;
   value: AnswerValue | undefined;
   onChange: (v: AnswerValue) => void;
+  detail?: AnswerValue;
+  onDetail?: (v: AnswerValue) => void;
 }) {
   const selected = Array.isArray(value) ? value : [];
+  const showSpecify = Boolean(question.specify && selected.includes(question.specify.whenValue));
   function toggle(option: string) {
     onChange(
       selected.includes(option) ? selected.filter((v) => v !== option) : [...selected, option],
@@ -116,6 +122,20 @@ function MultiControl({
           </button>
         );
       })}
+
+      {showSpecify && question.specify && (
+        <label className="sm:col-span-2">
+          <span className="mb-2 block text-[13px] font-medium text-tulivo-ink">
+            {question.specify.prompt}
+          </span>
+          <input
+            className={`${inputClass} text-[15px]`}
+            placeholder={question.specify.placeholder}
+            value={typeof detail === "string" ? detail : ""}
+            onChange={(e) => onDetail?.(e.target.value)}
+          />
+        </label>
+      )}
     </div>
   );
 }
@@ -129,37 +149,63 @@ function SliderControl({
   value: AnswerValue | undefined;
   onChange: (v: AnswerValue) => void;
 }) {
+  const dontKnow = value === UNKNOWN;
   const current = typeof value === "number" ? value : question.defaultValue;
   const fill = ((current - question.min) / (question.max - question.min)) * 100;
   const display = question.format ? question.format(current) : `${current}${question.unit ?? ""}`;
 
   return (
     <div>
-      <div className="flex items-end justify-between">
-        <span className="tabular text-[34px] font-semibold leading-none tracking-[-0.03em] text-tulivo-clay">
-          {display}
+      <div className="flex items-end justify-between gap-4">
+        <span
+          className={cn(
+            "tabular text-[34px] font-semibold leading-none tracking-[-0.03em]",
+            dontKnow ? "text-tulivo-faint" : "text-tulivo-clay",
+          )}
+        >
+          {dontKnow ? "—" : display}
         </span>
-        {typeof value !== "number" && (
+        {value === undefined && (
           <span className="text-[12px] text-tulivo-faint">Drag to set your answer</span>
         )}
       </div>
-      <input
-        type="range"
-        className="t-range mt-3"
-        style={{ ["--fill" as string]: `${fill}%` }}
-        min={question.min}
-        max={question.max}
-        step={question.step}
-        value={current}
-        aria-label={question.prompt}
-        aria-valuetext={display}
-        onChange={(e) => onChange(Number(e.target.value))}
-      />
-      {question.endLabels && (
-        <div className="flex justify-between text-[12px] text-tulivo-faint">
-          <span>{question.endLabels[0]}</span>
-          <span>{question.endLabels[1]}</span>
-        </div>
+      <div className={cn("transition-opacity", dontKnow && "pointer-events-none opacity-40")}>
+        <input
+          type="range"
+          className="t-range mt-3"
+          style={{ ["--fill" as string]: `${dontKnow ? 0 : fill}%` }}
+          min={question.min}
+          max={question.max}
+          step={question.step}
+          value={current}
+          disabled={dontKnow}
+          aria-label={question.prompt}
+          aria-valuetext={display}
+          onChange={(e) => onChange(Number(e.target.value))}
+        />
+        {question.endLabels && (
+          <div className="flex justify-between text-[12px] text-tulivo-faint">
+            <span>{question.endLabels[0]}</span>
+            <span>{question.endLabels[1]}</span>
+          </div>
+        )}
+      </div>
+
+      {question.unknown && (
+        <button
+          type="button"
+          aria-pressed={dontKnow}
+          onClick={() => onChange(dontKnow ? question.defaultValue : UNKNOWN)}
+          className={cn(
+            "mt-4 inline-flex min-h-[44px] items-center gap-2.5 rounded-full border px-4 text-[14px] transition-all duration-200",
+            dontKnow
+              ? "border-tulivo-clay bg-tulivo-clay-soft/70 font-medium text-tulivo-ink"
+              : "border-tulivo-line bg-white/60 text-tulivo-muted hover:border-tulivo-clay/40 hover:bg-tulivo-clay-soft/30",
+          )}
+        >
+          <Tick checked={dontKnow} round />
+          {question.unknown.label}
+        </button>
       )}
     </div>
   );
@@ -230,16 +276,29 @@ export function QuestionControl({
   question,
   value,
   onChange,
+  detail,
+  onDetail,
 }: {
   question: Question;
   value: AnswerValue | undefined;
   onChange: (v: AnswerValue) => void;
+  /** The free-text answer to a multi-select's "specify" follow-up. */
+  detail?: AnswerValue;
+  onDetail?: (v: AnswerValue) => void;
 }) {
   switch (question.kind) {
     case "choice":
       return <ChoiceControl question={question} value={value} onChange={onChange} />;
     case "multi":
-      return <MultiControl question={question} value={value} onChange={onChange} />;
+      return (
+        <MultiControl
+          question={question}
+          value={value}
+          onChange={onChange}
+          detail={detail}
+          onDetail={onDetail}
+        />
+      );
     case "slider":
       return <SliderControl question={question} value={value} onChange={onChange} />;
     case "scale":

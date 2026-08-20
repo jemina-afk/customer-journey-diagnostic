@@ -16,7 +16,7 @@ export function WelcomeScreen({
   onStart: (profile: Profile) => void;
 }) {
   const [profile, setProfile] = useState<Profile>(
-    initial ?? { name: "", email: "", business: "", businessType: "" },
+    initial ?? { name: "", email: "", business: "", businessType: "", website: "" },
   );
   const [errors, setErrors] = useState<Partial<Record<keyof Profile, string>>>({});
 
@@ -39,6 +39,7 @@ export function WelcomeScreen({
       email: profile.email.trim(),
       business: profile.business.trim(),
       businessType: profile.businessType,
+      website: profile.website?.trim() || undefined,
     });
   }
 
@@ -145,6 +146,20 @@ export function WelcomeScreen({
                     </option>
                   ))}
                 </select>
+              </Field>
+
+              <Field
+                label="Website (optional)"
+                hint="Share the link and we'll look at your site alongside your answers."
+              >
+                <input
+                  className={inputClass}
+                  value={profile.website ?? ""}
+                  onChange={(e) => set("website", e.target.value)}
+                  inputMode="url"
+                  autoComplete="url"
+                  placeholder="www.yourbusiness.co.uk"
+                />
               </Field>
 
               <Button type="submit" full className="mt-2">

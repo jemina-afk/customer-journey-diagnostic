@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { DIAGNOSTIC } from "@/lib/diagnostic/config";
-import { STATUS_LABEL } from "@/lib/diagnostic/scoring";
+import { STATUS_LABEL, annualValueOfOneMoreClientPerMonth } from "@/lib/diagnostic/scoring";
 import type { DiagnosticResult, Profile, SectionResult } from "@/lib/diagnostic/types";
 import { RadarChart, ScoreDial } from "./RadarChart";
 import { Locked, LockIcon } from "./Locked";
@@ -76,6 +76,15 @@ export function ResultsScreen({
           <p className="mt-4 max-w-[60ch] text-[16px] leading-relaxed text-tulivo-muted sm:text-[17px]">
             {result.bandSummary}
           </p>
+          {result.clientValue && (
+            <p className="mt-5 max-w-[60ch] rounded-[14px] border border-tulivo-line bg-tulivo-veil/50 px-4 py-3.5 text-[15px] leading-relaxed text-tulivo-ink">
+              At {result.clientValue.label} per client, just one extra client a month is worth{" "}
+              <strong className="tabular font-semibold">
+                {annualValueOfOneMoreClientPerMonth(result.clientValue)}
+              </strong>{" "}
+              a year to you — that&apos;s the bar every fix below has to clear.
+            </p>
+          )}
         </div>
       </motion.section>
 

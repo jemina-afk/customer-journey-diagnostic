@@ -24,13 +24,13 @@ export const DIAGNOSTIC = {
     },
     {
       name: "Intensive Day",
-      price: "£1,500",
+      price: "From £1,500",
       description:
         "One focused day together fixing your number one priority end to end — built, tested and live before we finish.",
     },
     {
       name: "90-Day Growth Advisory",
-      price: "£6,000",
+      price: "From £6,000",
       description:
         "Full implementation of your action plan across all three priorities, with fortnightly sessions and everything built with you.",
     },

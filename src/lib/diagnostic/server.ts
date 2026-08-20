@@ -113,6 +113,14 @@ export function clientReportEmail(profile: Profile, result: DiagnosticResult): s
   `);
 }
 
+/** Their website as a clickable link, so it can be reviewed in one click. */
+function websiteLine(profile: Profile): string {
+  const raw = (profile.website ?? "").trim();
+  if (!raw) return "";
+  const href = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+  return `<br/><a href="${escapeHtml(href)}" style="color:#be6044;">${escapeHtml(raw)}</a>`;
+}
+
 export function notificationEmail(
   profile: Profile,
   result: DiagnosticResult,
@@ -135,13 +143,19 @@ export function notificationEmail(
       <strong style="color:#201b18;">${escapeHtml(profile.name)}</strong><br/>
       ${escapeHtml(profile.business)} · ${escapeHtml(profile.businessType)}<br/>
       <a href="mailto:${escapeHtml(profile.email)}" style="color:#be6044;">${escapeHtml(profile.email)}</a>
+      ${websiteLine(profile)}
     </p>
     <div style="margin:18px 0;padding:16px;background:#f4efe8;border-radius:12px;">
       <div style="font-size:30px;font-weight:700;color:#201b18;">${result.overall}<span style="font-size:16px;color:#9a8f86;">/100</span></div>
       <div style="font-size:14px;color:#be6044;font-weight:600;">${escapeHtml(result.bandLabel)}</div>
     </div>
     <table style="width:100%;border-collapse:collapse;">${rows}</table>
-    <div style="margin-top:18px;font-size:14px;color:#6a6058;">
+    ${
+      result.clientValue
+        ? `<div style="margin-top:14px;font-size:14px;color:#6a6058;"><strong style="color:#201b18;">Client value:</strong> ${escapeHtml(result.clientValue.label)} per client</div>`
+        : ""
+    }
+    <div style="margin-top:14px;font-size:14px;color:#6a6058;">
       <strong style="color:#201b18;">Priorities:</strong> ${result.priorities.map((p) => `${escapeHtml(p.title)} (${p.score})`).join(" · ")}
     </div>
   `);
