@@ -16,7 +16,8 @@ export const SERVER_CONFIG = {
   fromEmail: process.env.DIAGNOSTIC_FROM_EMAIL ?? "Tulivo Digital <onboarding@resend.dev>",
   notifyEmail: process.env.DIAGNOSTIC_NOTIFY_EMAIL ?? "jemina@tulivodigital.com",
   stripeKey: process.env.STRIPE_SECRET_KEY ?? "",
-  pricePence: Number(process.env.DIAGNOSTIC_PRICE_PENCE ?? 29700),
+  reportPence: Number(process.env.DIAGNOSTIC_REPORT_PENCE ?? 9700),
+  callPence: Number(process.env.DIAGNOSTIC_CALL_PENCE ?? 39700),
   unlockCode: process.env.DIAGNOSTIC_UNLOCK_CODE ?? "",
 };
 
@@ -142,6 +143,7 @@ export function notificationEmail(
     <p style="font-size:15px;line-height:1.6;color:#6a6058;">
       <strong style="color:#201b18;">${escapeHtml(profile.name)}</strong><br/>
       ${escapeHtml(profile.business)} · ${escapeHtml(profile.businessType)}<br/>
+      ${profile.website ? `<a href="${escapeHtml(profile.website.startsWith("http") ? profile.website : `https://${profile.website}`)}" style="color:#be6044;">${escapeHtml(profile.website)}</a><br/>` : ""}
       <a href="mailto:${escapeHtml(profile.email)}" style="color:#be6044;">${escapeHtml(profile.email)}</a>
       ${websiteLine(profile)}
     </p>

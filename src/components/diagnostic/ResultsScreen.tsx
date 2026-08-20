@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { DIAGNOSTIC } from "@/lib/diagnostic/config";
 import { STATUS_LABEL, annualValueOfOneMoreClientPerMonth } from "@/lib/diagnostic/scoring";
-import type { DiagnosticResult, Profile, SectionResult } from "@/lib/diagnostic/types";
+import { estimateImpact, formatMoney } from "@/lib/diagnostic/impact";
+import type { Answers, DiagnosticResult, Profile, SectionResult } from "@/lib/diagnostic/types";
 import { RadarChart, ScoreDial } from "./RadarChart";
 import { Locked, LockIcon } from "./Locked";
 import { Button, Card, Eyebrow, Rule, StatusDot, Wordmark, inputClass } from "./ui";
@@ -15,7 +16,9 @@ const ORDINAL = ["#1 Priority", "#2 Priority", "#3 Priority"];
 export function ResultsScreen({
   result,
   profile,
+  answers,
   unlocked,
+  tier,
   paymentBypassed,
   onUnlock,
   onDownload,
@@ -27,12 +30,15 @@ export function ResultsScreen({
 }: {
   result: DiagnosticResult;
   profile: Profile;
+  answers: Answers;
   unlocked: boolean;
+  /** Which tier was bought, when one was. */
+  tier: string | null;
   /** No payment method is connected, so unlocking is currently free. */
   paymentBypassed: boolean;
   unlocking: boolean;
   unlockError: string | null;
-  onUnlock: () => void;
+  onUnlock: (tier: string) => void;
   onRedeemCode: (code: string) => void;
   onDownload: () => void;
   downloading: boolean;
@@ -40,7 +46,7 @@ export function ResultsScreen({
 }) {
   const [code, setCode] = useState("");
   const [showCode, setShowCode] = useState(false);
-  const price = `${DIAGNOSTIC.currencySymbol}${DIAGNOSTIC.price}`;
+  const impact = useMemo(() => estimateImpact(answers), [answers]);
 
   return (
     <div className="mx-auto w-full max-w-[1080px] px-5 py-10 sm:px-8 sm:py-14">
@@ -90,6 +96,52 @@ export function ResultsScreen({
           )}
         </div>
       </motion.section>
+
+      {/* ---------- What it's costing ---------- */}
+      {impact.available && (
+        <motion.section
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+          className="mt-12"
+        >
+          <Card className="overflow-hidden border-tulivo-clay/25">
+            <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[0.85fr_1.15fr] lg:gap-12">
+              <div>
+                <Eyebrow>What the gaps are costing you</Eyebrow>
+                <div className="tabular mt-4 text-[44px] font-semibold leading-none tracking-[-0.04em] text-tulivo-ink sm:text-[52px]">
+                  {formatMoney(impact.recoverable)}
+                </div>
+                <p className="mt-2 text-[15px] font-medium text-tulivo-clay">recoverable a year</p>
+                <p className="mt-4 text-[14px] leading-relaxed text-tulivo-muted">
+                  A conservative estimate, built from the numbers you gave us — not from what&apos;s
+                  theoretically possible.
+                </p>
+              </div>
+
+              <div>
+                <ul className="space-y-4">
+                  {impact.leaks.map((leak) => (
+                    <li key={leak.id} className="border-b border-tulivo-hairline pb-4 last:border-0 last:pb-0">
+                      <div className="flex items-baseline justify-between gap-4">
+                        <span className="text-[15px] font-medium text-tulivo-ink">{leak.label}</span>
+                        <span className="tabular text-[16px] font-semibold text-tulivo-ink">
+                          {formatMoney(leak.annual)}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-[13px] leading-relaxed text-tulivo-faint">{leak.basis}</p>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-5 text-[12px] leading-relaxed text-tulivo-faint">
+                  {impact.assumptions.join(" ")} Figures are estimates, rounded, and capped so no single
+                  answer can overstate them.
+                </p>
+              </div>
+            </div>
+          </Card>
+        </motion.section>
+      )}
 
       {/* ---------- Radar + section scores ---------- */}
       <section className="mt-14 grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
@@ -192,8 +244,21 @@ export function ResultsScreen({
                 <br className="hidden sm:block" /> Now get the solutions.
               </h2>
               <p className="mx-auto mt-4 max-w-[58ch] text-[15px] leading-relaxed text-tulivo-muted">
-                Your diagnostic revealed {result.priorities.filter((p) => p.status !== "green").length || 3}{" "}
-                areas costing you clients right now:
+                {impact.available ? (
+                  <>
+                    Roughly{" "}
+                    <strong className="font-semibold text-tulivo-ink">
+                      {formatMoney(impact.recoverable)} a year
+                    </strong>{" "}
+                    is sitting in these three areas:
+                  </>
+                ) : (
+                  <>
+                    Your diagnostic revealed{" "}
+                    {result.priorities.filter((p) => p.status !== "green").length || 3} areas costing you
+                    clients right now:
+                  </>
+                )}
               </p>
               <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5">
                 {result.priorities.map((p) => (
@@ -209,65 +274,95 @@ export function ResultsScreen({
               </div>
             </div>
 
-            <div className="grid gap-8 px-6 py-8 sm:px-10 sm:py-10 lg:grid-cols-[1.1fr_0.9fr]">
-              <div>
-                <h3 className="text-[13px] font-semibold uppercase tracking-[0.2em] text-tulivo-muted">
-                  Your full report includes
-                </h3>
-                <ul className="mt-5 space-y-3">
-                  {[
-                    "Exactly what's broken in each of the eight stages",
-                    "Specific, actionable recommendations written from your answers",
-                    "Your prioritised 30/60/90 day action plan",
-                    "Quick wins you can implement this week",
-                    "Tool recommendations for your situation",
-                    `A ${DIAGNOSTIC.reportPages}-page PDF you can keep and refer back to`,
-                  ].map((line) => (
-                    <li key={line} className="flex gap-3 text-[15px] leading-relaxed text-tulivo-ink">
-                      <CheckMark />
-                      <span>{line}</span>
-                    </li>
-                  ))}
-                </ul>
+            <div className="px-6 py-8 sm:px-10 sm:py-10">
+              {paymentBypassed && (
+                <p className="mb-7 rounded-[14px] border border-tulivo-gold/40 bg-tulivo-gold-soft/70 px-4 py-3.5 text-[13px] leading-relaxed text-tulivo-ink">
+                  <strong className="font-semibold">Payment isn&apos;t connected yet.</strong> Either button
+                  below unlocks the full report free, so you can test the whole flow. Add your Stripe key to
+                  start charging.
+                </p>
+              )}
+
+              <div className="grid gap-5 lg:grid-cols-2">
+                {DIAGNOSTIC.tiers.map((option) => (
+                  <div
+                    key={option.id}
+                    className={cn(
+                      "relative flex flex-col rounded-[20px] border p-6 sm:p-7",
+                      option.recommended
+                        ? "border-tulivo-clay/45 bg-tulivo-clay-soft/40 shadow-[0_18px_40px_-30px_rgba(154,71,47,0.7)]"
+                        : "border-tulivo-line bg-tulivo-veil/40",
+                    )}
+                  >
+                    {option.recommended && (
+                      <span className="absolute -top-3 left-6 rounded-full bg-tulivo-clay px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white">
+                        Most useful
+                      </span>
+                    )}
+
+                    <h3 className="text-[17px] font-semibold tracking-[-0.02em] text-tulivo-ink">
+                      {option.name}
+                    </h3>
+                    <div className="tabular mt-3 text-[38px] font-semibold leading-none tracking-[-0.03em] text-tulivo-ink">
+                      {DIAGNOSTIC.currencySymbol}
+                      {option.price}
+                    </div>
+                    <p className="mt-2 text-[13.5px] leading-relaxed text-tulivo-muted">{option.blurb}</p>
+
+                    <ul className="mt-5 flex-1 space-y-2.5">
+                      {option.features.map((line) => (
+                        <li key={line} className="flex gap-2.5 text-[14px] leading-relaxed text-tulivo-ink">
+                          <CheckMark />
+                          <span>{line}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <Button
+                      className="mt-6"
+                      full
+                      variant={option.recommended ? "primary" : "ghost"}
+                      onClick={() => onUnlock(option.id)}
+                      disabled={unlocking}
+                    >
+                      {unlocking
+                        ? "Opening checkout…"
+                        : option.recommended
+                          ? "Get the report and the call"
+                          : "Get the report"}
+                    </Button>
+                  </div>
+                ))}
               </div>
 
-              <div className="flex flex-col justify-center rounded-[18px] border border-tulivo-line bg-tulivo-veil/50 p-6 text-center">
-                <div className="tabular text-[40px] font-semibold leading-none tracking-[-0.03em] text-tulivo-ink">
-                  {price}
-                </div>
-                <p className="mt-2 text-[13px] text-tulivo-muted">One-off. Yours to keep.</p>
-                {paymentBypassed && (
-                  <p className="mt-5 rounded-[12px] border border-tulivo-gold/40 bg-tulivo-gold-soft/70 px-3.5 py-3 text-left text-[12.5px] leading-relaxed text-tulivo-ink">
-                    <strong className="font-semibold">Payment isn&apos;t connected yet.</strong> The button
-                    below unlocks the full report free, so you can test the whole flow. Add your Stripe key
-                    to start charging.
-                  </p>
-                )}
-                <Button className="mt-6" full onClick={onUnlock} disabled={unlocking}>
-                  {unlocking ? "Opening checkout…" : `Unlock your full report — ${price}`}
-                </Button>
-                {unlockError && (
-                  <p className="mt-3 text-[13px] leading-relaxed text-tulivo-red">{unlockError}</p>
-                )}
-                <a
-                  href={DIAGNOSTIC.bookingUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-4 text-[14px] font-medium text-tulivo-ink underline decoration-tulivo-clay/40 underline-offset-4 hover:decoration-tulivo-clay"
-                >
-                  Or book a free 15-minute call to discuss your results
-                </a>
+              {unlockError && (
+                <p className="mt-4 text-center text-[13px] leading-relaxed text-tulivo-red">{unlockError}</p>
+              )}
 
+              <div className="mt-7 text-center">
+                <p className="text-[13px] leading-relaxed text-tulivo-muted">
+                  {impact.available ? (
+                    <>
+                      Both are one-off. Set against roughly{" "}
+                      <strong className="font-semibold text-tulivo-ink">
+                        {formatMoney(impact.recoverable)}
+                      </strong>{" "}
+                      a year currently leaking out of your journey.
+                    </>
+                  ) : (
+                    <>Both are one-off, and yours to keep.</>
+                  )}
+                </p>
                 <button
                   type="button"
-                  onClick={() => setShowCode((s) => !s)}
-                  className="mt-5 text-[12px] text-tulivo-faint underline underline-offset-4 hover:text-tulivo-muted"
+                  onClick={() => setShowCode((value) => !value)}
+                  className="mt-4 text-[12px] text-tulivo-faint underline underline-offset-4 hover:text-tulivo-muted"
                 >
                   Already paid? Enter your unlock code
                 </button>
                 {showCode && (
                   <form
-                    className="mt-3 flex gap-2"
+                    className="mx-auto mt-3 flex max-w-[340px] gap-2"
                     onSubmit={(e) => {
                       e.preventDefault();
                       onRedeemCode(code.trim());
@@ -310,6 +405,24 @@ export function ResultsScreen({
             </Button>
           </Card>
 
+          {tier === "call" && (
+            <Card className="mt-4 flex flex-col items-start gap-5 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+              <div>
+                <Eyebrow>Your walkthrough call</Eyebrow>
+                <h2 className="mt-2 text-[20px] font-semibold tracking-[-0.02em] text-tulivo-ink">
+                  Book your 45 minutes with {DIAGNOSTIC.consultant.split(" ")[0]}
+                </h2>
+                <p className="mt-1.5 max-w-[52ch] text-[14px] leading-relaxed text-tulivo-muted">
+                  We&apos;ll walk through your results, agree your focus KPI and decide the first two things
+                  to build. Bring your report — no preparation needed beyond that.
+                </p>
+              </div>
+              <a href={DIAGNOSTIC.bookingUrl} target="_blank" rel="noreferrer" className="w-full sm:w-auto">
+                <Button full>Book your call</Button>
+              </a>
+            </Card>
+          )}
+
           <div className="mt-10">
             <Eyebrow>This week</Eyebrow>
             <h2 className="mt-3 text-[26px] font-semibold tracking-[-0.025em] text-tulivo-ink">
@@ -329,30 +442,108 @@ export function ResultsScreen({
           </div>
 
           <div className="mt-12">
-            <Eyebrow>Your action plan</Eyebrow>
+            <Eyebrow>Your 90-day focus</Eyebrow>
             <h2 className="mt-3 text-[26px] font-semibold tracking-[-0.025em] text-tulivo-ink">
-              The next 90 days
+              One number, three or four priorities
             </h2>
-            <div className="mt-6 space-y-4">
-              {result.plan.map((phase) => (
-                <Card key={phase.horizon} className="p-6 sm:p-7">
-                  <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-                    <h3 className="text-[17px] font-semibold tracking-[-0.02em] text-tulivo-ink">
-                      {phase.horizon}
-                    </h3>
-                    <p className="text-[14px] text-tulivo-clay">{phase.focus}</p>
+            <p className="mt-3 max-w-[64ch] text-[15px] leading-relaxed text-tulivo-muted">
+              Everything in this cycle moves the same number. Spreading effort across eight stages is why
+              most improvement plans stall — this one compounds instead.
+            </p>
+
+            <Card className="mt-7 overflow-hidden border-tulivo-clay/25">
+              <div className="grid gap-6 border-b border-tulivo-line bg-tulivo-veil/50 p-6 sm:p-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-10">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-tulivo-clay">
+                    Your focus KPI
+                  </p>
+                  <h3 className="mt-3 text-[26px] font-semibold leading-tight tracking-[-0.025em] text-tulivo-ink">
+                    {result.cycle.kpi}
+                  </h3>
+                  <p className="mt-2 text-[14px] leading-relaxed text-tulivo-muted">{result.cycle.metric}</p>
+                  <p className="mt-4 text-[14.5px] leading-relaxed text-tulivo-ink">{result.cycle.why}</p>
+                </div>
+
+                <div className="grid gap-3 self-start">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-[14px] border border-tulivo-line bg-tulivo-card p-4">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-tulivo-faint">
+                        Today
+                      </p>
+                      <p className="mt-1.5 text-[16px] font-semibold leading-snug text-tulivo-ink">
+                        {result.cycle.current ?? "Not measured yet"}
+                      </p>
+                    </div>
+                    <div className="rounded-[14px] border border-tulivo-clay/35 bg-tulivo-clay-soft/60 p-4">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-tulivo-clay">
+                        In 90 days
+                      </p>
+                      <p className="mt-1.5 text-[16px] font-semibold leading-snug text-tulivo-ink">
+                        {result.cycle.target}
+                      </p>
+                    </div>
                   </div>
-                  <ul className="mt-4 space-y-2.5">
-                    {phase.steps.map((step) => (
-                      <li key={step} className="flex gap-3 text-[15px] leading-relaxed text-tulivo-muted">
-                        <span className="mt-[9px] h-1.5 w-1.5 flex-none rounded-full bg-tulivo-clay/60" />
-                        <span>{step}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </Card>
-              ))}
-            </div>
+                  {result.cycle.worth !== null && (
+                    <div className="rounded-[14px] border border-tulivo-line bg-tulivo-card p-4">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-tulivo-faint">
+                        Worth
+                      </p>
+                      <p className="tabular mt-1.5 text-[16px] font-semibold text-tulivo-ink">
+                        {formatMoney(result.cycle.worth)} a year
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="p-6 sm:p-8">
+                <ol className="space-y-5">
+                  {result.cycle.priorities.map((priority, i) => (
+                    <li key={priority.title} className="flex gap-4 sm:gap-5">
+                      <span className="tabular mt-[2px] flex h-8 w-8 flex-none items-center justify-center rounded-full border border-tulivo-clay/35 bg-tulivo-clay-soft/50 text-[13px] font-semibold text-tulivo-clay">
+                        {i + 1}
+                      </span>
+                      <div className="flex-1 border-b border-tulivo-hairline pb-5 last:border-0 last:pb-0">
+                        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                          <h4 className="text-[17px] font-semibold tracking-[-0.02em] text-tulivo-ink">
+                            {priority.title}
+                          </h4>
+                          <span className="text-[12px] font-medium uppercase tracking-[0.12em] text-tulivo-faint">
+                            {priority.window}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-[13px] text-tulivo-muted">via {priority.stage}</p>
+                        <ul className="mt-3 space-y-2.5">
+                          {priority.steps.map((step) => (
+                            <li key={step} className="flex gap-3 text-[15px] leading-relaxed text-tulivo-muted">
+                              <span className="mt-[9px] h-1.5 w-1.5 flex-none rounded-full bg-tulivo-clay/60" />
+                              <span>{step}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </Card>
+
+            {result.cycle.next && (
+              <Card className="mt-4 flex flex-col gap-3 border-dashed p-6 sm:flex-row sm:items-center sm:justify-between sm:p-7">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-tulivo-faint">
+                    Then the next cycle
+                  </p>
+                  <p className="mt-2 text-[16px] font-medium text-tulivo-ink">
+                    {result.cycle.next.kpi} — {result.cycle.next.stage}
+                  </p>
+                </div>
+                <p className="max-w-[42ch] text-[13.5px] leading-relaxed text-tulivo-muted">
+                  Once this number moves and holds, the next ninety days take on the next one. That&apos;s
+                  how the whole journey lifts without ever splitting your attention.
+                </p>
+              </Card>
+            )}
           </div>
         </section>
       )}

@@ -1,4 +1,5 @@
-import type { Section } from "./types";
+import { UNKNOWN } from "./types";
+import type { Answers, Question, Section } from "./types";
 
 /*
   The eight stages of the customer journey, with the questions, scoring and the
@@ -22,6 +23,26 @@ function curve(value: number, points: [number, number][]): number {
     if (value <= x1) return y0 + ((value - x0) / (x1 - x0)) * (y1 - y0);
   }
   return points[points.length - 1][1];
+}
+
+
+/** Reads an answer by `${sectionId}.${questionId}`. */
+function answer(answers: Answers, key: string): string | string[] | number | undefined {
+  return answers[key];
+}
+
+function num(answers: Answers, key: string): number | null {
+  const value = answer(answers, key);
+  return typeof value === "number" ? value : null;
+}
+
+function label(answers: Answers, sectionId: string, questionId: string): string | null {
+  const value = answer(answers, `${sectionId}.${questionId}`);
+  if (typeof value !== "string" || value === UNKNOWN) return null;
+  const section = SECTIONS.find((s) => s.id === sectionId);
+  const question = section?.questions.find((q) => q.id === questionId);
+  if (!question || question.kind !== "choice") return null;
+  return question.options.find((o) => o.value === value)?.label ?? null;
 }
 
 export const BUSINESS_TYPES = [
@@ -60,6 +81,19 @@ export const SECTIONS: Section[] = [
       "A booking-first website page for each core service",
       "Local directory listings for your area and treatment type",
     ],
+    purpose: "Be findable where clients are already looking",
+    kpi: {
+      name: "New enquiries a month",
+      metric: "How many people reach out to you in a month, across every channel",
+      why: "Everything downstream is capped by this number. Fixing conversion matters, but not if only a handful of people ever find you.",
+      supports: ["lead-sources", "reviews", "booking"],
+      current: (answers) => {
+        const sources = answer(answers, "lead-sources.sources");
+        if (!Array.isArray(sources) || sources.length === 0) return null;
+        return `${sources.length} route${sources.length === 1 ? "" : "s"} in`;
+      },
+      target: () => "Three dependable routes, with Google as one of them",
+    },
     questions: [
       {
         id: "sources",
@@ -302,6 +336,15 @@ export const SECTIONS: Section[] = [
       "A shared inbox that pulls every channel into one place",
       "A saved reply template with your three most common answers",
     ],
+    purpose: "Answer every enquiry the moment it lands",
+    kpi: {
+      name: "Enquiry response time",
+      metric: "How long a new enquiry waits before it gets a useful reply",
+      why: "It's the fastest-moving number you have: replies inside five minutes convert several times better than replies an hour later, and it costs nothing but a system.",
+      supports: ["lead-response", "lead-nurture", "booking"],
+      current: (answers) => label(answers, "lead-response", "speed"),
+      target: () => "Under five minutes, every time, including when you're with a client",
+    },
     questions: [
       {
         id: "speed",
@@ -542,6 +585,22 @@ export const SECTIONS: Section[] = [
       "Email and SMS automation triggered by an unconverted enquiry",
       "A time-limited incentive for first-time bookings",
     ],
+    purpose: "Follow up until they decide",
+    kpi: {
+      name: "Enquiry-to-client conversion",
+      metric: "The share of enquiries that become paying clients",
+      why: "You've already paid for these people's attention. Lifting this number costs nothing extra and shows up in the diary within weeks.",
+      supports: ["lead-nurture", "lead-response", "booking"],
+      current: (answers) => {
+        const value = num(answers, "lead-nurture.conversion-rate");
+        return value === null ? null : `${value}%`;
+      },
+      target: (answers) => {
+        const value = num(answers, "lead-nurture.conversion-rate");
+        if (value === null) return "Measured first, then lifted by 10–15 points";
+        return `${Math.min(value + 15, 70)}%`;
+      },
+    },
     questions: [
       {
         id: "followup",
@@ -833,6 +892,15 @@ export const SECTIONS: Section[] = [
       "Deposits taken at the point of booking",
       "A single booking link used everywhere, so there's one route in",
     ],
+    purpose: "Make booking effortless and always open",
+    kpi: {
+      name: "Bookings taken without you",
+      metric: "The share of appointments booked online, at any hour, with no messages in between",
+      why: "Most personal appointments are booked outside working hours. Every booking that needs you is one you can lose to timing.",
+      supports: ["booking", "lead-response", "lead-sources"],
+      current: (answers) => label(answers, "booking", "247"),
+      target: () => "Every core service bookable 24/7 in two taps",
+    },
     questions: [
       {
         id: "method",
@@ -1109,6 +1177,15 @@ export const SECTIONS: Section[] = [
       "A 'what to expect' message sent 48 hours before",
       "Digital consultation and consent forms completed before arrival",
     ],
+    purpose: "Prepare every client before they arrive",
+    kpi: {
+      name: "First-appointment attendance",
+      metric: "The share of first-time bookings that arrive, prepared and on time",
+      why: "First visits are where clients are most likely to get cold feet — and where a good experience turns into a rebooking.",
+      supports: ["confirmation", "reminders", "booking"],
+      current: (answers) => label(answers, "confirmation", "confirmation"),
+      target: () => "Automated confirmation, preparation and forms before every first visit",
+    },
     questions: [
       {
         id: "confirmation",
@@ -1319,6 +1396,23 @@ export const SECTIONS: Section[] = [
       "A clearly stated cancellation policy shown at booking",
       "An automatic message the same day someone misses an appointment",
     ],
+    purpose: "Protect the diary you've already filled",
+    kpi: {
+      name: "No-show rate",
+      metric: "The share of booked appointments that don't turn up or cancel too late to refill",
+      why: "It's the most expensive number in the business: the client was won, the time was blocked, and there's nothing to sell in its place.",
+      supports: ["reminders", "confirmation", "booking"],
+      current: (answers) => {
+        const value = answer(answers, "reminders.noshow-rate");
+        if (value === UNKNOWN) return "Not measured yet";
+        return typeof value === "number" ? `${value}%` : null;
+      },
+      target: (answers) => {
+        const value = answer(answers, "reminders.noshow-rate");
+        if (typeof value !== "number") return "Measured weekly, then under 5%";
+        return value <= 5 ? "Held under 5%" : `Under ${Math.max(5, Math.round(value / 2))}%`;
+      },
+    },
     questions: [
       {
         id: "reminders",
@@ -1571,6 +1665,22 @@ export const SECTIONS: Section[] = [
       "A direct Google review link saved as a short URL or QR code",
       "A monthly slot for replying to every review you've received",
     ],
+    purpose: "Build proof that does the selling for you",
+    kpi: {
+      name: "Google reviews",
+      metric: "How many reviews you have, and how fast new ones arrive",
+      why: "Reviews decide who gets clicked before anyone speaks to you — and they lift every other channel you run.",
+      supports: ["reviews", "retention", "confirmation"],
+      current: (answers) => {
+        const value = num(answers, "lead-sources.reviews-count");
+        if (value === null) return null;
+        return `${value >= 100 ? "100+" : value} review${value === 1 ? "" : "s"}`;
+      },
+      target: (answers) => {
+        const value = num(answers, "lead-sources.reviews-count") ?? 0;
+        return value >= 25 ? "10 new reviews a quarter, on autopilot" : "25 reviews, then 10 a quarter";
+      },
+    },
     questions: [
       {
         id: "asking",
@@ -1790,6 +1900,22 @@ export const SECTIONS: Section[] = [
       "An automated 'we've missed you' sequence at 8–12 weeks",
       "A simple referral reward for existing clients",
     ],
+    purpose: "Turn first visits into regulars",
+    kpi: {
+      name: "Repeat client rate",
+      metric: "The share of your appointments taken by clients who've been before",
+      why: "Returning clients cost nothing to win, so this number goes almost straight to profit — and it steadies the quiet weeks.",
+      supports: ["retention", "reviews", "confirmation"],
+      current: (answers) => {
+        const value = num(answers, "retention.repeat-rate");
+        return value === null ? null : `${value}% repeat`;
+      },
+      target: (answers) => {
+        const value = num(answers, "retention.repeat-rate");
+        if (value === null) return "Measured first, then 60%+";
+        return `${Math.min(Math.max(value + 20, 60), 85)}% repeat`;
+      },
+    },
     questions: [
       {
         id: "client-value",
@@ -1990,3 +2116,43 @@ export const SECTIONS: Section[] = [
 ];
 
 export const SECTION_COUNT = SECTIONS.length;
+
+/*
+  Two numbers that aren't scored, asked once the eight stages are done. They're
+  what turns "your nurture is weak" into "that's roughly £4,000 a year", which
+  is the difference between an interesting score and an urgent one.
+*/
+export const NUMBERS_QUESTIONS: Question[] = [
+  {
+    id: "appointments",
+    kind: "slider",
+    prompt: "Roughly how many client appointments do you have in a typical week?",
+    weight: 0,
+    min: 0,
+    max: 100,
+    step: 1,
+    defaultValue: 20,
+    format: (v) => (v >= 100 ? "100+" : String(v)),
+    endLabels: ["None", "100+"],
+    scoreValue: () => 0,
+  },
+  {
+    id: "value",
+    kind: "slider",
+    prompt: "What's your average appointment value?",
+    hint: "A rough average across everything you offer is fine.",
+    weight: 0,
+    min: 0,
+    max: 300,
+    step: 5,
+    defaultValue: 60,
+    format: (v) => (v >= 300 ? "£300+" : `£${v}`),
+    endLabels: ["£0", "£300+"],
+    scoreValue: () => 0,
+  },
+];
+
+export const NUMBERS_KEYS = {
+  appointments: "numbers.appointments",
+  value: "numbers.value",
+} as const;

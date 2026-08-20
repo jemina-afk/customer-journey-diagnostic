@@ -1,4 +1,4 @@
-import { SECTIONS } from "./sections";
+import { NUMBERS_KEYS, SECTIONS } from "./sections";
 import { questionKey } from "./scoring";
 import type { Answers, Profile } from "./types";
 
@@ -86,6 +86,9 @@ export function sampleAnswers(variant = 0): Answers {
       }
     });
   });
+
+  answers[NUMBERS_KEYS.appointments] = 24 + (variant % 3) * 6;
+  answers[NUMBERS_KEYS.value] = 65 + (variant % 4) * 15;
 
   return answers;
 }

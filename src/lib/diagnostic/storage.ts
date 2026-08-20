@@ -18,6 +18,8 @@ export interface StoredSession {
   startedAt: string;
   completedAt: string | null;
   unlocked: boolean;
+  /** Which tier was bought — "call" adds the walkthrough. */
+  tier?: string;
 }
 
 export function newSessionId(): string {

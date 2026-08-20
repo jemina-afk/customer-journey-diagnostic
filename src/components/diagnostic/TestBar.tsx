@@ -19,7 +19,7 @@ export function TestBar({
   onUnlock: () => void;
   onReset: () => void;
   unlocked: boolean;
-  stage: "welcome" | "sections" | "results";
+  stage: "welcome" | "sections" | "numbers" | "results";
 }) {
   return (
     <div className="sticky top-0 z-40 border-b border-tulivo-gold/40 bg-tulivo-gold-soft/95 backdrop-blur-md">

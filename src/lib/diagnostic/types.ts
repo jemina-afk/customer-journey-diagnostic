@@ -103,6 +103,26 @@ export type Question =
   | ScaleQuestion
   | TextQuestion;
 
+/*
+  The one number a 90-day cycle is judged on. Each stage owns a KPI, and each
+  stage also knows which KPIs its work moves — so a focus cycle can pull three
+  or four aligned priorities together instead of scattering effort.
+*/
+export interface Kpi {
+  /** Short name, e.g. "No-show rate". */
+  name: string;
+  /** How it's measured, in a sentence. */
+  metric: string;
+  /** Why this is the number worth chasing first. */
+  why: string;
+  /** Stage ids whose fixes move this KPI, most important first. */
+  supports: string[];
+  /** Their number today, drawn from their answers where we asked for it. */
+  current: (answers: Answers) => string | null;
+  /** Where it should be in 90 days. */
+  target: (answers: Answers) => string;
+}
+
 export interface Section {
   id: string;
   /** Full name, used in headings and the report. */
@@ -119,6 +139,10 @@ export interface Section {
   verdict: { strong: string; ok: string; weak: string };
   /** Tools worth considering for this stage. */
   tools: string[];
+  /** What this stage contributes when it becomes a priority in a cycle. */
+  purpose: string;
+  /** The KPI this stage owns. */
+  kpi: Kpi;
   questions: Question[];
 }
 
@@ -165,9 +189,36 @@ export interface DiagnosticResult {
   sections: SectionResult[];
   priorities: SectionResult[];
   quickWins: Fix[];
-  plan: { horizon: string; focus: string; steps: string[] }[];
+  /** One KPI, three or four aligned priorities, then the next cycle. */
+  cycle: FocusCycle;
   clientValue: ClientValue | null;
   completedAt: string;
+}
+
+export interface CyclePriority {
+  /** What this priority is for, e.g. "Protect the diary you've already filled". */
+  title: string;
+  /** The stage it comes from. */
+  stage: string;
+  /** When in the 90 days it happens. */
+  window: string;
+  steps: string[];
+}
+
+export interface FocusCycle {
+  /** The stage the cycle is built around. */
+  stage: string;
+  kpi: string;
+  metric: string;
+  why: string;
+  /** Where they are now, when we have a number for it. */
+  current: string | null;
+  target: string;
+  /** What moving it is worth over a year, when their numbers allow an estimate. */
+  worth: number | null;
+  priorities: CyclePriority[];
+  /** The KPI the following cycle would take on. */
+  next: { stage: string; kpi: string } | null;
 }
 
 export interface Submission {

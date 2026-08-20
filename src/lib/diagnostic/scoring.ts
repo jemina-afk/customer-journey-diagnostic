@@ -1,7 +1,10 @@
 import { SECTIONS } from "./sections";
+import { estimateImpact } from "./impact";
 import { UNKNOWN } from "./types";
 import type {
   Answers,
+  CyclePriority,
+  FocusCycle,
   ClientValue,
   AnswerValue,
   Band,
@@ -206,7 +209,7 @@ export function scoreDiagnostic(answers: Answers): DiagnosticResult {
     sections,
     priorities,
     quickWins,
-    plan: buildPlan(priorities, quickWins),
+    cycle: buildCycle(priorities, sections, answers, quickWins),
     clientValue: clientValueOf(answers),
     completedAt: new Date().toISOString(),
   };
@@ -245,46 +248,90 @@ function dedupeFixes(fixes: Fix[]): Fix[] {
   return out;
 }
 
-function buildPlan(priorities: SectionResult[], quickWins: Fix[]): DiagnosticResult["plan"] {
-  const [first, second, third] = priorities;
-  const plan: DiagnosticResult["plan"] = [];
-  const isQuickWin = (fix: Fix) => quickWins.some((w) => w.action === fix.action);
+/*
+  A 90-day cycle in the shape of the LEAP programme: one KPI, three or four
+  priorities that all move that same KPI, then the number the next cycle takes
+  on. Priorities come from the stages the KPI actually depends on — so the work
+  compounds on one number instead of being spread thinly across eight.
+*/
+const WINDOWS = ["Weeks 1–2", "Weeks 3–6", "Weeks 7–10", "Weeks 11–13"];
 
-  // The quick wins are listed on their own, so the 30-day plan carries what
-  // comes after them rather than repeating them.
-  const firstMonth = dedupeFixes((first?.fixes ?? []).filter((f) => !isQuickWin(f)));
-  plan.push({
-    horizon: "First 30 days",
-    focus: first ? `Stop the biggest leak: ${first.title}` : "Lock in the quick wins",
-    steps: (firstMonth.length > 0 ? firstMonth : dedupeFixes(quickWins)).slice(0, 3).map((f) => f.action),
-  });
+function buildCycle(
+  priorities: SectionResult[],
+  sections: SectionResult[],
+  answers: Answers,
+  quickWins: Fix[],
+): FocusCycle {
+  const lead = priorities[0] ?? sections[0];
+  const leadSection = SECTIONS.find((s) => s.id === lead.id) ?? SECTIONS[0];
+  const kpi = leadSection.kpi;
 
-  if (second) {
-    plan.push({
-      horizon: "Days 31–60",
-      focus: `Build the system behind ${second.title}`,
-      steps: dedupeFixes(second.fixes).slice(0, 3).map((f) => f.action),
+  const byId = new Map(sections.map((s) => [s.id, s]));
+  const scoreOf = (id: string) => byId.get(id)?.score ?? 100;
+
+  // The stages that move this KPI, weakest first after the lead stage itself.
+  const supporting = kpi.supports
+    .filter((id) => id !== leadSection.id)
+    .sort((a, b) => scoreOf(a) - scoreOf(b));
+
+  // The quick wins are listed on their own as "this week", so the cycle
+  // carries what comes after them rather than repeating them.
+  const used = new Set<string>(quickWins.map((fix) => fix.action));
+  const cyclePriorities: CyclePriority[] = [];
+
+  for (const id of [leadSection.id, ...supporting]) {
+    if (cyclePriorities.length >= WINDOWS.length) break;
+    const section = SECTIONS.find((s) => s.id === id);
+    const result = byId.get(id);
+    if (!section || !result) continue;
+    // A stage already in good shape doesn't need a priority spent on it.
+    if (id !== leadSection.id && result.status === "green") continue;
+
+    const room = id === leadSection.id ? 3 : 2;
+    let steps = result.fixes.filter((fix) => !used.has(fix.action)).slice(0, room);
+    // A stage whose only actions were quick wins still deserves its priority.
+    if (steps.length === 0) steps = result.fixes.slice(0, 1);
+    if (steps.length === 0) continue;
+    steps.forEach((fix) => used.add(fix.action));
+
+    cyclePriorities.push({
+      title: section.purpose,
+      stage: section.title,
+      window: WINDOWS[cyclePriorities.length],
+      steps: steps.map((fix) => fix.action),
     });
   }
 
-  if (third) {
-    plan.push({
-      horizon: "Days 61–90",
-      focus: `Compound the gains through ${third.title}`,
-      steps: dedupeFixes(third.fixes).slice(0, 3).map((f) => f.action),
-    });
-  }
+  // The next cycle takes the strongest remaining opportunity that this one
+  // didn't already cover.
+  const covered = new Set(cyclePriorities.map((p) => p.stage));
+  const nextSection = [...sections]
+    .sort((a, b) => b.opportunity - a.opportunity)
+    .map((result) => SECTIONS.find((s) => s.id === result.id))
+    .find((section) => section && !covered.has(section.title) && section.id !== leadSection.id);
 
-  plan.push({
-    horizon: "Ongoing",
-    focus: "Measure what you've changed",
-    steps: [
-      "Track enquiries, bookings and no-shows weekly so improvements are visible rather than assumed.",
-      "Re-run this diagnostic in 90 days to see how far your score has moved.",
-    ],
-  });
+  const impact = estimateImpact(answers);
+  const leakFor: Record<string, string> = {
+    reminders: "no-shows",
+    "lead-nurture": "enquiries",
+    "lead-response": "enquiries",
+    retention: "retention",
+  };
+  const worth = impact.available
+    ? impact.leaks.find((leak) => leak.id === leakFor[leadSection.id])?.annual ?? null
+    : null;
 
-  return plan.filter((p) => p.steps.length > 0);
+  return {
+    stage: leadSection.title,
+    kpi: kpi.name,
+    metric: kpi.metric,
+    why: kpi.why,
+    current: kpi.current(answers),
+    target: kpi.target(answers),
+    worth,
+    priorities: cyclePriorities,
+    next: nextSection ? { stage: nextSection.title, kpi: nextSection.kpi.name } : null,
+  };
 }
 
 /** How far through the assessment they are, 0–1. */

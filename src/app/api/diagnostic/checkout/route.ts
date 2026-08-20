@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ configured: false, error: "Stripe is not configured." }, { status: 200 });
   }
 
-  let body: { id?: string; profile?: Profile; overall?: number; returnUrl?: string };
+  let body: { id?: string; profile?: Profile; overall?: number; returnUrl?: string; tier?: string };
   try {
     body = await request.json();
   } catch {
@@ -44,11 +44,23 @@ export async function POST(request: Request) {
   params.set("metadata[overall]", String(body.overall ?? ""));
   params.set("line_items[0][quantity]", "1");
   params.set("line_items[0][price_data][currency]", "gbp");
-  params.set("line_items[0][price_data][unit_amount]", String(SERVER_CONFIG.pricePence));
-  params.set("line_items[0][price_data][product_data][name]", "Customer Journey Diagnostic — Full Report");
+  const withCall = body.tier === "call";
+  params.set("metadata[tier]", withCall ? "call" : "report");
+  params.set(
+    "line_items[0][price_data][unit_amount]",
+    String(withCall ? SERVER_CONFIG.callPence : SERVER_CONFIG.reportPence),
+  );
+  params.set(
+    "line_items[0][price_data][product_data][name]",
+    withCall
+      ? "Customer Journey Diagnostic — Report + Walkthrough Call"
+      : "Customer Journey Diagnostic — Full Report",
+  );
   params.set(
     "line_items[0][price_data][product_data][description]",
-    `${DIAGNOSTIC.reportPages}-page diagnostic report with recommendations and a 30/60/90 day action plan.`,
+    withCall
+      ? `${DIAGNOSTIC.reportPages}-page report, your 90-day focus KPI and priorities, plus a 45-minute walkthrough call.`
+      : `${DIAGNOSTIC.reportPages}-page report with recommendations and your 90-day focus KPI and priorities.`,
   );
 
   try {

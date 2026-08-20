@@ -23,7 +23,7 @@ red/amber/green status, and the names of the top three priorities.
 3. **Results** — score out of 100, band, radar chart, stage scores, priorities.
 4. **Paywall** — the locked content is rendered for real and blurred, so it's
    visibly specific rather than a generic teaser.
-5. **Unlocked** — full recommendations on screen, the PDF to download, and the
+6. **Unlocked** — full recommendations on screen, the PDF to download, and the
    same report emailed over.
 
 Answers autosave to `localStorage` after every question, so a closed tab or a
@@ -81,6 +81,59 @@ whether it's a quick win or a project); each strong option carries its own
 strength. Nothing in a report is a template — it's assembled from what that
 owner actually told us.
 
+## What the gaps are costing
+
+`src/lib/diagnostic/impact.ts` turns the answers into a pounds-a-year figure,
+because "your nurture is weak" persuades nobody and "roughly £8,100 a year"
+persuades most people. Three leaks are modelled, each from a number they gave:
+
+| Leak | How it's estimated |
+|------|--------------------|
+| Appointments that don't turn up | Halving their no-show rate, valued at the average appointment |
+| Enquiries that never became clients | Lifting conversion by 10 points, valued at what a client is worth over time |
+| Clients who don't come back | Closing half the gap between their repeat rate and 60% |
+
+It is deliberately conservative, and built to survive scrutiny from someone who
+knows their own business:
+
+- Only recoverable value is counted, never the full theoretical loss.
+- 50 working weeks a year, not 52.
+- No single leak may exceed 18% of annual revenue; the total is capped at 35%.
+- Anything under £250 is dropped rather than padded.
+- The assumptions are printed under the figures, including where a placeholder
+  (a 10% no-show rate) stood in for a number they don't track yet.
+
+If the two numbers are missing, nothing about money appears anywhere — no
+invented figures.
+
+## Your 90-day focus (the LEAP cycle)
+
+The plan is shaped like the LEAP programme rather than a generic 30/60/90:
+**one KPI per cycle**, three or four priorities that all move that same number,
+then the next cycle takes on the next KPI.
+
+Every stage owns a KPI (`kpi` in `sections.ts`) and knows which stages move it
+(`supports`). The cycle is built from the weakest stage: its KPI becomes the
+focus, its own fixes become the first priority, and the supporting stages —
+weakest first, skipping any already in good shape — become priorities two to
+four, each with a window (Weeks 1–2, 3–6, 7–10, 11–13). Quick wins are excluded
+from the cycle steps so "this week" and "this quarter" never repeat each other.
+
+| Stage | Focus KPI |
+|-------|-----------|
+| Lead Sources & Discovery | New enquiries a month |
+| Lead Response | Enquiry response time |
+| Lead Nurture & Follow-Up | Enquiry-to-client conversion |
+| Booking Process | Bookings taken without you |
+| Confirmation & Pre-Appointment | First-appointment attendance |
+| Reminders & No-Show Prevention | No-show rate |
+| Reviews & Reputation | Google reviews |
+| Retention & Re-engagement | Repeat client rate |
+
+Where their answers gave a number, the cycle shows today's value, a 90-day
+target and what moving it is worth. The next cycle's KPI is named at the end,
+which is also the natural point to continue into the advisory.
+
 ## The PDF report
 
 Fourteen pages, drawn as vectors with jsPDF rather than captured from the
@@ -94,6 +147,22 @@ with quick wins and 30/60/90 · next steps and offers · about Tulivo.
 It's generated in the browser, which keeps the server free of a rendering
 runtime, then posted to the API as a data URI to be attached to the email.
 
+## Two ways to unlock
+
+The paywall offers a choice rather than a single price:
+
+| | Price | What it is |
+|---|-------|-----------|
+| The full report | £97 | Everything unlocked on screen, plus the PDF |
+| Report + walkthrough call | £397 | The report, plus 45 minutes to agree the focus KPI and the first two builds |
+
+The cheaper option is inside impulse range for a salon or clinic owner, so it
+converts people who would never have paid a single higher price. The call
+option is the one that matters: it produces a paying, pre-qualified owner who
+has already read their own gaps — which is the conversation the Intensive Day
+and the LEAP advisory come out of. Both are edited in
+`src/lib/diagnostic/config.ts`.
+
 ## Payments, unlocking and email
 
 Nothing here is required to run the app — each piece switches on when its
@@ -101,7 +170,8 @@ environment variable appears.
 
 | Variables | What they enable |
 |-----------|------------------|
-| `STRIPE_SECRET_KEY`, `DIAGNOSTIC_PRICE_PENCE` | Stripe Checkout, created by direct API call (no SDK). On return, payment is **verified server-side** before anything unlocks. |
+| `STRIPE_SECRET_KEY`, `DIAGNOSTIC_REPORT_PENCE`, `DIAGNOSTIC_CALL_PENCE` | Stripe Checkout, created by direct API call (no SDK), priced per tier. On return, payment is **verified server-side** before anything unlocks. |
+| `NEXT_PUBLIC_TIER_REPORT_PRICE`, `NEXT_PUBLIC_TIER_CALL_PRICE` | The prices shown on the two unlock options. |
 | `NEXT_PUBLIC_REQUIRE_PAYMENT` | Set to `true` to keep the report locked even when no payment method is connected. |
 | `NEXT_PUBLIC_CHECKOUT_URL` | Stan Store or any external checkout, used when Stripe isn't configured. |
 | `DIAGNOSTIC_UNLOCK_CODE` | A code you send after payment taken any other way; the client enters it on the results screen. |

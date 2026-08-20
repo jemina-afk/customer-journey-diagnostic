@@ -16,11 +16,12 @@ import {
 import type { AnswerValue, Profile } from "@/lib/diagnostic/types";
 import { sampleAnswers, testKeyMatches, TEST_PROFILE } from "@/lib/diagnostic/testMode";
 import { ResultsScreen } from "./ResultsScreen";
+import { NumbersScreen } from "./NumbersScreen";
 import { TestBar } from "./TestBar";
 import { SectionScreen } from "./SectionScreen";
 import { WelcomeScreen } from "./WelcomeScreen";
 
-type Stage = "welcome" | "sections" | "results";
+type Stage = "welcome" | "sections" | "numbers" | "results";
 
 export function DiagnosticApp() {
   const [session, setSession] = useState<StoredSession | null>(null);
@@ -107,6 +108,12 @@ export function DiagnosticApp() {
       persist({ sectionIndex: index + 1 });
       return;
     }
+    setStage("numbers");
+  }
+
+  /** The two unscored numbers are in — score it and show the results. */
+  function finish() {
+    if (!session) return;
     const completedAt = new Date().toISOString();
     persist({ completedAt });
     setStage("results");
@@ -115,6 +122,10 @@ export function DiagnosticApp() {
 
   function back() {
     if (!session) return;
+    if (stage === "numbers") {
+      setStage("sections");
+      return;
+    }
     if (index === 0) {
       setStage("welcome");
       return;
@@ -158,8 +169,9 @@ export function DiagnosticApp() {
     }
   }
 
-  async function unlock() {
+  async function unlock(tier: string) {
     if (!session?.profile) return;
+    persist({ tier });
     setUnlockError(null);
     setUnlocking(true);
     try {
@@ -170,6 +182,7 @@ export function DiagnosticApp() {
           id: session.id,
           profile: session.profile,
           overall: result.overall,
+          tier,
           returnUrl: window.location.origin + window.location.pathname,
         }),
       });
@@ -224,7 +237,7 @@ export function DiagnosticApp() {
     if (!session?.profile) return;
     setDownloading(true);
     try {
-      await downloadReport(result, session.profile);
+      await downloadReport(result, session.profile, session.answers);
     } finally {
       setDownloading(false);
     }
@@ -237,7 +250,7 @@ export function DiagnosticApp() {
     const profile = session.profile;
     void (async () => {
       try {
-        const pdf = await reportDataUri(result, profile);
+        const pdf = await reportDataUri(result, profile, session.answers);
         await fetch("/api/diagnostic/email-report", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -317,6 +330,12 @@ export function DiagnosticApp() {
         </motion.div>
       )}
 
+      {stage === "numbers" && (
+        <motion.div key="numbers" exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
+          <NumbersScreen answers={answers} onAnswer={answer} onBack={back} onFinish={finish} />
+        </motion.div>
+      )}
+
       {stage === "results" && session.profile && (
         <motion.div
           key="results"
@@ -327,7 +346,9 @@ export function DiagnosticApp() {
           <ResultsScreen
             result={result}
             profile={session.profile}
+            answers={answers}
             unlocked={Boolean(session.unlocked)}
+            tier={session.tier ?? null}
             paymentBypassed={paymentLive === false && !DIAGNOSTIC.requirePayment}
             unlocking={unlocking}
             unlockError={unlockError}
