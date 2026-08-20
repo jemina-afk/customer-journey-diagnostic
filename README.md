@@ -102,6 +102,7 @@ environment variable appears.
 | Variables | What they enable |
 |-----------|------------------|
 | `STRIPE_SECRET_KEY`, `DIAGNOSTIC_PRICE_PENCE` | Stripe Checkout, created by direct API call (no SDK). On return, payment is **verified server-side** before anything unlocks. |
+| `NEXT_PUBLIC_REQUIRE_PAYMENT` | Set to `true` to keep the report locked even when no payment method is connected. |
 | `NEXT_PUBLIC_CHECKOUT_URL` | Stan Store or any external checkout, used when Stripe isn't configured. |
 | `DIAGNOSTIC_UNLOCK_CODE` | A code you send after payment taken any other way; the client enters it on the results screen. |
 | `RESEND_API_KEY`, `DIAGNOSTIC_FROM_EMAIL`, `DIAGNOSTIC_NOTIFY_EMAIL` | Emails the report (PDF attached) to the client, and a summary to you — once on completion, again on purchase. |
@@ -117,6 +118,17 @@ to decide whether to follow up before you open anything else.
 
 Leads arrive by email rather than being stored in a database. If you want a
 stored history later, `src/lib/diagnostic/server.ts` is the one file to change.
+
+### Before payment is connected
+
+With no Stripe key and no `NEXT_PUBLIC_CHECKOUT_URL`, there is nothing to pay
+with — so the unlock button unlocks the report anyway, and the paywall says
+plainly that payment isn't connected and clicking will unlock it free. That way
+the whole flow, including the report and the emails, can be tested from the day
+it's deployed.
+
+Adding a Stripe key switches the same button to real checkout, and the notice
+disappears. To lock the report before then, set `NEXT_PUBLIC_REQUIRE_PAYMENT=true`.
 
 ## Test mode
 

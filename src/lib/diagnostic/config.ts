@@ -9,6 +9,12 @@ export const DIAGNOSTIC = {
   currencySymbol: "£",
   /** Stan Store / external checkout, used when Stripe isn't configured. */
   checkoutUrl: process.env.NEXT_PUBLIC_CHECKOUT_URL ?? "",
+  /*
+    Until a way to take money is configured, the unlock button simply unlocks —
+    otherwise the report can't be tested at all. Set NEXT_PUBLIC_REQUIRE_PAYMENT
+    to "true" to keep it locked even then.
+  */
+  requirePayment: process.env.NEXT_PUBLIC_REQUIRE_PAYMENT === "true",
   bookingUrl: process.env.NEXT_PUBLIC_BOOKING_URL ?? "https://calendly.com/tulivodigital/15min",
   contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "jemina@tulivodigital.com",
   consultant: "Jemina Semakula",

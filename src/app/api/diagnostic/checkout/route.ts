@@ -11,9 +11,14 @@ export const dynamic = "force-dynamic";
   SDK, so nothing extra ships and the route runs anywhere. When Stripe isn't
   configured the client falls back to the external checkout URL (Stan Store).
 */
+/** Lets the results screen know whether real payment is switched on. */
+export async function GET() {
+  return NextResponse.json({ configured: SERVER_CONFIG.stripeKey.length > 0 });
+}
+
 export async function POST(request: Request) {
   if (!SERVER_CONFIG.stripeKey) {
-    return NextResponse.json({ error: "Stripe is not configured." }, { status: 200 });
+    return NextResponse.json({ configured: false, error: "Stripe is not configured." }, { status: 200 });
   }
 
   let body: { id?: string; profile?: Profile; overall?: number; returnUrl?: string };

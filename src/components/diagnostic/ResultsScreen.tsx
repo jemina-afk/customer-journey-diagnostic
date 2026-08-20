@@ -16,6 +16,7 @@ export function ResultsScreen({
   result,
   profile,
   unlocked,
+  paymentBypassed,
   onUnlock,
   onDownload,
   unlockError,
@@ -27,6 +28,8 @@ export function ResultsScreen({
   result: DiagnosticResult;
   profile: Profile;
   unlocked: boolean;
+  /** No payment method is connected, so unlocking is currently free. */
+  paymentBypassed: boolean;
   unlocking: boolean;
   unlockError: string | null;
   onUnlock: () => void;
@@ -233,6 +236,13 @@ export function ResultsScreen({
                   {price}
                 </div>
                 <p className="mt-2 text-[13px] text-tulivo-muted">One-off. Yours to keep.</p>
+                {paymentBypassed && (
+                  <p className="mt-5 rounded-[12px] border border-tulivo-gold/40 bg-tulivo-gold-soft/70 px-3.5 py-3 text-left text-[12.5px] leading-relaxed text-tulivo-ink">
+                    <strong className="font-semibold">Payment isn&apos;t connected yet.</strong> The button
+                    below unlocks the full report free, so you can test the whole flow. Add your Stripe key
+                    to start charging.
+                  </p>
+                )}
                 <Button className="mt-6" full onClick={onUnlock} disabled={unlocking}>
                   {unlocking ? "Opening checkout…" : `Unlock your full report — ${price}`}
                 </Button>

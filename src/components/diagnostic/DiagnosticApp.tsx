@@ -29,6 +29,8 @@ export function DiagnosticApp() {
   const [unlockError, setUnlockError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [testMode, setTestMode] = useState(false);
+  // null while unknown; false means the unlock button unlocks without charging.
+  const [paymentLive, setPaymentLive] = useState<boolean | null>(null);
   const testRuns = useRef(0);
   const submitted = useRef(false);
   const emailed = useRef(false);
@@ -63,6 +65,23 @@ export function DiagnosticApp() {
   useEffect(() => {
     if (session) saveSession(session);
   }, [session]);
+
+  useEffect(() => {
+    if (stage !== "results" || paymentLive !== null) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch("/api/diagnostic/checkout");
+        const data = (await res.json()) as { configured?: boolean };
+        if (!cancelled) setPaymentLive(Boolean(data.configured) || Boolean(DIAGNOSTIC.checkoutUrl));
+      } catch {
+        if (!cancelled) setPaymentLive(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [stage, paymentLive]);
 
   const answers = useMemo(() => session?.answers ?? {}, [session?.answers]);
   const result = useMemo(() => scoreDiagnostic(answers), [answers]);
@@ -161,6 +180,13 @@ export function DiagnosticApp() {
       }
       if (DIAGNOSTIC.checkoutUrl) {
         window.location.href = DIAGNOSTIC.checkoutUrl;
+        return;
+      }
+      // Nothing to pay with yet — unlock so the report can be read and tested.
+      if (!DIAGNOSTIC.requirePayment) {
+        setPaymentLive(false);
+        persist({ unlocked: true });
+        window.scrollTo({ top: 0, behavior: "smooth" });
         return;
       }
       setUnlockError(
@@ -302,6 +328,7 @@ export function DiagnosticApp() {
             result={result}
             profile={session.profile}
             unlocked={Boolean(session.unlocked)}
+            paymentBypassed={paymentLive === false && !DIAGNOSTIC.requirePayment}
             unlocking={unlocking}
             unlockError={unlockError}
             onUnlock={unlock}
