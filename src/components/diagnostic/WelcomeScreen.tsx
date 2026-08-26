@@ -60,7 +60,7 @@ export function WelcomeScreen({
             Diagnostic
           </h1>
           <p className="mt-6 max-w-[46ch] text-[17px] leading-relaxed text-tulivo-muted sm:text-[19px]">
-            Discover exactly where your business is losing enquiries — and what to fix first.
+            Discover exactly where your business is losing enquiries - and what to fix first.
           </p>
 
           <div className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-2 text-[13px] text-tulivo-faint">

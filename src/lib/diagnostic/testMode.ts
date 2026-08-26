@@ -3,13 +3,13 @@ import { questionKey } from "./scoring";
 import type { Answers, Profile } from "./types";
 
 /*
-  Test mode — a way to walk the whole flow, including the paid side, without
+  Test mode - a way to walk the whole flow, including the paid side, without
   taking a card payment or answering forty questions first.
 
   Where it's available:
-    · local development (npm run dev) — any ?test= value switches it on
-    · Vercel preview deployments — likewise, so a branch deploy is testable
-    · production — only when NEXT_PUBLIC_TEST_MODE_KEY is set, and only for
+    · local development (npm run dev) - any ?test= value switches it on
+    · Vercel preview deployments - likewise, so a branch deploy is testable
+    · production - only when NEXT_PUBLIC_TEST_MODE_KEY is set, and only for
       ?test=<that exact value>
 
   So the live diagnostic can't be unlocked by someone guessing a query string,
@@ -29,7 +29,7 @@ export function testModeAllowed(): boolean {
 /** True when this particular `?test=` value should switch test mode on. */
 export function testKeyMatches(param: string | null): boolean {
   if (!param || !testModeAllowed()) return false;
-  // Off the live site, any value will do — there's nothing to protect.
+  // Off the live site, any value will do - there's nothing to protect.
   if (process.env.NODE_ENV !== "production" || (VERCEL_ENV && VERCEL_ENV !== "production")) {
     return true;
   }

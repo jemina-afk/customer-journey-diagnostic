@@ -111,7 +111,7 @@ export function DiagnosticApp() {
     setStage("numbers");
   }
 
-  /** The two unscored numbers are in — score it and show the results. */
+  /** The two unscored numbers are in - score it and show the results. */
   function finish() {
     if (!session) return;
     const completedAt = new Date().toISOString();
@@ -133,7 +133,7 @@ export function DiagnosticApp() {
     persist({ sectionIndex: index - 1 });
   }
 
-  /** Fire-and-forget lead capture — a failure here never blocks the results. */
+  /** Fire-and-forget lead capture - a failure here never blocks the results. */
   async function submit(current: StoredSession) {
     if (submitted.current || !current.profile) return;
     submitted.current = true;
@@ -151,7 +151,7 @@ export function DiagnosticApp() {
         }),
       });
     } catch {
-      // Offline or blocked — their results still work.
+      // Offline or blocked - their results still work.
     }
   }
 
@@ -195,7 +195,7 @@ export function DiagnosticApp() {
         window.location.href = DIAGNOSTIC.checkoutUrl;
         return;
       }
-      // Nothing to pay with yet — unlock so the report can be read and tested.
+      // Nothing to pay with yet - unlock so the report can be read and tested.
       if (!DIAGNOSTIC.requirePayment) {
         setPaymentLive(false);
         persist({ unlocked: true });

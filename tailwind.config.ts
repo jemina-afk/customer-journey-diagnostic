@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 
 /*
-  Tulivo Digital — a light-only palette for a client-facing product: warm ivory
+  Tulivo Digital - a light-only palette for a client-facing product: warm ivory
   paper, espresso ink, terracotta accent, muted gold detailing. Colours are rgb
   triplets so Tailwind can compose them with alpha.
 */

@@ -9,13 +9,13 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Customer Journey Diagnostic — Tulivo Digital",
+  title: "Customer Journey Diagnostic - Tulivo Digital",
   description:
-    "Discover exactly where your business is losing enquiries — and what to fix first. A free 10-minute diagnostic for wellness and beauty business owners.",
+    "Discover exactly where your business is losing enquiries - and what to fix first. A free 10-minute diagnostic for wellness and beauty business owners.",
   openGraph: {
-    title: "Customer Journey Diagnostic — Tulivo Digital",
+    title: "Customer Journey Diagnostic - Tulivo Digital",
     description:
-      "Discover exactly where your business is losing enquiries — and what to fix first.",
+      "Discover exactly where your business is losing enquiries - and what to fix first.",
     type: "website",
   },
 };

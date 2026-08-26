@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 
 /*
-  The test-mode strip. Deliberately unmissable — it should never be possible to
+  The test-mode strip. Deliberately unmissable - it should never be possible to
   mistake a test run for a client's, and every email it triggers is labelled
   [TEST] so the inbox tells the same story.
 */

@@ -4,7 +4,7 @@ import type { Answers, Profile } from "./types";
 
 /*
   Session persistence. The diagnostic takes 10–15 minutes, so progress is saved
-  to localStorage on every answer — a dropped connection or a closed tab never
+  to localStorage on every answer - a dropped connection or a closed tab never
   costs someone their answers.
 */
 
@@ -18,7 +18,7 @@ export interface StoredSession {
   startedAt: string;
   completedAt: string | null;
   unlocked: boolean;
-  /** Which tier was bought — "call" adds the walkthrough. */
+  /** Which tier was bought - "call" adds the walkthrough. */
   tier?: string;
 }
 
@@ -57,7 +57,7 @@ export function saveSession(session: StoredSession): void {
   try {
     window.localStorage.setItem(KEY, JSON.stringify(session));
   } catch {
-    // Private browsing or a full quota — the diagnostic still works in memory.
+    // Private browsing or a full quota - the diagnostic still works in memory.
   }
 }
 

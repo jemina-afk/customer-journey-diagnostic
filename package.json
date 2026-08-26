@@ -2,7 +2,7 @@
   "name": "customer-journey-diagnostic",
   "version": "1.0.0",
   "private": true,
-  "description": "Interactive Customer Journey Diagnostic for wellness and beauty business owners — Tulivo Digital",
+  "description": "Interactive Customer Journey Diagnostic for wellness and beauty business owners - Tulivo Digital",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

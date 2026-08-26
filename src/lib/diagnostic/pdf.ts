@@ -6,7 +6,7 @@ import { estimateImpact, formatMoney } from "./impact";
 /*
   The consulting deliverable. Drawn as vectors with jsPDF rather than a screen
   capture, so type stays sharp at any zoom and the file stays small enough to
-  email. Loaded on demand — jsPDF never enters the initial bundle.
+  email. Loaded on demand - jsPDF never enters the initial bundle.
 */
 
 const INK: RGB = [32, 27, 24];
@@ -319,13 +319,13 @@ function executiveSummary(doc: Doc, result: DiagnosticResult, profile: Profile, 
   );
   y = paragraph(
     doc,
-    `Your strongest stage is ${strongest(result).title} at ${strongest(result).score}/100. The stage costing you most right now is ${result.priorities[0].title} at ${result.priorities[0].score}/100 — which is where this report starts.`,
+    `Your strongest stage is ${strongest(result).title} at ${strongest(result).score}/100. The stage costing you most right now is ${result.priorities[0].title} at ${result.priorities[0].score}/100 - which is where this report starts.`,
     textX,
     y + 5,
     textW,
     { size: 10, colour: MUTED, leading: 5 },
   );
-  // With a money estimate to show, this paragraph is the one to lose — the
+  // With a money estimate to show, this paragraph is the one to lose - the
   // figures below make the same point harder.
   if (!estimateImpact(answers).available) {
     y = paragraph(
@@ -341,7 +341,7 @@ function executiveSummary(doc: Doc, result: DiagnosticResult, profile: Profile, 
   if (result.clientValue) {
     y = paragraph(
       doc,
-      `At ${result.clientValue.label} per client, one extra client a month adds around ${annualValueOfOneMoreClientPerMonth(result.clientValue)} in lifetime value over a year — the bar every recommendation in this report has to clear.`,
+      `At ${result.clientValue.label} per client, one extra client a month adds around ${annualValueOfOneMoreClientPerMonth(result.clientValue)} in lifetime value over a year - the bar every recommendation in this report has to clear.`,
       textX,
       y + 5,
       textW,
@@ -349,7 +349,7 @@ function executiveSummary(doc: Doc, result: DiagnosticResult, profile: Profile, 
     );
   }
 
-  // What it's costing, before the priorities — it's the line that makes the
+  // What it's costing, before the priorities - it's the line that makes the
   // rest of the page feel urgent rather than interesting.
   y = Math.max(y, 104) + 8;
   const impact = estimateImpact(answers);
@@ -404,7 +404,7 @@ function executiveSummary(doc: Doc, result: DiagnosticResult, profile: Profile, 
   y += 9;
   paragraph(
     doc,
-    "The next page maps all eight stages of your journey. From there, each stage has a page of its own: what's working, what's missing, and exactly what to do about it — followed by your 90-day focus cycle.",
+    "The next page maps all eight stages of your journey. From there, each stage has a page of its own: what's working, what's missing, and exactly what to do about it - followed by your 90-day focus cycle.",
     M,
     y,
     COL_W,
@@ -422,10 +422,10 @@ function journeyMapPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
 
   eyebrow(doc, "Your customer journey map", M, 30);
   setText(doc, 21, INK, "bold");
-  doc.text("Where clients flow — and where they leak", M, 40);
+  doc.text("Where clients flow - and where they leak", M, 40);
   paragraph(
     doc,
-    "Each stage is colour-coded by how well it's working. A client has to pass through every one of these to become a returning, referring regular — so the weakest stage sets the ceiling for everything after it.",
+    "Each stage is colour-coded by how well it's working. A client has to pass through every one of these to become a returning, referring regular - so the weakest stage sets the ceiling for everything after it.",
     M,
     50,
     COL_W,
@@ -643,7 +643,7 @@ function actionPlanPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
     setText(doc, 7.5, FAINT, "bold");
     doc.text("THEN THE NEXT CYCLE", M + 5, nextY + 6, { charSpace: 0.8 });
     setText(doc, 9.5, INK, "bold");
-    doc.text(`${cycle.next.kpi} — ${cycle.next.stage}`, M + 5, nextY + 12);
+    doc.text(`${cycle.next.kpi} - ${cycle.next.stage}`, M + 5, nextY + 12);
   }
 }
 
@@ -656,7 +656,7 @@ function nextStepsPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
   doc.text("Three ways to close these gaps", M, 40);
   paragraph(
     doc,
-    "Your report is written so you can act on it alone. If you'd rather it was built with you — or simply done faster — here's how that works. Each option works the same way: one KPI, a handful of aligned priorities, ninety days.",
+    "Your report is written so you can act on it alone. If you'd rather it was built with you - or simply done faster - here's how that works. Each option works the same way: one KPI, a handful of aligned priorities, ninety days.",
     M,
     50,
     COL_W,
@@ -711,7 +711,7 @@ function aboutPage(doc: Doc, profile: Profile) {
 
   let y = paragraph(
     doc,
-    `${DIAGNOSTIC.consultant} helps wellness and beauty business owners fix the journey between "I'm interested" and "I've rebooked". Most businesses in this sector don't have a marketing problem — they have a journey problem: enquiries that go unanswered, follow-ups that never happen, and clients who simply drift away.`,
+    `${DIAGNOSTIC.consultant} helps wellness and beauty business owners fix the journey between "I'm interested" and "I've rebooked". Most businesses in this sector don't have a marketing problem - they have a journey problem: enquiries that go unanswered, follow-ups that never happen, and clients who simply drift away.`,
     M,
     54,
     COL_W,
@@ -720,7 +720,7 @@ function aboutPage(doc: Doc, profile: Profile) {
 
   y = paragraph(
     doc,
-    "The work is practical: response systems, booking that doesn't lose people, reminders that protect your diary, review engines and retention sequences — built into the business, not handed over as a document.",
+    "The work is practical: response systems, booking that doesn't lose people, reminders that protect your diary, review engines and retention sequences - built into the business, not handed over as a document.",
     M,
     y + 6,
     COL_W,

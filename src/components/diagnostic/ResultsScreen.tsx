@@ -77,7 +77,7 @@ export function ResultsScreen({
             {result.bandLabel === "Optimised"
               ? "Your journey is holding together well."
               : result.bandLabel === "Functional"
-                ? "Your journey works — but it's leaking in places."
+                ? "Your journey works - but it's leaking in places."
                 : result.bandLabel === "Leaking"
                   ? "You're losing clients you could be winning."
                   : "You're losing people at almost every stage."}
@@ -91,7 +91,7 @@ export function ResultsScreen({
               <strong className="tabular font-semibold">
                 {annualValueOfOneMoreClientPerMonth(result.clientValue)}
               </strong>{" "}
-              in lifetime value over a year — that&apos;s the bar every fix below has to clear.
+              in lifetime value over a year - that&apos;s the bar every fix below has to clear.
             </p>
           )}
         </div>
@@ -114,7 +114,7 @@ export function ResultsScreen({
                 </div>
                 <p className="mt-2 text-[15px] font-medium text-tulivo-clay">recoverable a year</p>
                 <p className="mt-4 text-[14px] leading-relaxed text-tulivo-muted">
-                  A conservative estimate, built from the numbers you gave us — not from what&apos;s
+                  A conservative estimate, built from the numbers you gave us - not from what&apos;s
                   theoretically possible.
                 </p>
               </div>
@@ -190,7 +190,7 @@ export function ResultsScreen({
           Your three priority areas
         </h2>
         <p className="mt-3 max-w-[62ch] text-[15px] leading-relaxed text-tulivo-muted">
-          Ranked by how much each one is costing you — not simply by score. These are where your next
+          Ranked by how much each one is costing you - not simply by score. These are where your next
           hour of work buys the most.
         </p>
 
@@ -414,7 +414,7 @@ export function ResultsScreen({
                 </h2>
                 <p className="mt-1.5 max-w-[52ch] text-[14px] leading-relaxed text-tulivo-muted">
                   We&apos;ll walk through your results, agree your focus KPI and decide the first two things
-                  to build. Bring your report — no preparation needed beyond that.
+                  to build. Bring your report - no preparation needed beyond that.
                 </p>
               </div>
               <a href={DIAGNOSTIC.bookingUrl} target="_blank" rel="noreferrer" className="w-full sm:w-auto">
@@ -448,7 +448,7 @@ export function ResultsScreen({
             </h2>
             <p className="mt-3 max-w-[64ch] text-[15px] leading-relaxed text-tulivo-muted">
               Everything in this cycle moves the same number. Spreading effort across eight stages is why
-              most improvement plans stall — this one compounds instead.
+              most improvement plans stall - this one compounds instead.
             </p>
 
             <Card className="mt-7 overflow-hidden border-tulivo-clay/25">
@@ -535,7 +535,7 @@ export function ResultsScreen({
                     Then the next cycle
                   </p>
                   <p className="mt-2 text-[16px] font-medium text-tulivo-ink">
-                    {result.cycle.next.kpi} — {result.cycle.next.stage}
+                    {result.cycle.next.kpi} - {result.cycle.next.stage}
                   </p>
                 </div>
                 <p className="max-w-[42ch] text-[13.5px] leading-relaxed text-tulivo-muted">
@@ -744,7 +744,7 @@ function SectionDetail({ section }: { section: SectionResult }) {
           ))}
           {section.fixes.length === 0 && (
             <li className="text-[14px] leading-relaxed text-tulivo-muted">
-              Nothing urgent here — keep doing what you&apos;re doing and revisit in 90 days.
+              Nothing urgent here - keep doing what you&apos;re doing and revisit in 90 days.
             </li>
           )}
         </ol>

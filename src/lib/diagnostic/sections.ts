@@ -4,7 +4,7 @@ import type { Answers, Question, Section } from "./types";
 /*
   The eight stages of the customer journey, with the questions, scoring and the
   copy that turns an answer into a finding. Weak options carry the gap and the
-  fix, strong options carry the strength — so every report is written from what
+  fix, strong options carry the strength - so every report is written from what
   the business owner actually told us, never from a template.
 */
 
@@ -70,14 +70,14 @@ export const SECTIONS: Section[] = [
     weight: 1,
     verdict: {
       strong:
-        "You're findable. People looking for what you do can see you, trust you and reach you without hunting — which means the rest of your journey gets a healthy flow of enquiries to work with.",
+        "You're findable. People looking for what you do can see you, trust you and reach you without hunting - which means the rest of your journey gets a healthy flow of enquiries to work with.",
       ok:
         "You're visible, but you're leaning on fewer channels than you should be. Broadening discovery is the difference between hoping for enquiries and expecting them.",
       weak:
-        "Right now, being found relies on luck or word of mouth. There are people searching for exactly what you offer this week who won't come across you — that's the cheapest gap in your whole journey to close.",
+        "Right now, being found relies on luck or word of mouth. There are people searching for exactly what you offer this week who won't come across you - that's the cheapest gap in your whole journey to close.",
     },
     tools: [
-      "Google Business Profile (free — the highest-return hour you'll spend)",
+      "Google Business Profile (free - the highest-return hour you'll spend)",
       "A booking-first website page for each core service",
       "Local directory listings for your area and treatment type",
     ],
@@ -126,11 +126,11 @@ export const SECTIONS: Section[] = [
           return {
             gap:
               values.length === 0
-                ? "No consistent source of new enquiries — growth is currently unpredictable."
+                ? "No consistent source of new enquiries - growth is currently unpredictable."
                 : "Almost all your enquiries arrive through one or two routes, which makes your diary vulnerable to an algorithm change or a quiet month.",
             fix: {
               action:
-                "Add one owned discovery channel you control — a fully filled Google Business Profile with services, photos and a booking link — so search traffic reaches you without paying for it.",
+                "Add one owned discovery channel you control - a fully filled Google Business Profile with services, photos and a booking link - so search traffic reaches you without paying for it.",
               impact:
                 "Most local wellness businesses see enquiries rise 20–40% within 90 days of a properly optimised profile, with no ad spend.",
               effort: "quick",
@@ -146,16 +146,16 @@ export const SECTIONS: Section[] = [
         options: [
           {
             value: "optimised",
-            label: "Yes — fully optimised",
+            label: "Yes - fully optimised",
             score: 1,
             strength:
               "Your Google Business Profile is doing the heavy lifting in local search, which is where most 'near me' enquiries begin.",
           },
           {
             value: "basic",
-            label: "Yes — but it's basic",
+            label: "Yes - but it's basic",
             score: 0.5,
-            gap: "Your Google profile exists but isn't working hard — it's listed rather than competing.",
+            gap: "Your Google profile exists but isn't working hard - it's listed rather than competing.",
             fix: {
               action:
                 "Complete every field on your profile: services with prices, 10+ recent photos, opening hours, a booking link, and the Q&A section answering your five most common questions.",
@@ -168,7 +168,7 @@ export const SECTIONS: Section[] = [
             value: "no",
             label: "No",
             score: 0,
-            gap: "You have no Google Business Profile, so you're invisible in local map results — the single biggest source of ready-to-book local enquiries.",
+            gap: "You have no Google Business Profile, so you're invisible in local map results - the single biggest source of ready-to-book local enquiries.",
             fix: {
               action:
                 "Claim and verify your Google Business Profile this week, then complete it fully: services, photos, hours, booking link.",
@@ -181,7 +181,7 @@ export const SECTIONS: Section[] = [
             value: "unsure",
             label: "Not sure",
             score: 0.15,
-            gap: "You're unsure whether your Google listing exists or who controls it — which usually means an unclaimed or out-of-date profile is representing you.",
+            gap: "You're unsure whether your Google listing exists or who controls it - which usually means an unclaimed or out-of-date profile is representing you.",
             fix: {
               action:
                 "Search your business name on Google Maps. If a listing exists, claim it; if not, create one. Then complete it fully.",
@@ -238,7 +238,7 @@ export const SECTIONS: Section[] = [
         options: [
           {
             value: "yes",
-            label: "Yes — easy to book on a phone",
+            label: "Yes - easy to book on a phone",
             score: 1,
             strength:
               "Your website works on a phone and makes booking obvious, so interest converts while it's hot.",
@@ -247,7 +247,7 @@ export const SECTIONS: Section[] = [
             value: "partial",
             label: "Partially",
             score: 0.5,
-            gap: "Your website works, but booking isn't obvious enough on a phone — where most of your visitors are.",
+            gap: "Your website works, but booking isn't obvious enough on a phone - where most of your visitors are.",
             fix: {
               action:
                 "Put one clear 'Book now' button in the header, at the top of every service page, and fixed to the bottom of the screen on mobile.",
@@ -260,7 +260,7 @@ export const SECTIONS: Section[] = [
             value: "no",
             label: "No",
             score: 0.2,
-            gap: "Your website is hard to use on a phone, so mobile visitors — the majority — leave before enquiring.",
+            gap: "Your website is hard to use on a phone, so mobile visitors - the majority - leave before enquiring.",
             fix: {
               action:
                 "Rebuild the site mobile-first: readable text without zooming, tappable buttons, and booking within one tap of any page.",
@@ -273,7 +273,7 @@ export const SECTIONS: Section[] = [
             value: "none",
             label: "I don't have a website",
             score: 0.1,
-            gap: "With no website, anyone who wants to check you out before enquiring has nowhere to land — so they check a competitor instead.",
+            gap: "With no website, anyone who wants to check you out before enquiring has nowhere to land - so they check a competitor instead.",
             fix: {
               action:
                 "Launch a focused one-page site: what you do, who it's for, prices, photos, reviews and a booking link. It doesn't need to be big, it needs to exist.",
@@ -302,7 +302,7 @@ export const SECTIONS: Section[] = [
         highLabel: "Top of the results",
         review: (v) =>
           v >= 4
-            ? { strength: "You show up when people search locally — the moment they're most ready to book." }
+            ? { strength: "You show up when people search locally - the moment they're most ready to book." }
             : {
                 gap: "You don't reliably appear when local people search for what you offer, so ready-to-book demand goes elsewhere.",
                 fix: {
@@ -321,13 +321,13 @@ export const SECTIONS: Section[] = [
     shortTitle: "Response",
     context: "When someone reaches out, what happens next?",
     why:
-      "Response speed is the highest-leverage number in your business. Enquiries answered in five minutes convert several times better than ones answered an hour later — and the enquiry you've already paid for is the cheapest one to win.",
+      "Response speed is the highest-leverage number in your business. Enquiries answered in five minutes convert several times better than ones answered an hour later - and the enquiry you've already paid for is the cheapest one to win.",
     weight: 1.3,
     verdict: {
       strong:
         "You answer fast and consistently, which means the enquiries you work hard to generate actually turn into bookings rather than cooling off in an inbox.",
       ok:
-        "You do respond — but not fast enough, or not consistently when you're busy. That gap is where enquiries quietly go to a competitor who replied first.",
+        "You do respond - but not fast enough, or not consistently when you're busy. That gap is where enquiries quietly go to a competitor who replied first.",
       weak:
         "Enquiries are waiting hours or longer for a reply. This is almost certainly the most expensive gap in your journey: you're paying for attention and then losing it in the window that matters most.",
     },
@@ -357,13 +357,13 @@ export const SECTIONS: Section[] = [
             label: "Within 5 minutes",
             score: 1,
             strength:
-              "You reply within five minutes — the window where interest is highest and competitors haven't answered yet.",
+              "You reply within five minutes - the window where interest is highest and competitors haven't answered yet.",
           },
           {
             value: "1hour",
             label: "Within an hour",
             score: 0.7,
-            gap: "An hour is good, but the first five minutes is where the booking is won — after that, enquiries start shopping around.",
+            gap: "An hour is good, but the first five minutes is where the booking is won - after that, enquiries start shopping around.",
             fix: {
               action:
                 "Add an instant automated acknowledgement that answers the two questions everyone asks (price and availability) and offers a booking link, so the five-minute window is covered even when you're with a client.",
@@ -407,14 +407,14 @@ export const SECTIONS: Section[] = [
         options: [
           {
             value: "chatbot",
-            label: "Yes — a chatbot or assistant",
+            label: "Yes - a chatbot or assistant",
             score: 1,
             strength:
               "An automated assistant catches every enquiry instantly, so nothing waits on you being free.",
           },
           {
             value: "autoreply",
-            label: "Yes — a simple auto-reply",
+            label: "Yes - a simple auto-reply",
             score: 0.75,
             strength: "An auto-reply holds attention the moment someone gets in touch.",
             fix: {
@@ -449,7 +449,7 @@ export const SECTIONS: Section[] = [
             value: "waits",
             label: "It waits until I'm free",
             score: 0.15,
-            gap: "Enquiries that land while you're with a client sit untouched — and that's most of your working day.",
+            gap: "Enquiries that land while you're with a client sit untouched - and that's most of your working day.",
             fix: {
               action:
                 "Cover your in-clinic hours with an automated first response so nobody waits for a chair to empty.",
@@ -531,13 +531,13 @@ export const SECTIONS: Section[] = [
         options: [
           {
             value: "system",
-            label: "Yes — with a system",
+            label: "Yes - with a system",
             score: 1,
             strength: "You measure enquiry-to-booking, which means you can see improvements rather than guess at them.",
           },
           {
             value: "manual",
-            label: "Yes — manually",
+            label: "Yes - manually",
             score: 0.65,
             strength: "You're tracking conversions, even if it's by hand.",
             fix: {
@@ -551,7 +551,7 @@ export const SECTIONS: Section[] = [
             value: "no",
             label: "No",
             score: 0.1,
-            gap: "Without tracking enquiries versus bookings, you can't see where clients are being lost — or whether anything you change is working.",
+            gap: "Without tracking enquiries versus bookings, you can't see where clients are being lost - or whether anything you change is working.",
             fix: {
               action:
                 "Start a one-line-per-enquiry log: date, source, whether they booked. Review it monthly.",
@@ -570,13 +570,13 @@ export const SECTIONS: Section[] = [
     shortTitle: "Nurture",
     context: "What happens when someone enquires but doesn't book immediately?",
     why:
-      "Most enquiries aren't a no — they're a not right now. Without follow-up, every one of those becomes a no by default, and you paid for all of them.",
+      "Most enquiries aren't a no - they're a not right now. Without follow-up, every one of those becomes a no by default, and you paid for all of them.",
     weight: 1,
     verdict: {
       strong:
         "You follow up properly, so interest that doesn't convert on day one still becomes a booking later. That's revenue most businesses in your sector simply leave behind.",
       ok:
-        "You follow up sometimes — usually when you remember. A consistent sequence would turn the enquiries you're already generating into noticeably more bookings.",
+        "You follow up sometimes - usually when you remember. A consistent sequence would turn the enquiries you're already generating into noticeably more bookings.",
       weak:
         "Once someone doesn't book immediately, nothing happens. You're effectively paying to generate enquiries and then discarding the ones who weren't ready that day.",
     },
@@ -629,7 +629,7 @@ export const SECTIONS: Section[] = [
           },
           {
             value: "nothing",
-            label: "Nothing — I wait for them",
+            label: "Nothing - I wait for them",
             score: 0,
             gap: "Enquiries that don't book immediately are never contacted again, so interest you already generated expires silently.",
             fix: {
@@ -642,9 +642,9 @@ export const SECTIONS: Section[] = [
           },
           {
             value: "mix",
-            label: "A mix — it depends how busy I am",
+            label: "A mix - it depends how busy I am",
             score: 0.35,
-            gap: "Follow-up depends on how busy you are, which means the busiest weeks — your best lead weeks — get the least follow-up.",
+            gap: "Follow-up depends on how busy you are, which means the busiest weeks - your best lead weeks - get the least follow-up.",
             fix: {
               action:
                 "Systemise the first three touches so they happen regardless of your week, and step in personally only when someone replies.",
@@ -677,7 +677,7 @@ export const SECTIONS: Section[] = [
             score: 0.5,
             gap: "One or two touches stops just before the point where most undecided enquiries actually book.",
             fix: {
-              action: "Extend your sequence to five touches across two weeks, varying the angle each time — helpful, reassuring, then time-bound.",
+              action: "Extend your sequence to five touches across two weeks, varying the angle each time - helpful, reassuring, then time-bound.",
               impact: "Captures the slower decision-makers without any extra enquiry cost.",
               effort: "quick",
             },
@@ -728,7 +728,7 @@ export const SECTIONS: Section[] = [
             fix: {
               action:
                 "Write a five-email nurture sequence once, automate it, and let it run for every new enquiry.",
-              impact: "Turns a single reply into two weeks of presence — for one afternoon of work.",
+              impact: "Turns a single reply into two weeks of presence - for one afternoon of work.",
               effort: "project",
             },
           },
@@ -753,7 +753,7 @@ export const SECTIONS: Section[] = [
             gap: "Your offer changes depending on the conversation, so there's no consistent reason to book today rather than someday.",
             fix: {
               action:
-                "Choose one standing first-visit offer — a consultation credit, an add-on, or a small saving on the first booking — and use it in every follow-up.",
+                "Choose one standing first-visit offer - a consultation credit, an add-on, or a small saving on the first booking - and use it in every follow-up.",
               impact: "Gives undecided enquiries a deadline, which is usually what converts them.",
               effort: "quick",
             },
@@ -765,7 +765,7 @@ export const SECTIONS: Section[] = [
             gap: "Nothing creates urgency, so 'I'll think about it' has no natural end date.",
             fix: {
               action:
-                "Add one time-limited first-visit offer to your day-seven follow-up. Keep it modest — the deadline matters more than the discount.",
+                "Add one time-limited first-visit offer to your day-seven follow-up. Keep it modest - the deadline matters more than the discount.",
               impact: "Recovers enquiries that were interested but never had a reason to decide.",
               effort: "quick",
             },
@@ -776,12 +776,12 @@ export const SECTIONS: Section[] = [
         id: "website-capture",
         kind: "choice",
         prompt: "If someone isn't ready to book, can they leave their details on your website?",
-        hint: "An enquiry form, a callback request, a waitlist — anything that captures them before they leave.",
+        hint: "An enquiry form, a callback request, a waitlist - anything that captures them before they leave.",
         weight: 1,
         options: [
           {
             value: "yes",
-            label: "Yes — a form or enquiry option",
+            label: "Yes - a form or enquiry option",
             score: 1,
             strength:
               "People who aren't ready to book can still leave their details, so browsing traffic doesn't disappear unrecorded.",
@@ -793,7 +793,7 @@ export const SECTIONS: Section[] = [
             gap: "Visitors have to compose a message themselves, which is enough friction that most simply leave.",
             fix: {
               action:
-                "Add a short enquiry form — name, contact, treatment they're interested in — to your main service pages, and reply to it with your standard first response.",
+                "Add a short enquiry form - name, contact, treatment they're interested in - to your main service pages, and reply to it with your standard first response.",
               impact: "Captures the people who are interested but not ready, instead of losing them silently.",
               effort: "quick",
             },
@@ -807,7 +807,7 @@ export const SECTIONS: Section[] = [
               action:
                 "Put a simple enquiry form on your site and connect it to your follow-up sequence, so interest is captured even when it isn't a booking yet.",
               impact:
-                "Turns anonymous website traffic into enquiries you can follow up — usually the cheapest new leads available to you.",
+                "Turns anonymous website traffic into enquiries you can follow up - usually the cheapest new leads available to you.",
               effort: "project",
             },
           },
@@ -818,7 +818,7 @@ export const SECTIONS: Section[] = [
             gap: "With no website, there's nowhere for interested people to land or leave their details.",
             fix: {
               action:
-                "Launch a single page with your services, prices, photos and an enquiry form. It doesn't need to be big — it needs to exist.",
+                "Launch a single page with your services, prices, photos and an enquiry form. It doesn't need to be big - it needs to exist.",
               impact: "Gives every post, ad and referral somewhere to send people.",
               effort: "project",
             },
@@ -858,12 +858,12 @@ export const SECTIONS: Section[] = [
         },
         review: (v) =>
           v >= 50
-            ? { strength: `Converting ${v}% of enquiries into clients is strong — your problem is volume, not persuasion.` }
+            ? { strength: `Converting ${v}% of enquiries into clients is strong - your problem is volume, not persuasion.` }
             : {
                 gap: `Only ${v}% of your enquiries become paying clients, so the majority of the interest you generate never turns into revenue.`,
                 fix: {
                   action:
-                    "Fix response speed and follow-up first — they move conversion faster than anything else — then review what your first reply actually says.",
+                    "Fix response speed and follow-up first - they move conversion faster than anything else - then review what your first reply actually says.",
                   impact: `Lifting conversion from ${v}% to ${Math.min(v + 15, 85)}% is the same as increasing your enquiries by a third, at no extra cost.`,
                   effort: "project",
                 },
@@ -883,7 +883,7 @@ export const SECTIONS: Section[] = [
       strong:
         "Booking is effortless: clients can commit the moment they decide, without waiting on you. That protects every enquiry your marketing works to create.",
       ok:
-        "Clients can book, but there's friction in the way — steps, waiting, or back-and-forth that costs you the ones who were ready.",
+        "Clients can book, but there's friction in the way - steps, waiting, or back-and-forth that costs you the ones who were ready.",
       weak:
         "Booking depends on you being available to arrange it. People who wanted to book at 9pm on a Sunday simply don't, and you never know they existed.",
     },
@@ -931,7 +931,7 @@ export const SECTIONS: Section[] = [
             value: "phone",
             label: "By phone",
             score: 0.3,
-            gap: "Phone-only booking excludes anyone who won't ring — which is most people under 40 enquiring about a beauty or wellness appointment.",
+            gap: "Phone-only booking excludes anyone who won't ring - which is most people under 40 enquiring about a beauty or wellness appointment.",
             fix: {
               action: "Add online booking alongside the phone, and keep the phone for complex or first-time consultations.",
               impact: "Opens up bookings from people who'd never have called.",
@@ -942,7 +942,7 @@ export const SECTIONS: Section[] = [
             value: "mix",
             label: "A mix",
             score: 0.6,
-            gap: "A mix of routes means some clients get a smooth booking and others get a conversation — and the ones who need it easiest usually get the slowest route.",
+            gap: "A mix of routes means some clients get a smooth booking and others get a conversation - and the ones who need it easiest usually get the slowest route.",
             fix: {
               action: "Make online booking the default everywhere, and treat manual booking as the exception.",
               impact: "Consistent, immediate booking for everyone, less admin for you.",
@@ -1021,7 +1021,7 @@ export const SECTIONS: Section[] = [
             value: "no",
             label: "No",
             score: 0.1,
-            gap: "Nothing can be booked without you, so every enquiry outside working hours waits — and many don't.",
+            gap: "Nothing can be booked without you, so every enquiry outside working hours waits - and many don't.",
             fix: {
               action: "Set up online booking with your real availability, and link it from your bio, website and auto-replies.",
               impact:
@@ -1039,7 +1039,7 @@ export const SECTIONS: Section[] = [
         options: [
           {
             value: "always",
-            label: "Yes — always",
+            label: "Yes - always",
             score: 1,
             strength: "Taking a deposit at booking commits the client and protects your diary from no-shows.",
           },
@@ -1077,14 +1077,14 @@ export const SECTIONS: Section[] = [
         options: [
           {
             value: "yes",
-            label: "Yes — prices are published",
+            label: "Yes - prices are published",
             score: 1,
             strength:
               "Publishing prices filters out the wrong enquiries and lets the right ones book without a conversation first.",
           },
           {
             value: "from",
-            label: "Yes — a 'from' price or a range",
+            label: "Yes - a 'from' price or a range",
             score: 0.8,
             strength: "A guide price gives people enough to decide with, which keeps bookings moving.",
           },
@@ -1092,7 +1092,7 @@ export const SECTIONS: Section[] = [
             value: "on-request",
             label: "Only if they ask",
             score: 0.3,
-            gap: "Prices only appear on request, so everyone has to start a conversation — and most people won't.",
+            gap: "Prices only appear on request, so everyone has to start a conversation - and most people won't.",
             fix: {
               action:
                 "Publish a price or a 'from' price for every core treatment. If prices vary, publish the range and say what moves it.",
@@ -1107,7 +1107,7 @@ export const SECTIONS: Section[] = [
             score: 0.15,
             gap: "Nobody can find out what you charge without contacting you, which quietly filters out people who'd have booked.",
             fix: {
-              action: "Publish 'from' prices for your main treatments this week — start with your three most-booked.",
+              action: "Publish 'from' prices for your main treatments this week - start with your three most-booked.",
               impact:
                 "Removes the single most common reason people leave a wellness or beauty website without enquiring.",
               effort: "quick",
@@ -1119,7 +1119,7 @@ export const SECTIONS: Section[] = [
         id: "friction-signals",
         kind: "multi",
         prompt: "Which of these happen when someone tries to book with you?",
-        hint: "Tick anything that sounds familiar — this is what friction looks like in practice.",
+        hint: "Tick anything that sounds familiar - this is what friction looks like in practice.",
         weight: 0.9,
         options: [
           { value: "asks-availability", label: "They message to ask what availability you have", score: 0 },
@@ -1128,7 +1128,7 @@ export const SECTIONS: Section[] = [
           { value: "office-hours", label: "Booking only really works during working hours", score: 0 },
           { value: "forms-first", label: "They have to fill in forms before they can book", score: 0 },
           { value: "drop-off", label: "People start booking and don't finish", score: 0 },
-          { value: "none", label: "None of these — they book in a couple of taps", score: 1 },
+          { value: "none", label: "None of these - they book in a couple of taps", score: 1 },
         ],
         scoreSelection: (values) => {
           const signals = values.filter((v) => v !== "none");
@@ -1139,14 +1139,14 @@ export const SECTIONS: Section[] = [
           const signals = values.filter((v) => v !== "none");
           if (signals.length === 0) {
             return {
-              strength: "Nothing gets between deciding and booking — which is exactly where you want to be.",
+              strength: "Nothing gets between deciding and booking - which is exactly where you want to be.",
             };
           }
           return {
             gap: `You recognise ${signals.length} point${signals.length === 1 ? "" : "s"} of friction in your booking process, and each one loses people who had already decided to book.`,
             fix: {
               action:
-                "Book yourself in on your own phone, from your Instagram bio, timing each step. Remove the first thing that made you pause — usually a question the client shouldn't have to ask.",
+                "Book yourself in on your own phone, from your Instagram bio, timing each step. Remove the first thing that made you pause - usually a question the client shouldn't have to ask.",
               impact:
                 "Every step removed converts more of the people who already wanted to book, at no extra marketing cost.",
               effort: "quick",
@@ -1162,13 +1162,13 @@ export const SECTIONS: Section[] = [
     shortTitle: "Pre-visit",
     context: "What happens between booking and arrival?",
     why:
-      "The gap between booking and arrival is where doubt creeps in. What you send in that window decides whether someone turns up relaxed, prepared and ready to rebook — or nervous, late, or not at all.",
+      "The gap between booking and arrival is where doubt creeps in. What you send in that window decides whether someone turns up relaxed, prepared and ready to rebook - or nervous, late, or not at all.",
     weight: 1,
     verdict: {
       strong:
         "Clients arrive knowing exactly what to expect, prepared and confident. That shows up as fewer no-shows, calmer appointments and better first impressions.",
       ok:
-        "The basics are covered, but the pre-appointment experience is doing less work than it could — leaving clients to fill the gaps themselves.",
+        "The basics are covered, but the pre-appointment experience is doing less work than it could - leaving clients to fill the gaps themselves.",
       weak:
         "Once someone books, they hear very little until they arrive. That silence costs you attendance, preparation and the confidence that makes a first visit convert into a second.",
     },
@@ -1181,7 +1181,7 @@ export const SECTIONS: Section[] = [
     kpi: {
       name: "First-appointment attendance",
       metric: "The share of first-time bookings that arrive, prepared and on time",
-      why: "First visits are where clients are most likely to get cold feet — and where a good experience turns into a rebooking.",
+      why: "First visits are where clients are most likely to get cold feet - and where a good experience turns into a rebooking.",
       supports: ["confirmation", "reminders", "booking"],
       current: (answers) => label(answers, "confirmation", "confirmation"),
       target: () => "Automated confirmation, preparation and forms before every first visit",
@@ -1195,28 +1195,28 @@ export const SECTIONS: Section[] = [
         options: [
           {
             value: "both",
-            label: "Yes — email and SMS",
+            label: "Yes - email and SMS",
             score: 1,
             strength: "Confirmations go out on two channels automatically, so nobody is left wondering whether their booking landed.",
           },
           {
             value: "email",
-            label: "Yes — email only",
+            label: "Yes - email only",
             score: 0.7,
             strength: "Bookings are confirmed automatically by email.",
             fix: {
-              action: "Add an SMS confirmation alongside the email — texts are opened far more reliably than email.",
+              action: "Add an SMS confirmation alongside the email - texts are opened far more reliably than email.",
               impact: "Fewer 'did my booking go through?' messages, and fewer forgotten appointments.",
               effort: "quick",
             },
           },
           {
             value: "sms",
-            label: "Yes — SMS only",
+            label: "Yes - SMS only",
             score: 0.75,
             strength: "SMS confirmation reaches clients where they'll actually see it.",
             fix: {
-              action: "Add an email confirmation too, carrying the detail an SMS can't — location, preparation, policy.",
+              action: "Add an email confirmation too, carrying the detail an SMS can't - location, preparation, policy.",
               impact: "Gives clients something to refer back to, which reduces questions and late arrivals.",
               effort: "quick",
             },
@@ -1253,13 +1253,13 @@ export const SECTIONS: Section[] = [
         options: [
           {
             value: "auto",
-            label: "Yes — automatically",
+            label: "Yes - automatically",
             score: 1,
             strength: "Every client arrives prepared because the information reaches them without you sending it.",
           },
           {
             value: "manual",
-            label: "Yes — manually",
+            label: "Yes - manually",
             score: 0.6,
             strength: "You do prepare clients before they arrive.",
             fix: {
@@ -1275,7 +1275,7 @@ export const SECTIONS: Section[] = [
             gap: "Clients arrive without knowing how to prepare or what will happen, which creates nerves, late arrivals and avoidable cancellations.",
             fix: {
               action:
-                "Write one 'what to expect' message — parking, arrival time, how long it takes, what to avoid beforehand, how they'll feel afterwards — and automate it 48 hours ahead.",
+                "Write one 'what to expect' message - parking, arrival time, how long it takes, what to avoid beforehand, how they'll feel afterwards - and automate it 48 hours ahead.",
               impact: "Fewer no-shows, calmer first visits, and a noticeably more premium impression.",
               effort: "quick",
             },
@@ -1290,13 +1290,13 @@ export const SECTIONS: Section[] = [
         options: [
           {
             value: "online-before",
-            label: "Yes — online, before they arrive",
+            label: "Yes - online, before they arrive",
             score: 1,
             strength: "Forms are done before arrival, so appointments start on time and your notes are complete.",
           },
           {
             value: "on-arrival",
-            label: "Yes — on arrival",
+            label: "Yes - on arrival",
             score: 0.5,
             gap: "Paperwork on arrival eats into treatment time and starts the visit with admin rather than care.",
             fix: {
@@ -1309,7 +1309,7 @@ export const SECTIONS: Section[] = [
             value: "no",
             label: "No",
             score: 0.2,
-            gap: "Without forms before arrival, you're gathering essential information in the room — or not at all.",
+            gap: "Without forms before arrival, you're gathering essential information in the room - or not at all.",
             fix: {
               action: "Set up digital consultation and consent forms sent automatically after booking.",
               impact: "Protects you professionally and makes appointments run to time.",
@@ -1422,28 +1422,28 @@ export const SECTIONS: Section[] = [
         options: [
           {
             value: "both",
-            label: "Yes — automated email and SMS",
+            label: "Yes - automated email and SMS",
             score: 1,
             strength: "Automated reminders on both channels give you the strongest possible protection against forgotten appointments.",
           },
           {
             value: "sms",
-            label: "Yes — automated SMS",
+            label: "Yes - automated SMS",
             score: 0.85,
             strength: "Automated SMS reminders reach clients reliably.",
             fix: {
-              action: "Add an email reminder alongside the SMS so the detail — address, preparation, policy — is there too.",
+              action: "Add an email reminder alongside the SMS so the detail - address, preparation, policy - is there too.",
               impact: "Catches the clients who don't read texts and reduces late arrivals.",
               effort: "quick",
             },
           },
           {
             value: "email",
-            label: "Yes — automated email",
+            label: "Yes - automated email",
             score: 0.65,
             strength: "Email reminders are going out automatically.",
             fix: {
-              action: "Add SMS reminders — texts are opened within minutes, emails often aren't opened at all.",
+              action: "Add SMS reminders - texts are opened within minutes, emails often aren't opened at all.",
               impact: "SMS reminders typically cut no-shows further than email alone.",
               effort: "quick",
             },
@@ -1452,7 +1452,7 @@ export const SECTIONS: Section[] = [
             value: "manual",
             label: "I remind people manually",
             score: 0.4,
-            gap: "Reminders depend on you having time, so the busiest weeks — when a no-show hurts most — get the fewest reminders.",
+            gap: "Reminders depend on you having time, so the busiest weeks - when a no-show hurts most - get the fewest reminders.",
             fix: {
               action: "Switch reminders on in your booking system at 48 and 24 hours so they run without you.",
               impact: "Consistent attendance and one less job on a full day.",
@@ -1493,7 +1493,7 @@ export const SECTIONS: Section[] = [
           return {
             gap:
               values.length === 0
-                ? "No reminder touchpoints at all — attendance depends entirely on memory."
+                ? "No reminder touchpoints at all - attendance depends entirely on memory."
                 : "A single reminder leaves a long silent gap between booking and appointment.",
             fix: {
               action: "Send two reminders: 48 hours before (long enough to rebook rather than cancel) and 24 hours before.",
@@ -1538,12 +1538,12 @@ export const SECTIONS: Section[] = [
         },
         review: (v) =>
           v <= 5
-            ? { strength: `A ${v}% no-show rate is excellent — your diary is dependable.` }
+            ? { strength: `A ${v}% no-show rate is excellent - your diary is dependable.` }
             : {
                 gap: `A ${v >= 30 ? "30%+" : `${v}%`} no-show rate means roughly one in ${Math.max(2, Math.round(100 / Math.max(v, 1)))} booked appointments earns nothing.`,
                 fix: {
                   action: "Combine three things: a deposit at booking, two automated reminders, and a policy you actually enforce.",
-                  impact: `Halving a ${v}% no-show rate is the equivalent of adding ${Math.round(v / 2)}% more bookings — without a single new enquiry.`,
+                  impact: `Halving a ${v}% no-show rate is the equivalent of adding ${Math.round(v / 2)}% more bookings - without a single new enquiry.`,
                   effort: "quick",
                 },
               },
@@ -1556,13 +1556,13 @@ export const SECTIONS: Section[] = [
         options: [
           {
             value: "always",
-            label: "Yes — always enforced",
+            label: "Yes - always enforced",
             score: 1,
             strength: "An enforced policy sets the standard, and clients respect a diary that's clearly valued.",
           },
           {
             value: "sometimes",
-            label: "Yes — sometimes enforced",
+            label: "Yes - sometimes enforced",
             score: 0.55,
             gap: "Enforcing sometimes teaches clients the policy is negotiable, which quietly increases late cancellations.",
             fix: {
@@ -1588,7 +1588,7 @@ export const SECTIONS: Section[] = [
             score: 0.1,
             gap: "With no cancellation policy, there's nothing to point to when someone cancels an hour before.",
             fix: {
-              action: "Write a simple policy — 24 hours' notice, deposit retained otherwise — and show it at the point of booking.",
+              action: "Write a simple policy - 24 hours' notice, deposit retained otherwise - and show it at the point of booking.",
               impact: "Sets expectations up front and gives you a fair, unemotional way to protect your diary.",
               effort: "quick",
             },
@@ -1636,7 +1636,7 @@ export const SECTIONS: Section[] = [
             gap: "No-shows disappear without a word, so you lose both the appointment and, usually, the client.",
             fix: {
               action: "Send a same-day, no-blame message with a link to rebook.",
-              impact: "A good share of no-shows rebook when invited — that's revenue you currently write off.",
+              impact: "A good share of no-shows rebook when invited - that's revenue you currently write off.",
               effort: "quick",
             },
           },
@@ -1650,13 +1650,13 @@ export const SECTIONS: Section[] = [
     shortTitle: "Reviews",
     context: "Your online reputation decides whether new clients trust you before they've met you.",
     why:
-      "Reviews are the proof that makes every other part of your marketing work. They lift local search ranking, raise click-through and shorten the decision — and they're free.",
+      "Reviews are the proof that makes every other part of your marketing work. They lift local search ranking, raise click-through and shorten the decision - and they're free.",
     weight: 1,
     verdict: {
       strong:
         "Your reputation is compounding. Reviews arrive consistently, you respond to them, and new clients arrive already trusting you.",
       ok:
-        "You have reviews, but they arrive by chance rather than by system — so your reputation grows slower than your client list.",
+        "You have reviews, but they arrive by chance rather than by system - so your reputation grows slower than your client list.",
       weak:
         "Your reviews don't reflect the quality of your work. Delighted clients are leaving without ever being asked, and new enquirers are judging you on a handful of old reviews.",
     },
@@ -1669,7 +1669,7 @@ export const SECTIONS: Section[] = [
     kpi: {
       name: "Google reviews",
       metric: "How many reviews you have, and how fast new ones arrive",
-      why: "Reviews decide who gets clicked before anyone speaks to you — and they lift every other channel you run.",
+      why: "Reviews decide who gets clicked before anyone speaks to you - and they lift every other channel you run.",
       supports: ["reviews", "retention", "confirmation"],
       current: (answers) => {
         const value = num(answers, "lead-sources.reviews-count");
@@ -1711,7 +1711,7 @@ export const SECTIONS: Section[] = [
             score: 0.35,
             gap: "Asking in person is easily forgotten once the client leaves, so most intentions never become reviews.",
             fix: {
-              action: "Follow the verbal ask with an automatic message containing a direct review link — the link is what converts.",
+              action: "Follow the verbal ask with an automatic message containing a direct review link - the link is what converts.",
               impact: "Typically multiplies the number of reviews you receive from the same conversations.",
               effort: "quick",
             },
@@ -1777,7 +1777,7 @@ export const SECTIONS: Section[] = [
         prompt: "Do you respond to your Google reviews?",
         weight: 0.9,
         options: [
-          { value: "all", label: "Yes — all of them", score: 1, strength: "Replying to every review signals care to future clients and helps your local ranking." },
+          { value: "all", label: "Yes - all of them", score: 1, strength: "Replying to every review signals care to future clients and helps your local ranking." },
           {
             value: "none-yet",
             label: "I don't have any reviews yet",
@@ -1787,7 +1787,7 @@ export const SECTIONS: Section[] = [
               action:
                 "Ask your ten most recent happy clients directly this week, with a link straight to the review box. Then automate the same request for everyone who follows.",
               impact:
-                "Your first ten reviews change how every other part of your marketing performs — they're the proof everything else relies on.",
+                "Your first ten reviews change how every other part of your marketing performs - they're the proof everything else relies on.",
               effort: "quick",
             },
           },
@@ -1808,7 +1808,7 @@ export const SECTIONS: Section[] = [
             score: 0.35,
             gap: "Most reviews go unanswered, which makes an otherwise glowing profile look neglected.",
             fix: {
-              action: "Reply to every review — two warm sentences is plenty, and mention the treatment by name.",
+              action: "Reply to every review - two warm sentences is plenty, and mention the treatment by name.",
               impact: "Improves how your profile reads to new clients and supports local search visibility.",
               effort: "quick",
             },
@@ -1817,7 +1817,7 @@ export const SECTIONS: Section[] = [
             value: "never",
             label: "Never",
             score: 0.15,
-            gap: "No replies at all, so clients who took the time to praise you got silence — and future clients can see it.",
+            gap: "No replies at all, so clients who took the time to praise you got silence - and future clients can see it.",
             fix: {
               action: "Work back through your existing reviews and reply to each one, then keep on top of new ones monthly.",
               impact: "An afternoon's work that visibly improves your most-viewed public page.",
@@ -1839,7 +1839,7 @@ export const SECTIONS: Section[] = [
             score: 0.6,
             gap: "You're level with competitors, so reviews aren't yet a reason to choose you.",
             fix: {
-              action: "Set a target of 10 new reviews a quarter through an automated request — enough to move you clearly ahead.",
+              action: "Set a target of 10 new reviews a quarter through an automated request - enough to move you clearly ahead.",
               impact: "Being visibly the best-reviewed option locally shortens the decision for new clients.",
               effort: "quick",
             },
@@ -1848,7 +1848,7 @@ export const SECTIONS: Section[] = [
             value: "fewer",
             label: "Fewer",
             score: 0.25,
-            gap: "Competitors have more reviews than you, so you're losing clients at the comparison stage — before they ever contact you.",
+            gap: "Competitors have more reviews than you, so you're losing clients at the comparison stage - before they ever contact you.",
             fix: {
               action: "Automate review requests for every client and ask your loyal regulars directly this month.",
               impact: "Closing the review gap is usually the fastest way to win more of the local search traffic you already appear in.",
@@ -1872,7 +1872,7 @@ export const SECTIONS: Section[] = [
         id: "review-blocker",
         kind: "text",
         prompt: "What's stopping you from getting more reviews?",
-        hint: "In your own words — this shapes the recommendations in your report.",
+        hint: "In your own words - this shapes the recommendations in your report.",
         weight: 0,
         placeholder: "e.g. I feel awkward asking, or I never remember once the client has left…",
         optional: true,
@@ -1904,7 +1904,7 @@ export const SECTIONS: Section[] = [
     kpi: {
       name: "Repeat client rate",
       metric: "The share of your appointments taken by clients who've been before",
-      why: "Returning clients cost nothing to win, so this number goes almost straight to profit — and it steadies the quiet weeks.",
+      why: "Returning clients cost nothing to win, so this number goes almost straight to profit - and it steadies the quiet weeks.",
       supports: ["retention", "reviews", "confirmation"],
       current: (answers) => {
         const value = num(answers, "retention.repeat-rate");
@@ -1921,15 +1921,15 @@ export const SECTIONS: Section[] = [
         id: "client-value",
         kind: "choice",
         prompt: "Roughly what is one new client worth to you, over the whole time they stay with you?",
-        hint: "Their spend per visit × visits a year × the years they stay. A rough band is fine — it's what makes the rest of this report add up in pounds rather than percentages.",
+        hint: "Their spend per visit × visits a year × the years they stay. A rough band is fine - it's what makes the rest of this report add up in pounds rather than percentages.",
         // Context, not performance: this shapes the report but never the score.
         weight: 0,
         options: [
-          { value: "under-250", label: "Under £250 — a visit or two and they move on", score: 1 },
+          { value: "under-250", label: "Under £250 - a visit or two and they move on", score: 1 },
           { value: "250-500", label: "£250 – £500", score: 1 },
-          { value: "500-1000", label: "£500 – £1,000 — a regular for around a year", score: 1 },
+          { value: "500-1000", label: "£500 – £1,000 - a regular for around a year", score: 1 },
           { value: "1000-2500", label: "£1,000 – £2,500", score: 1 },
-          { value: "2500-5000", label: "£2,500 – £5,000 — a loyal client over several years", score: 1 },
+          { value: "2500-5000", label: "£2,500 – £5,000 - a loyal client over several years", score: 1 },
           { value: "5000-plus", label: "More than £5,000", score: 1 },
           {
             value: "unknown",
@@ -1940,7 +1940,7 @@ export const SECTIONS: Section[] = [
               action:
                 "Work out a rough figure: average spend per visit × visits per year × the number of years a typical client stays. A rough number beats no number.",
               impact:
-                "Once you know it, every decision — deposits, follow-up, an hour spent on reviews — can be judged against what it returns.",
+                "Once you know it, every decision - deposits, follow-up, an hour spent on reviews - can be judged against what it returns.",
               effort: "quick",
             },
           },
@@ -1956,7 +1956,7 @@ export const SECTIONS: Section[] = [
             value: "rebook",
             label: "They're prompted to rebook before leaving",
             score: 1,
-            strength: "Rebooking before they leave is the single most effective retention habit there is — and you already do it.",
+            strength: "Rebooking before they leave is the single most effective retention habit there is - and you already do it.",
           },
           {
             value: "followup",
@@ -1984,7 +1984,7 @@ export const SECTIONS: Section[] = [
             value: "nothing",
             label: "Nothing",
             score: 0.05,
-            gap: "Once a client leaves, there's nothing bringing them back — so every month you start again on new enquiries.",
+            gap: "Once a client leaves, there's nothing bringing them back - so every month you start again on new enquiries.",
             fix: {
               action: "Do two things: ask every client to rebook before they leave, and send a follow-up message the next day.",
               impact:
@@ -2033,13 +2033,13 @@ export const SECTIONS: Section[] = [
         options: [
           {
             value: "auto",
-            label: "Yes — automated",
+            label: "Yes - automated",
             score: 1,
             strength: "Lapsed clients are contacted automatically, so quiet weeks get filled from people who already trust you.",
           },
           {
             value: "manual",
-            label: "Yes — manually",
+            label: "Yes - manually",
             score: 0.6,
             strength: "You do reach out to clients who've drifted.",
             fix: {
@@ -2055,7 +2055,7 @@ export const SECTIONS: Section[] = [
             gap: "Clients who drift away are never contacted, so a growing list of people who liked your work is going unused.",
             fix: {
               action: "Export clients who haven't visited in 10+ weeks and send a short, warm message with a rebooking link. Then automate it.",
-              impact: "This is usually the quickest available win — the clients already know and trust you.",
+              impact: "This is usually the quickest available win - the clients already know and trust you.",
               effort: "quick",
             },
           },
@@ -2067,14 +2067,14 @@ export const SECTIONS: Section[] = [
         prompt: "Do you have a referral programme?",
         weight: 0.9,
         options: [
-          { value: "formal", label: "Yes — a formal one", score: 1, strength: "A structured referral programme turns happy clients into a steady, no-cost source of new ones." },
+          { value: "formal", label: "Yes - a formal one", score: 1, strength: "A structured referral programme turns happy clients into a steady, no-cost source of new ones." },
           {
             value: "informal",
-            label: "Informal — word of mouth",
+            label: "Informal - word of mouth",
             score: 0.55,
             gap: "Referrals happen by accident rather than because you've made them easy and rewarding.",
             fix: {
-              action: "Offer a simple two-way reward — something for the client who refers and something for the friend — and mention it in your follow-up message.",
+              action: "Offer a simple two-way reward - something for the client who refers and something for the friend - and mention it in your follow-up message.",
               impact: "Makes your best clients your most cost-effective marketing channel.",
               effort: "quick",
             },
@@ -2103,7 +2103,7 @@ export const SECTIONS: Section[] = [
           v >= 4
             ? { strength: "You rate your retention highly, and returning clients are the most profitable revenue you have." }
             : {
-                gap: "You know retention isn't where it should be — which means you're paying to replace clients you could have kept.",
+                gap: "You know retention isn't where it should be - which means you're paying to replace clients you could have kept.",
                 fix: {
                   action: "Start with rebooking in the room, then add a 10-week re-engagement message for anyone who slips through.",
                   impact: "Retention gains flow almost straight to profit.",

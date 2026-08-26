@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 
-/* Shared visual primitives for the diagnostic — kept deliberately small so the
+/* Shared visual primitives for the diagnostic - kept deliberately small so the
    whole product reads as one considered surface rather than a kit of parts. */
 
 export function Wordmark({ className }: { className?: string }) {

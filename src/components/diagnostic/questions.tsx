@@ -13,7 +13,7 @@ import type {
 } from "@/lib/diagnostic/types";
 import { inputClass } from "./ui";
 
-/* One control per question kind. Everything is a real, large tap target —
+/* One control per question kind. Everything is a real, large tap target -
    most people complete this on a phone, between clients. */
 
 function Tick({ checked, round }: { checked: boolean; round?: boolean }) {
@@ -163,7 +163,7 @@ function SliderControl({
             dontKnow ? "text-tulivo-faint" : "text-tulivo-clay",
           )}
         >
-          {dontKnow ? "—" : display}
+          {dontKnow ? "-" : display}
         </span>
         {value === undefined && (
           <span className="text-[12px] text-tulivo-faint">Drag to set your answer</span>

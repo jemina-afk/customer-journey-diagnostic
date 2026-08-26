@@ -2,7 +2,7 @@ import { DIAGNOSTIC } from "./config";
 import type { DiagnosticResult, Profile } from "./types";
 
 /*
-  Server-side plumbing: transactional email and Stripe. Both degrade quietly —
+  Server-side plumbing: transactional email and Stripe. Both degrade quietly -
   with no Resend key and no Stripe key the diagnostic still runs end to end, it
   just stops emailing and can't take payment.
 
@@ -82,7 +82,7 @@ export function clientReportEmail(profile: Profile, result: DiagnosticResult): s
   const priorities = result.priorities
     .map(
       (p, i) =>
-        `<li style="margin-bottom:6px;color:#201b18;"><strong>${i + 1}. ${escapeHtml(p.title)}</strong> — ${p.score}/100 · ${
+        `<li style="margin-bottom:6px;color:#201b18;"><strong>${i + 1}. ${escapeHtml(p.title)}</strong> - ${p.score}/100 · ${
           p.status === "red" ? "Critical" : p.status === "amber" ? "Needs work" : "Strong"
         }</li>`,
     )
@@ -91,7 +91,7 @@ export function clientReportEmail(profile: Profile, result: DiagnosticResult): s
   return SHELL(`
     <h1 style="margin:20px 0 8px;font-size:24px;line-height:1.25;color:#201b18;">Your full diagnostic report is ready</h1>
     <p style="font-size:15px;line-height:1.6;color:#6a6058;">Hey ${escapeHtml(profile.name)},</p>
-    <p style="font-size:15px;line-height:1.6;color:#6a6058;">Your report is attached to this email — ${DIAGNOSTIC.reportPages} pages, written from your answers.</p>
+    <p style="font-size:15px;line-height:1.6;color:#6a6058;">Your report is attached to this email - ${DIAGNOSTIC.reportPages} pages, written from your answers.</p>
     <div style="margin:22px 0;padding:18px;background:#f4efe8;border-radius:14px;">
       <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#6a6058;font-weight:600;">Your overall score</div>
       <div style="font-size:38px;font-weight:700;color:#201b18;line-height:1.1;margin-top:6px;">${result.overall}<span style="font-size:18px;color:#9a8f86;">/100</span></div>

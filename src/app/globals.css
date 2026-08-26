@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /*
-  Tulivo Digital — Customer Journey Diagnostic.
+  Tulivo Digital - Customer Journey Diagnostic.
   Light-only by design: this is a consulting deliverable, and it should read
   like paper on every device.
 */
@@ -77,7 +77,7 @@ body {
   .tulivo-fade-up { animation: none; }
 }
 
-/* Slider — styled for thumbs, on a warm track with a clay fill. */
+/* Slider - styled for thumbs, on a warm track with a clay fill. */
 input[type="range"].t-range {
   -webkit-appearance: none;
   appearance: none;

@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /*
-  Creates a Stripe Checkout session with a direct fetch to the Stripe API — no
+  Creates a Stripe Checkout session with a direct fetch to the Stripe API - no
   SDK, so nothing extra ships and the route runs anywhere. When Stripe isn't
   configured the client falls back to the external checkout URL (Stan Store).
 */
@@ -53,8 +53,8 @@ export async function POST(request: Request) {
   params.set(
     "line_items[0][price_data][product_data][name]",
     withCall
-      ? "Customer Journey Diagnostic — Report + Walkthrough Call"
-      : "Customer Journey Diagnostic — Full Report",
+      ? "Customer Journey Diagnostic - Report + Walkthrough Call"
+      : "Customer Journey Diagnostic - Full Report",
   );
   params.set(
     "line_items[0][price_data][product_data][description]",

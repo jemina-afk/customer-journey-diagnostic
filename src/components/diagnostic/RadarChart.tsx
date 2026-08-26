@@ -5,7 +5,7 @@ import type { SectionResult } from "@/lib/diagnostic/types";
 
 /*
   Hand-drawn SVG radar. Built rather than pulled from a chart library so the
-  labels, rings and fills sit exactly on the brand — and so the same geometry
+  labels, rings and fills sit exactly on the brand - and so the same geometry
   can be redrawn as vectors inside the PDF.
 */
 

@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 
-/* Locked content is rendered for real and then blurred — people can see there
+/* Locked content is rendered for real and then blurred - people can see there
    is something specific there, which is what makes unlocking feel worth it. */
 
 export function Locked({

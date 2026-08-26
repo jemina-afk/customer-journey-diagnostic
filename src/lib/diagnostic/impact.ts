@@ -30,7 +30,7 @@ export interface Leak {
 }
 
 export interface Impact {
-  /** False when we couldn't estimate — the UI then says nothing about money. */
+  /** False when we couldn't estimate - the UI then says nothing about money. */
   available: boolean;
   appointmentsPerWeek: number;
   averageValue: number;
@@ -41,7 +41,7 @@ export interface Impact {
   assumptions: string[];
 }
 
-/** "an 18%", "a 12%" — small thing, but it's the difference between written and generated. */
+/** "an 18%", "a 12%" - small thing, but it's the difference between written and generated. */
 function article(value: number): string {
   const spoken = String(value);
   return spoken.startsWith("8") || spoken.startsWith("11") || spoken.startsWith("18") ? "an" : "a";
@@ -82,7 +82,7 @@ export function estimateImpact(answers: Answers): Impact {
     `${perWeek} appointment${perWeek === 1 ? "" : "s"} a week at £${value}, over ${WORKING_WEEKS} working weeks.`,
   ];
 
-  // 1. Missed appointments — half of them are winnable with reminders,
+  // 1. Missed appointments - half of them are winnable with reminders,
   //    deposits and an enforced policy.
   const noShow = answers["reminders.noshow-rate"];
   const noShowRate = typeof noShow === "number" ? noShow / 100 : noShow === UNKNOWN ? 0.1 : null;
@@ -106,7 +106,7 @@ export function estimateImpact(answers: Answers): Impact {
     }
   }
 
-  // 2. Enquiries that never book — a 10-point lift is a realistic first move.
+  // 2. Enquiries that never book - a 10-point lift is a realistic first move.
   const conversion = answers["lead-nurture.conversion-rate"];
   const repeat = answers["retention.repeat-rate"];
   if (typeof conversion === "number" && conversion >= 5 && conversion < 70) {
@@ -115,7 +115,7 @@ export function estimateImpact(answers: Answers): Impact {
       Working back to how many enquiries this business actually gets.
 
       Appointments aren't clients: a client who visits monthly is one enquiry,
-      not twelve. How often they visit falls out of what they told us — a
+      not twelve. How often they visit falls out of what they told us - a
       client worth £700 at £60 a visit comes about a dozen times, spread over a
       two-year relationship. Dividing bookings straight by the conversion rate
       (the obvious shortcut) implies more enquiries a week than appointments,
@@ -151,7 +151,7 @@ export function estimateImpact(answers: Answers): Impact {
     }
   }
 
-  // 3. Clients who don't come back — closing part of the gap to a 60% repeat rate.
+  // 3. Clients who don't come back - closing part of the gap to a 60% repeat rate.
   if (typeof repeat === "number" && repeat < 60) {
     const gap = Math.min(60 - repeat, 20) / 100;
     const rawRepeat = bookings * gap * 0.5 * value;

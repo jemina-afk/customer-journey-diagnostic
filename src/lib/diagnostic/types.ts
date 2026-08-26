@@ -1,5 +1,5 @@
 /*
-  Customer Journey Diagnostic — domain types.
+  Customer Journey Diagnostic - domain types.
 
   Everything here is plain data + pure functions so the same module can run in
   the browser (live scoring, PDF generation) and on the server (email
@@ -66,7 +66,7 @@ export interface SliderQuestion extends BaseQuestion {
   max: number;
   step: number;
   defaultValue: number;
-  /** e.g. "%" or "+ reviews" — rendered after the value. */
+  /** e.g. "%" or "+ reviews" - rendered after the value. */
   unit?: string;
   /** Formats the live value, e.g. 100 -> "100+". */
   format?: (value: number) => string;
@@ -105,7 +105,7 @@ export type Question =
 
 /*
   The one number a 90-day cycle is judged on. Each stage owns a KPI, and each
-  stage also knows which KPIs its work moves — so a focus cycle can pull three
+  stage also knows which KPIs its work moves - so a focus cycle can pull three
   or four aligned priorities together instead of scattering effort.
 */
 export interface Kpi {
@@ -131,7 +131,7 @@ export interface Section {
   shortTitle: string;
   /** One line of context above the questions. */
   context: string;
-  /** Why this stage matters — used in the report. */
+  /** Why this stage matters - used in the report. */
   why: string;
   /** Weighting in the overall score. */
   weight: number;
@@ -151,7 +151,7 @@ export interface Profile {
   email: string;
   business: string;
   businessType: string;
-  /** Optional — so their site can be looked at alongside their answers. */
+  /** Optional - so their site can be looked at alongside their answers. */
   website?: string;
 }
 
@@ -164,7 +164,7 @@ export interface SectionResult {
   shortTitle: string;
   score: number;
   status: Status;
-  /** Weighted headroom — how much the overall score is losing here. */
+  /** Weighted headroom - how much the overall score is losing here. */
   opportunity: number;
   strengths: string[];
   gaps: string[];

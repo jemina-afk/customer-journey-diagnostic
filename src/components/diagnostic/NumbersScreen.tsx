@@ -9,7 +9,7 @@ import { Button, Card, Eyebrow, Wordmark } from "./ui";
 
 /*
   The last screen before results. Two unscored numbers, asked once they're
-  invested — they're what lets the results talk in pounds rather than points.
+  invested - they're what lets the results talk in pounds rather than points.
 */
 export function NumbersScreen({
   answers,
@@ -75,7 +75,7 @@ export function NumbersScreen({
         </div>
 
         <p className="mt-5 text-[13px] leading-relaxed text-tulivo-faint">
-          Nothing here is shared or published — it&apos;s used to work out what your gaps are worth, and
+          Nothing here is shared or published - it&apos;s used to work out what your gaps are worth, and
           it appears in your own report.
         </p>
 

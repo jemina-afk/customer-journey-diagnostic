@@ -45,7 +45,7 @@ export async function POST(request: Request) {
 
   await sendEmail({
     to: SERVER_CONFIG.notifyEmail,
-    subject: `${body.test ? "[TEST] " : ""}Diagnostic purchased: ${profile.business} — ${result.overall}/100`,
+    subject: `${body.test ? "[TEST] " : ""}Diagnostic purchased: ${profile.business} - ${result.overall}/100`,
     html: notificationEmail(profile, result, "purchased"),
     replyTo: profile.email,
   });

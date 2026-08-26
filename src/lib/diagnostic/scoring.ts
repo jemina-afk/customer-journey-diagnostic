@@ -18,14 +18,14 @@ import type {
 
 /*
   Turns raw answers into scores, findings and a prioritised plan. Pure and
-  deterministic — the browser, the PDF and the server all call the same code.
+  deterministic - the browser, the PDF and the server all call the same code.
 */
 
 export const BANDS: Record<Band, { label: string; summary: string; range: [number, number] }> = {
   optimised: {
     label: "Optimised",
     summary:
-      "Your journey is solid. The foundations are in place, so fine-tuning is what brings the next gains — not rebuilding.",
+      "Your journey is solid. The foundations are in place, so fine-tuning is what brings the next gains - not rebuilding.",
     range: [80, 100],
   },
   functional: {
@@ -37,7 +37,7 @@ export const BANDS: Record<Band, { label: string; summary: string; range: [numbe
   leaking: {
     label: "Leaking",
     summary:
-      "There are significant gaps in your journey. You're winning attention and then losing people who were ready to book — which means growth is costing far more than it should.",
+      "There are significant gaps in your journey. You're winning attention and then losing people who were ready to book - which means growth is costing far more than it should.",
     range: [40, 59],
   },
   critical: {
@@ -188,11 +188,11 @@ export function scoreDiagnostic(answers: Answers): DiagnosticResult {
   const overall = totalWeight > 0 ? Math.round(weighted / totalWeight) : 0;
   const band = bandFor(overall);
 
-  // Priorities: where the weighted headroom is greatest — i.e. where the next
+  // Priorities: where the weighted headroom is greatest - i.e. where the next
   // hour of work buys the most.
   const priorities = [...sections].sort((a, b) => b.opportunity - a.opportunity).slice(0, 3);
 
-  // One quick win per stage, weakest stage first — three actions that pull in
+  // One quick win per stage, weakest stage first - three actions that pull in
   // three different directions beat three variations on the same idea.
   const byOpportunity = [...sections].sort((a, b) => b.opportunity - a.opportunity);
   const quickWins = dedupeFixes(
@@ -241,7 +241,7 @@ export function clientValueOf(answers: Answers): ClientValue | null {
   return CLIENT_VALUE_BANDS[answer] ?? null;
 }
 
-/** What twelve extra clients — one a month — are worth over their lifetimes. */
+/** What twelve extra clients - one a month - are worth over their lifetimes. */
 export function annualValueOfOneMoreClientPerMonth(value: ClientValue): string {
   const total = value.midpoint * 12;
   return `£${total.toLocaleString("en-GB")}`;
@@ -261,7 +261,7 @@ function dedupeFixes(fixes: Fix[]): Fix[] {
 /*
   A 90-day cycle in the shape of the LEAP programme: one KPI, three or four
   priorities that all move that same KPI, then the number the next cycle takes
-  on. Priorities come from the stages the KPI actually depends on — so the work
+  on. Priorities come from the stages the KPI actually depends on - so the work
   compounds on one number instead of being spread thinly across eight.
 */
 const WINDOWS = ["Weeks 1–2", "Weeks 3–6", "Weeks 7–10", "Weeks 11–13"];

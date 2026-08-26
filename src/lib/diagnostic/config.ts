@@ -10,7 +10,7 @@ export const DIAGNOSTIC = {
   /** Stan Store / external checkout, used when Stripe isn't configured. */
   checkoutUrl: process.env.NEXT_PUBLIC_CHECKOUT_URL ?? "",
   /*
-    Until a way to take money is configured, the unlock button simply unlocks —
+    Until a way to take money is configured, the unlock button simply unlocks -
     otherwise the report can't be tested at all. Set NEXT_PUBLIC_REQUIRE_PAYMENT
     to "true" to keep it locked even then.
   */
@@ -67,10 +67,10 @@ export const DIAGNOSTIC = {
       name: "Intensive Day",
       price: "From £1,500",
       description:
-        "One focused day together fixing the first priority in your cycle end to end — built, tested and live before we finish.",
+        "One focused day together fixing the first priority in your cycle end to end - built, tested and live before we finish.",
     },
     {
-      name: "LEAP — 90-Day Growth Advisory",
+      name: "LEAP - 90-Day Growth Advisory",
       price: "From £6,000",
       description:
         "One KPI, three or four aligned priorities, ninety days, built with you. When the number moves, the next cycle takes on the next KPI.",
