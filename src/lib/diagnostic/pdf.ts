@@ -656,7 +656,7 @@ function nextStepsPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
   doc.text("Three ways to close these gaps", M, 40);
   paragraph(
     doc,
-    "Your report is written so you can act on it alone. If you'd rather it was built with you - or simply done faster - here's how that works. Each option works the same way: one KPI, a handful of aligned priorities, ninety days.",
+    `Everything in this report is one 90-day cycle: ${result.cycle.kpi} as the focus, with the priorities that move it. That is exactly how the LEAP sprint runs - the difference is whether you run the cycle yourself or we run it together.`,
     M,
     50,
     COL_W,

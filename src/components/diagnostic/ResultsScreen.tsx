@@ -601,6 +601,10 @@ export function ResultsScreen({
           <h2 className="mt-3 text-[26px] font-semibold tracking-[-0.025em] text-tulivo-ink">
             Three ways to close these gaps
           </h2>
+          <p className="mt-3 max-w-[64ch] text-[15px] leading-relaxed text-tulivo-muted">
+            Your 90-day focus above is one full cycle - the same shape the LEAP sprint runs. The only
+            question is whether you run it yourself or we run it together.
+          </p>
           <div className="mt-7 grid gap-5 md:grid-cols-3">
             {DIAGNOSTIC.offers.map((offer) => (
               <div key={offer.name} className="rounded-[18px] border border-tulivo-line bg-tulivo-veil/40 p-5">

@@ -32,7 +32,7 @@ export const DIAGNOSTIC = {
     {
       id: "report",
       name: "The full report",
-      price: Number(process.env.NEXT_PUBLIC_TIER_REPORT_PRICE ?? 97),
+      price: Number(process.env.NEXT_PUBLIC_TIER_REPORT_PRICE ?? 297),
       blurb: "Everything unlocked on screen, plus the PDF to keep.",
       features: [
         "Exactly what's broken in each of the eight stages",
@@ -46,7 +46,7 @@ export const DIAGNOSTIC = {
     {
       id: "call",
       name: "Report + walkthrough call",
-      price: Number(process.env.NEXT_PUBLIC_TIER_CALL_PRICE ?? 397),
+      price: Number(process.env.NEXT_PUBLIC_TIER_CALL_PRICE ?? 497),
       blurb: "Everything above, plus 45 minutes with Jemina to agree your focus.",
       features: [
         "Everything in the full report",
@@ -60,10 +60,10 @@ export const DIAGNOSTIC = {
   ],
   offers: [
     {
-      name: "Self-implement",
+      name: "Run it yourself",
       price: "Included",
       description:
-        "Work through your report in order. Start with the quick wins, then your focus KPI and its priorities. Everything is written so you can action it without help.",
+        "This report is your first 90-day cycle, written out. Start with the quick wins, then work the priorities behind your focus KPI in order. Nothing in it needs me.",
     },
     {
       name: "Intensive Day",
@@ -72,10 +72,10 @@ export const DIAGNOSTIC = {
         "One focused day together fixing the first priority in your cycle end to end - built, tested and live before we finish.",
     },
     {
-      name: "LEAP - 90-Day Growth Advisory",
+      name: "LEAP - 90-Day Sprint",
       price: "From £6,000",
       description:
-        "One KPI, three or four aligned priorities, ninety days, built with you. When the number moves, the next cycle takes on the next KPI.",
+        "The same cycle in this report, built with you rather than by you: your focus KPI, the aligned priorities, ninety days, fortnightly sessions. When the number moves, the next cycle takes on the next KPI.",
     },
   ],
 } as const;
