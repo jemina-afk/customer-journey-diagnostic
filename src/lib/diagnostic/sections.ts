@@ -1921,16 +1921,16 @@ export const SECTIONS: Section[] = [
         id: "client-value",
         kind: "choice",
         prompt: "Roughly what is one new client worth to you, over the whole time they stay with you?",
-        hint: "A rough band is fine — it's what makes the rest of this report add up in pounds rather than percentages.",
+        hint: "Their spend per visit × visits a year × the years they stay. A rough band is fine — it's what makes the rest of this report add up in pounds rather than percentages.",
         // Context, not performance: this shapes the report but never the score.
         weight: 0,
         options: [
-          { value: "under-50", label: "Under £50", score: 1 },
-          { value: "50-150", label: "£50 – £150", score: 1 },
-          { value: "150-300", label: "£150 – £300", score: 1 },
-          { value: "300-600", label: "£300 – £600", score: 1 },
-          { value: "600-1500", label: "£600 – £1,500", score: 1 },
-          { value: "1500-plus", label: "More than £1,500", score: 1 },
+          { value: "under-250", label: "Under £250 — a visit or two and they move on", score: 1 },
+          { value: "250-500", label: "£250 – £500", score: 1 },
+          { value: "500-1000", label: "£500 – £1,000 — a regular for around a year", score: 1 },
+          { value: "1000-2500", label: "£1,000 – £2,500", score: 1 },
+          { value: "2500-5000", label: "£2,500 – £5,000 — a loyal client over several years", score: 1 },
+          { value: "5000-plus", label: "More than £5,000", score: 1 },
           {
             value: "unknown",
             label: "I don't know",

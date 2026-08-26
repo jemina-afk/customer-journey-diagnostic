@@ -215,14 +215,24 @@ export function scoreDiagnostic(answers: Answers): DiagnosticResult {
   };
 }
 
-/** The bands offered for "what is a client worth", and their midpoints. */
+/*
+  The bands for "what is a client worth", and the midpoint each one contributes
+  to the money model.
+
+  They're pitched at where this sector actually sits: a salon client at £60
+  every six weeks for a couple of years is comfortably four figures, and an
+  aesthetics client on regular treatment is several. The old bands topped out at
+  £1,500, which put most of the audience in one bucket and badly under-valued
+  the higher-ticket clinics. Each midpoint sits slightly below the middle of its
+  band, and the open top band is read conservatively rather than optimistically.
+*/
 const CLIENT_VALUE_BANDS: Record<string, ClientValue> = {
-  "under-50": { label: "under £50", midpoint: 40 },
-  "50-150": { label: "£50–£150", midpoint: 100 },
-  "150-300": { label: "£150–£300", midpoint: 225 },
-  "300-600": { label: "£300–£600", midpoint: 450 },
-  "600-1500": { label: "£600–£1,500", midpoint: 1000 },
-  "1500-plus": { label: "over £1,500", midpoint: 2000 },
+  "under-250": { label: "under £250", midpoint: 150 },
+  "250-500": { label: "£250–£500", midpoint: 350 },
+  "500-1000": { label: "£500–£1,000", midpoint: 700 },
+  "1000-2500": { label: "£1,000–£2,500", midpoint: 1600 },
+  "2500-5000": { label: "£2,500–£5,000", midpoint: 3500 },
+  "5000-plus": { label: "over £5,000", midpoint: 7000 },
 };
 
 export function clientValueOf(answers: Answers): ClientValue | null {
@@ -231,7 +241,7 @@ export function clientValueOf(answers: Answers): ClientValue | null {
   return CLIENT_VALUE_BANDS[answer] ?? null;
 }
 
-/** What one extra client a month is worth over a year, in round pounds. */
+/** What twelve extra clients — one a month — are worth over their lifetimes. */
 export function annualValueOfOneMoreClientPerMonth(value: ClientValue): string {
   const total = value.midpoint * 12;
   return `£${total.toLocaleString("en-GB")}`;

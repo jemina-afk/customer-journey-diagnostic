@@ -90,18 +90,23 @@ persuades most people. Three leaks are modelled, each from a number they gave:
 | Leak | How it's estimated |
 |------|--------------------|
 | Appointments that don't turn up | Halving their no-show rate, valued at the average appointment |
-| Enquiries that never became clients | Lifting conversion by 10 points, valued at what a client is worth over time |
+| Enquiries that never became clients | Lifting conversion by 10 points, valued at half of lifetime client value (the rest accrues in later years) |
 | Clients who don't come back | Closing half the gap between their repeat rate and 60% |
 
 It is deliberately conservative, and built to survive scrutiny from someone who
 knows their own business:
 
 - Only recoverable value is counted, never the full theoretical loss.
+- Enquiry volume is worked back from how often a client visits — derived from
+  what they say a client is worth against what a visit is worth — because
+  appointments are not clients, and dividing bookings by the conversion rate
+  implies more enquiries a week than appointments.
 - 50 working weeks a year, not 52.
 - No single leak may exceed 18% of annual revenue; the total is capped at 35%.
 - Anything under £250 is dropped rather than padded.
 - The assumptions are printed under the figures, including where a placeholder
-  (a 10% no-show rate) stood in for a number they don't track yet.
+  (a 10% no-show rate) stood in for a number they don't track yet, and where a
+  cap is holding a figure down.
 
 If the two numbers are missing, nothing about money appears anywhere — no
 invented figures.

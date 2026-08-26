@@ -47,6 +47,11 @@ function article(value: number): string {
   return spoken.startsWith("8") || spoken.startsWith("11") || spoken.startsWith("18") ? "an" : "a";
 }
 
+/** Never let a capped figure read as a precise one. */
+function withCap(basis: string, raw: number, cap: number): string {
+  return raw > cap ? `${basis} Held to a conservative share of your revenue.` : basis;
+}
+
 function round(value: number): number {
   if (value >= 1000) return Math.round(value / 100) * 100;
   return Math.round(value / 10) * 10;
@@ -82,16 +87,20 @@ export function estimateImpact(answers: Answers): Impact {
   const noShow = answers["reminders.noshow-rate"];
   const noShowRate = typeof noShow === "number" ? noShow / 100 : noShow === UNKNOWN ? 0.1 : null;
   if (noShowRate !== null && noShowRate > 0) {
-    const recoverable = Math.min(bookings * noShowRate * value * 0.5, cap);
+    const rawNoShow = bookings * noShowRate * value * 0.5;
+    const recoverable = Math.min(rawNoShow, cap);
     if (recoverable >= 100) {
       leaks.push({
         id: "no-shows",
         label: "Appointments that don't turn up",
         annual: round(recoverable),
-        basis:
+        basis: withCap(
           noShow === UNKNOWN
             ? "Assumes a 10% no-show rate, since you don't track it yet, and that half of those are winnable."
             : `Halving ${article(Math.round(noShowRate * 100))} ${Math.round(noShowRate * 100)}% no-show rate.`,
+          rawNoShow,
+          cap,
+        ),
       });
       if (noShow === UNKNOWN) assumptions.push("A 10% no-show rate, as a sector-typical placeholder.");
     }
@@ -99,37 +108,64 @@ export function estimateImpact(answers: Answers): Impact {
 
   // 2. Enquiries that never book — a 10-point lift is a realistic first move.
   const conversion = answers["lead-nurture.conversion-rate"];
+  const repeat = answers["retention.repeat-rate"];
   if (typeof conversion === "number" && conversion >= 5 && conversion < 70) {
-    const enquiries = bookings / (conversion / 100);
-    const lift = Math.min(10, 70 - conversion) / 100;
-    // A won enquiry is worth what the client is worth over time, where they
-    // told us; one appointment is the conservative floor where they didn't.
     const lifetime = clientValueOf(answers);
-    const perClient = lifetime ? Math.max(lifetime.midpoint, value) : value;
-    const recoverable = Math.min(enquiries * lift * perClient, cap);
+    /*
+      Working back to how many enquiries this business actually gets.
+
+      Appointments aren't clients: a client who visits monthly is one enquiry,
+      not twelve. How often they visit falls out of what they told us — a
+      client worth £700 at £60 a visit comes about a dozen times, spread over a
+      two-year relationship. Dividing bookings straight by the conversion rate
+      (the obvious shortcut) implies more enquiries a week than appointments,
+      which no salon would recognise.
+    */
+    const visitsPerYear = lifetime
+      ? Math.min(Math.max(lifetime.midpoint / value / 2, 1), 24)
+      : 4;
+    const repeatShare = typeof repeat === "number" ? Math.min(repeat, 90) / 100 : 0.5;
+    const clientsPerYear = bookings / visitsPerYear;
+    const newClients = clientsPerYear * Math.max(1 - repeatShare, 0.1);
+    const enquiries = newClients / (conversion / 100);
+    const lift = Math.min(10, 70 - conversion) / 100;
+    // Lifetime value accrues over years and this figure is a yearly one, so
+    // half of it keeps the annual claim honest; one appointment is the floor
+    // where they didn't give us a band.
+    const perClient = lifetime ? Math.max(lifetime.midpoint / 2, value) : value;
+    const raw = enquiries * lift * perClient;
+    const recoverable = Math.min(raw, cap);
     if (recoverable >= 100) {
       leaks.push({
         id: "enquiries",
         label: "Enquiries that never became clients",
         annual: round(recoverable),
-        basis: lifetime
-          ? `Taking conversion from ${conversion}% to ${conversion + Math.round(lift * 100)}%, at ${lifetime.label} per client.`
-          : `Taking enquiry-to-client conversion from ${conversion}% to ${conversion + Math.round(lift * 100)}%.`,
+        basis: withCap(
+          lifetime
+            ? `Taking conversion from ${conversion}% to ${conversion + Math.round(lift * 100)}%, counting half of ${lifetime.label} per client in the first year.`
+            : `Taking enquiry-to-client conversion from ${conversion}% to ${conversion + Math.round(lift * 100)}%.`,
+          raw,
+          cap,
+        ),
       });
     }
   }
 
   // 3. Clients who don't come back — closing part of the gap to a 60% repeat rate.
-  const repeat = answers["retention.repeat-rate"];
   if (typeof repeat === "number" && repeat < 60) {
     const gap = Math.min(60 - repeat, 20) / 100;
-    const recoverable = Math.min(bookings * gap * 0.5 * value, cap);
+    const rawRepeat = bookings * gap * 0.5 * value;
+    const recoverable = Math.min(rawRepeat, cap);
     if (recoverable >= 100) {
       leaks.push({
         id: "retention",
         label: "Clients who don't come back",
         annual: round(recoverable),
-        basis: `Closing half the gap between ${repeat}% repeat business and 60%.`,
+        basis: withCap(
+          `Closing half the gap between ${repeat}% repeat business and 60%.`,
+          rawRepeat,
+          cap,
+        ),
       });
     }
   }

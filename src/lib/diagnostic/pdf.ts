@@ -341,7 +341,7 @@ function executiveSummary(doc: Doc, result: DiagnosticResult, profile: Profile, 
   if (result.clientValue) {
     y = paragraph(
       doc,
-      `At ${result.clientValue.label} per client, one extra client a month is worth ${annualValueOfOneMoreClientPerMonth(result.clientValue)} a year to you — the bar every recommendation in this report has to clear.`,
+      `At ${result.clientValue.label} per client, one extra client a month adds around ${annualValueOfOneMoreClientPerMonth(result.clientValue)} in lifetime value over a year — the bar every recommendation in this report has to clear.`,
       textX,
       y + 5,
       textW,

@@ -80,18 +80,18 @@ export function ResultsScreen({
                 ? "Your journey works — but it's leaking in places."
                 : result.bandLabel === "Leaking"
                   ? "You're losing clients you could be winning."
-                  : "There are major gaps across your journey."}
+                  : "You're losing people at almost every stage."}
           </h1>
           <p className="mt-4 max-w-[60ch] text-[16px] leading-relaxed text-tulivo-muted sm:text-[17px]">
             {result.bandSummary}
           </p>
           {result.clientValue && (
             <p className="mt-5 max-w-[60ch] rounded-[14px] border border-tulivo-line bg-tulivo-veil/50 px-4 py-3.5 text-[15px] leading-relaxed text-tulivo-ink">
-              At {result.clientValue.label} per client, just one extra client a month is worth{" "}
+              At {result.clientValue.label} per client, just one extra client a month adds around{" "}
               <strong className="tabular font-semibold">
                 {annualValueOfOneMoreClientPerMonth(result.clientValue)}
               </strong>{" "}
-              a year to you — that&apos;s the bar every fix below has to clear.
+              in lifetime value over a year — that&apos;s the bar every fix below has to clear.
             </p>
           )}
         </div>
