@@ -656,7 +656,7 @@ function nextStepsPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
   doc.text("Three ways to close these gaps", M, 40);
   paragraph(
     doc,
-    `Everything in this report is one 90-day cycle: ${result.cycle.kpi} as the focus, with the priorities that move it. That is exactly how the LEAP sprint runs - the difference is whether you run the cycle yourself or we run it together.`,
+    `Everything in this report is one 90-day cycle: ${result.cycle.kpi} as the focus, with the priorities that move it. That is exactly how the LEAP sprint runs. You can run it yourself - the real question is how much of it you want to carry alone.`,
     M,
     50,
     COL_W,
@@ -667,7 +667,8 @@ function nextStepsPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
   DIAGNOSTIC.offers.forEach((offer, i) => {
     const lines = doc.splitTextToSize(offer.description, COL_W - 14) as string[];
     const boxH = 20 + lines.length * 4.4;
-    doc.setFillColor(i === 1 ? CLAY_SOFT[0] : VEIL[0], i === 1 ? CLAY_SOFT[1] : VEIL[1], i === 1 ? CLAY_SOFT[2] : VEIL[2]);
+    const tint = offer.emphasis ? CLAY_SOFT : VEIL;
+    doc.setFillColor(tint[0], tint[1], tint[2]);
     doc.roundedRect(M, y, COL_W, boxH, 3, 3, "F");
     setText(doc, 8, CLAY, "bold");
     doc.text(`OPTION ${i + 1}`, M + 6, y + 8, { charSpace: 0.8 });
@@ -693,7 +694,7 @@ function nextStepsPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
   rule(doc, y);
   paragraph(
     doc,
-    `Your score today is ${result.overall}/100, and your focus KPI is ${result.cycle.kpi}. Re-run this diagnostic in ninety days: when that number has moved and held, the next cycle takes on ${result.cycle.next ? result.cycle.next.kpi.toLowerCase() : "the next KPI"}.`,
+    `Your score today is ${result.overall}/100, and your focus KPI is ${result.cycle.kpi}. Re-run this diagnostic in ninety days: when that number has moved and held, the next cycle takes on ${result.cycle.next ? result.cycle.next.kpi : "the next KPI"}.`,
     M,
     y + 8,
     COL_W,

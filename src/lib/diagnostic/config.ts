@@ -63,19 +63,22 @@ export const DIAGNOSTIC = {
       name: "Run it yourself",
       price: "Included",
       description:
-        "This report is your first 90-day cycle, written out. Start with the quick wins, then work the priorities behind your focus KPI in order. Nothing in it needs me.",
+        "The whole cycle is written out for you to work through in order. Be warned that it is a fair amount of work: three months of building, testing and following up around an already full diary, and the parts you're least sure about are usually the ones that slip.",
+      emphasis: false,
     },
     {
       name: "Intensive Day",
       price: "From £1,500",
       description:
-        "One focused day together fixing the first priority in your cycle end to end - built, tested and live before we finish.",
+        "One day together on the first priority in your cycle, built and switched on before we finish. You approve the work rather than research it, and you end the day with something live instead of something planned.",
+      emphasis: true,
     },
     {
       name: "LEAP - 90-Day Sprint",
       price: "From £6,000",
       description:
-        "The same cycle in this report, built with you rather than by you: your focus KPI, the aligned priorities, ninety days, fortnightly sessions. When the number moves, the next cycle takes on the next KPI.",
+        "The same cycle, built with you across ninety days: your focus KPI, the aligned priorities, fortnightly sessions, and the work shared rather than left to your evenings. Your number gets looked at every two weeks, which is usually what separates a plan that happens from one that doesn't.",
+      emphasis: true,
     },
   ],
 } as const;

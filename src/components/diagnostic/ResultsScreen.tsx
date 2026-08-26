@@ -602,15 +602,28 @@ export function ResultsScreen({
             Three ways to close these gaps
           </h2>
           <p className="mt-3 max-w-[64ch] text-[15px] leading-relaxed text-tulivo-muted">
-            Your 90-day focus above is one full cycle - the same shape the LEAP sprint runs. The only
-            question is whether you run it yourself or we run it together.
+            Your 90-day focus above is one full cycle - the same shape the LEAP sprint runs. You can
+            absolutely run it yourself. The real question is how much of it you want to carry alone.
           </p>
           <div className="mt-7 grid gap-5 md:grid-cols-3">
             {DIAGNOSTIC.offers.map((offer) => (
-              <div key={offer.name} className="rounded-[18px] border border-tulivo-line bg-tulivo-veil/40 p-5">
+              <div
+                key={offer.name}
+                className={cn(
+                  "flex flex-col rounded-[18px] border p-5",
+                  offer.emphasis
+                    ? "border-tulivo-clay/40 bg-tulivo-clay-soft/40 shadow-[0_16px_36px_-30px_rgba(154,71,47,0.8)]"
+                    : "border-tulivo-line bg-tulivo-veil/40",
+                )}
+              >
                 <h3 className="text-[16px] font-semibold tracking-[-0.02em] text-tulivo-ink">{offer.name}</h3>
                 <p className="mt-1 text-[13px] font-medium text-tulivo-clay">{offer.price}</p>
-                <p className="mt-3 text-[14px] leading-relaxed text-tulivo-muted">{offer.description}</p>
+                <p className="mt-3 flex-1 text-[14px] leading-relaxed text-tulivo-muted">{offer.description}</p>
+                {offer.emphasis && (
+                  <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-tulivo-clay">
+                    Built with you
+                  </p>
+                )}
               </div>
             ))}
           </div>
