@@ -49,6 +49,43 @@ export function DiagnosticApp() {
 
     const params = new URLSearchParams(window.location.search);
     if (testKeyMatches(params.get("test"))) setTestMode(true);
+
+    // A client access link arrives as ?c=<token>: verify it, fill in who they
+    // are, and unlock - they bought this on a call, not off the paywall.
+    const accessToken = params.get("c");
+    if (accessToken) {
+      void (async () => {
+        try {
+          const res = await fetch("/api/diagnostic/access", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token: accessToken }),
+          });
+          const data = (await res.json()) as {
+            ok?: boolean;
+            profile?: Partial<Profile>;
+            tier?: string;
+          };
+          if (!data.ok) return;
+          setSession((current) => {
+            if (!current) return current;
+            const merged: Profile = {
+              name: data.profile?.name ?? current.profile?.name ?? "",
+              email: data.profile?.email ?? current.profile?.email ?? "",
+              business: data.profile?.business ?? current.profile?.business ?? "",
+              businessType: data.profile?.businessType ?? current.profile?.businessType ?? "",
+              website: current.profile?.website,
+            };
+            return { ...current, profile: merged, unlocked: true, tier: data.tier ?? "report" };
+          });
+        } catch {
+          // A bad link just leaves them on the normal, public diagnostic.
+        } finally {
+          window.history.replaceState({}, "", window.location.pathname);
+        }
+      })();
+    }
+
     const checkoutSession = params.get("session_id");
     if (checkoutSession) {
       verifyPayment(checkoutSession).then((ok) => {

@@ -152,6 +152,22 @@ with quick wins and 30/60/90 · next steps and offers · about Tulivo.
 It's generated in the browser, which keeps the server free of a rendering
 runtime, then posted to the API as a data URI to be attached to the email.
 
+## Selling it on a call instead
+
+The paywall assumes someone buys off the results screen. When the diagnostic is
+sold on a call instead, use **client links** - `/links`, gated by
+`DIAGNOSTIC_ADMIN_KEY`. Fill in who you spoke to and it produces a link that
+opens the diagnostic with their name and business already filled in and the full
+report already unlocked. No paywall, no unlock code to read out, no card.
+
+The link carries everything in a signed token (HMAC-SHA256 with
+`DIAGNOSTIC_LINK_SECRET`), so nothing is stored, nothing can be forged or
+edited, and it expires on the date you chose.
+
+`/call` is the page ads point at: the case for the conversation, the eight
+stages, and your booking calendar embedded from `NEXT_PUBLIC_BOOKING_URL`. It
+mentions the diagnostic only as something offered after you've spoken.
+
 ## Two ways to unlock
 
 The paywall offers a choice rather than a single price:

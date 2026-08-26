@@ -107,7 +107,7 @@ export function clientReportEmail(profile: Profile, result: DiagnosticResult): s
       <li>Quick wins for this week</li>
     </ul>
     <p style="margin-top:24px;">
-      <a href="${DIAGNOSTIC.bookingUrl}" style="display:inline-block;background:#be6044;color:#fff;text-decoration:none;padding:14px 24px;border-radius:999px;font-size:15px;font-weight:600;">Book a 15-minute call</a>
+      <a href="${DIAGNOSTIC.bookingUrl}" style="display:inline-block;background:#be6044;color:#fff;text-decoration:none;padding:14px 24px;border-radius:999px;font-size:15px;font-weight:600;">Book a ${DIAGNOSTIC.callMinutes}-minute call</a>
     </p>
     <p style="font-size:14px;line-height:1.6;color:#6a6058;">Questions about your results? Just reply to this email.</p>
     <p style="font-size:15px;color:#201b18;margin-top:18px;">${escapeHtml(DIAGNOSTIC.consultant)}<br/><span style="color:#9a8f86;">${escapeHtml(DIAGNOSTIC.company)}</span></p>

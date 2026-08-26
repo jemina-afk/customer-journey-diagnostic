@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { BUSINESS_TYPES, SECTIONS } from "@/lib/diagnostic/sections";
 import type { Profile } from "@/lib/diagnostic/types";
@@ -19,6 +19,22 @@ export function WelcomeScreen({
     initial ?? { name: "", email: "", business: "", businessType: "", website: "" },
   );
   const [errors, setErrors] = useState<Partial<Record<keyof Profile, string>>>({});
+
+  /*
+    A client link verifies after this screen has already rendered, so the
+    details it carries arrive late. Fill in the blanks when they do, without
+    overwriting anything already typed.
+  */
+  useEffect(() => {
+    if (!initial) return;
+    setProfile((current) => ({
+      name: current.name || initial.name || "",
+      email: current.email || initial.email || "",
+      business: current.business || initial.business || "",
+      businessType: current.businessType || initial.businessType || "",
+      website: current.website || initial.website || "",
+    }));
+  }, [initial]);
 
   function set(key: keyof Profile, value: string) {
     setProfile((p) => ({ ...p, [key]: value }));

@@ -683,7 +683,7 @@ function nextStepsPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
   doc.setFillColor(INK[0], INK[1], INK[2]);
   doc.roundedRect(M, y, COL_W, 34, 3, 3, "F");
   setText(doc, 13, WHITE, "bold");
-  doc.text("Book a 15-minute call", M + 8, y + 13);
+  doc.text(`Book a ${DIAGNOSTIC.callMinutes}-minute call`, M + 8, y + 13);
   setText(doc, 9.5, [214, 206, 198], "normal");
   doc.text("We'll walk through your three priorities and what to fix first.", M + 8, y + 20);
   setText(doc, 9.5, [237, 198, 182], "bold");

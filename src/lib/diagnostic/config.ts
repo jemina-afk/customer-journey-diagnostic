@@ -16,6 +16,8 @@ export const DIAGNOSTIC = {
   */
   requirePayment: process.env.NEXT_PUBLIC_REQUIRE_PAYMENT === "true",
   bookingUrl: process.env.NEXT_PUBLIC_BOOKING_URL ?? "https://calendly.com/tulivodigital/15min",
+  /** How long the free call is, in minutes. Used everywhere it's mentioned. */
+  callMinutes: Number(process.env.NEXT_PUBLIC_CALL_MINUTES ?? 15),
   contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "jemina@tulivodigital.com",
   consultant: "Jemina Semakula",
   company: "Tulivo Digital",
