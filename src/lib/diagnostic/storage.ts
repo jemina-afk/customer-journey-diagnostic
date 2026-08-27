@@ -20,6 +20,8 @@ export interface StoredSession {
   unlocked: boolean;
   /** Which tier was bought - "call" adds the walkthrough. */
   tier?: string;
+  /** The server-side run this session belongs to, when access is gated. */
+  runId?: string;
 }
 
 export function newSessionId(): string {

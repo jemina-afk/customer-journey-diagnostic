@@ -23,6 +23,12 @@ export const DIAGNOSTIC = {
   company: "Tulivo Digital",
   website: process.env.NEXT_PUBLIC_SITE_URL ?? "tulivodigital.com",
   reportPages: 14,
+  /** Written out for the sign-in screen, e.g. "twice in any 30 days". */
+  runsPerWindowLabel: `${
+    Number(process.env.NEXT_PUBLIC_RUNS_PER_WINDOW ?? 2) === 2
+      ? "twice"
+      : `${Number(process.env.NEXT_PUBLIC_RUNS_PER_WINDOW ?? 2)} times`
+  } in any ${Number(process.env.NEXT_PUBLIC_WINDOW_DAYS ?? 30)} days`,
   /*
     Two ways to unlock. The report on its own is priced to be an easy yes; the
     call is the one that matters, because it puts a paying, pre-qualified owner

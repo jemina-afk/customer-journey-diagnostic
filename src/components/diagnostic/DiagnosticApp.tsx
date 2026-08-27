@@ -17,11 +17,29 @@ import type { AnswerValue, Profile } from "@/lib/diagnostic/types";
 import { sampleAnswers, testKeyMatches, TEST_PROFILE } from "@/lib/diagnostic/testMode";
 import { ResultsScreen } from "./ResultsScreen";
 import { NumbersScreen } from "./NumbersScreen";
+import { SignInScreen } from "./SignInScreen";
 import { TestBar } from "./TestBar";
 import { SectionScreen } from "./SectionScreen";
 import { WelcomeScreen } from "./WelcomeScreen";
 
 type Stage = "welcome" | "sections" | "numbers" | "results";
+
+interface Quota {
+  used: number;
+  limit: number;
+  remaining: number;
+  nextSlotAt: string | null;
+}
+
+interface AuthState {
+  required: boolean;
+  signedIn: boolean;
+  email?: string;
+  quota?: Quota;
+  windowDays?: number;
+  broken?: boolean;
+  message?: string;
+}
 
 export function DiagnosticApp() {
   const [session, setSession] = useState<StoredSession | null>(null);
@@ -32,6 +50,9 @@ export function DiagnosticApp() {
   const [testMode, setTestMode] = useState(false);
   // null while unknown; false means the unlock button unlocks without charging.
   const [paymentLive, setPaymentLive] = useState<boolean | null>(null);
+  const [auth, setAuth] = useState<AuthState | null>(null);
+  const [signInExpired, setSignInExpired] = useState(false);
+  const [quotaError, setQuotaError] = useState<Quota | null>(null);
   const testRuns = useRef(0);
   const submitted = useRef(false);
   const emailed = useRef(false);
@@ -49,6 +70,10 @@ export function DiagnosticApp() {
 
     const params = new URLSearchParams(window.location.search);
     if (testKeyMatches(params.get("test"))) setTestMode(true);
+    if (params.get("signin") === "expired") {
+      setSignInExpired(true);
+      window.history.replaceState({}, "", window.location.pathname);
+    }
 
     // A client access link arrives as ?c=<token>: verify it, fill in who they
     // are, and unlock - they bought this on a call, not off the paywall.
@@ -67,6 +92,16 @@ export function DiagnosticApp() {
             tier?: string;
           };
           if (!data.ok) return;
+
+          // The link also signs them in, so the gate needs asking again -
+          // this ran before the cookie existed.
+          try {
+            const who = await fetch("/api/auth/me");
+            setAuth((await who.json()) as AuthState);
+          } catch {
+            // Leave the gate as it was; the link still filled in their details.
+          }
+
           setSession((current) => {
             if (!current) return current;
             const merged: Profile = {
@@ -101,6 +136,22 @@ export function DiagnosticApp() {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        const data = (await res.json()) as AuthState;
+        if (!cancelled) setAuth(data);
+      } catch {
+        if (!cancelled) setAuth({ required: false, signedIn: true });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     if (session) saveSession(session);
   }, [session]);
 
@@ -130,7 +181,26 @@ export function DiagnosticApp() {
     setSession((s) => (s ? { ...s, ...patch } : s));
   }, []);
 
-  function start(profile: Profile) {
+  async function start(profile: Profile) {
+    if (auth?.required) {
+      try {
+        const res = await fetch("/api/diagnostic/start", { method: "POST" });
+        const data = (await res.json()) as { ok?: boolean; reason?: string; runId?: string; quota?: Quota };
+        if (!data.ok) {
+          if (data.reason === "quota" && data.quota) {
+            setQuotaError(data.quota);
+          } else {
+            setAuth({ required: true, signedIn: false });
+          }
+          return;
+        }
+        persist({ profile, sectionIndex: 0, runId: data.runId });
+        setStage("sections");
+        return;
+      } catch {
+        // A network blip shouldn't strand someone mid-intake.
+      }
+    }
     persist({ profile, sectionIndex: 0 });
     setStage("sections");
   }
@@ -180,6 +250,7 @@ export function DiagnosticApp() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: current.id,
+          runId: current.runId,
           profile: current.profile,
           answers: current.answers,
           startedAt: current.startedAt,
@@ -331,8 +402,23 @@ export function DiagnosticApp() {
     setStage("welcome");
   }
 
-  if (!session) {
+  if (!session || !auth) {
     return <div className="min-h-screen" aria-busy />;
+  }
+
+  if (auth.required && !auth.signedIn) {
+    return (
+      <SignInScreen
+        expired={signInExpired}
+        windowDays={auth.windowDays ?? 30}
+        quota={null}
+        broken={auth.broken ? auth.message : undefined}
+      />
+    );
+  }
+
+  if (quotaError) {
+    return <SignInScreen quota={quotaError} windowDays={auth.windowDays ?? 30} />;
   }
 
   return (

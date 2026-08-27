@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { scoreDiagnostic } from "@/lib/diagnostic/scoring";
 import { SERVER_CONFIG, notificationEmail, sendEmail } from "@/lib/diagnostic/server";
+import { currentAccount } from "@/lib/auth/session";
+import { getStore } from "@/lib/store";
 import type { Answers, Profile } from "@/lib/diagnostic/types";
 
 export const runtime = "nodejs";
@@ -10,6 +12,7 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   let body: {
     id?: string;
+    runId?: string;
     profile?: Profile;
     answers?: Answers;
     startedAt?: string;
@@ -30,6 +33,15 @@ export async function POST(request: Request) {
 
   // Scores are recalculated here rather than trusted from the browser.
   const result = scoreDiagnostic(answers);
+
+  // Close out the run this belongs to, if the diagnostic is gated.
+  const store = getStore();
+  if (body.runId && store) {
+    const account = await currentAccount();
+    if (account) {
+      await store.completeRun(body.runId, profile.business ?? "", result.overall);
+    }
+  }
 
   const notified = await sendEmail({
     to: SERVER_CONFIG.notifyEmail,

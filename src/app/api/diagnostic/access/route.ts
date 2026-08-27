@@ -1,5 +1,13 @@
 import { NextResponse } from "next/server";
 import { readAccessToken } from "@/lib/diagnostic/accessLink";
+import {
+  AUTH,
+  SESSION_COOKIE,
+  authConfigured,
+  createSessionValue,
+  sessionCookieOptions,
+} from "@/lib/auth/session";
+import { getStore } from "@/lib/store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,5 +24,19 @@ export async function POST(request: Request) {
   const payload = readAccessToken(body.token ?? "");
   if (!payload) return NextResponse.json({ ok: false });
 
-  return NextResponse.json({ ok: true, profile: payload.profile, tier: payload.tier });
+  const response = NextResponse.json({ ok: true, profile: payload.profile, tier: payload.tier });
+
+  /*
+    A link Jemina sent after a call is proof enough of who they are, so it also
+    signs them in - no inbox round-trip for someone who has already paid. Their
+    usage still counts against the same account limit as everyone else's.
+  */
+  const store = getStore();
+  const email = payload.profile.email?.trim().toLowerCase();
+  if (AUTH.required && authConfigured() && store && email) {
+    const account = (await store.accountByEmail(email)) ?? (await store.createAccount(email));
+    response.cookies.set(SESSION_COOKIE, createSessionValue(account.id), sessionCookieOptions());
+  }
+
+  return response;
 }

@@ -152,6 +152,46 @@ with quick wins and 30/60/90 · next steps and offers · about Tulivo.
 It's generated in the browser, which keeps the server free of a rendering
 runtime, then posted to the API as a data URI to be attached to the email.
 
+## Sign-in and usage limits
+
+Off by default. Set `DIAGNOSTIC_REQUIRE_LOGIN=true` and the diagnostic sits
+behind an account, with each account limited to **two runs in any 30 days**.
+
+**No passwords.** Sign-in is a one-time link emailed to them, valid for 30
+minutes. There is no password to write on a sticky note, share in a group chat
+or reset - to lend someone your access you would have to lend them your inbox.
+And even then it buys nothing, because the limit belongs to the account rather
+than the device: two people sharing one login share two runs between them.
+
+The count is held server-side in Postgres, so clearing site data, opening a
+private window or switching device doesn't reset it. A run is spent when it's
+completed, or while it's less than a day old - so abandoning one halfway
+through doesn't cost a slot a week later, but nobody can start ten in an
+afternoon either. When they're out, the screen tells them the exact date their
+next one opens.
+
+| Variable | Purpose |
+|----------|---------|
+| `DIAGNOSTIC_REQUIRE_LOGIN` | `true` switches the gate on. |
+| `AUTH_SECRET` | Long random string; signs the session cookie. |
+| `DATABASE_URL` | Postgres (a free Neon project is plenty). Accounts, login tokens and runs. Tables are created on first use. |
+| `DIAGNOSTIC_RUNS_PER_WINDOW`, `DIAGNOSTIC_WINDOW_DAYS` | The limit and its window. Defaults: 2 and 30. |
+| `NEXT_PUBLIC_RUNS_PER_WINDOW`, `NEXT_PUBLIC_WINDOW_DAYS` | The same numbers, for the wording shown to people. |
+
+Two deliberate behaviours worth knowing:
+
+- **It fails closed.** If the gate is on but `AUTH_SECRET` or `DATABASE_URL` is
+  missing, nobody gets in and the page says so plainly - it never falls back to
+  open access.
+- **Client links sign people in.** A link from `/links` is proof enough of who
+  they are, so it opens the diagnostic without an inbox round-trip. Their usage
+  still counts against the same limit.
+
+Locally, `npm run dev` with no `DATABASE_URL` uses an in-memory store and prints
+the sign-in link on screen instead of emailing it, so the whole flow can be
+walked through without a database or an email provider. That store is refused in
+production, where each instance would otherwise keep its own count.
+
 ## Selling it on a call instead
 
 The paywall assumes someone buys off the results screen. When the diagnostic is
