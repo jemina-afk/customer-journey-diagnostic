@@ -145,9 +145,18 @@ Fourteen pages, drawn as vectors with jsPDF rather than captured from the
 screen, so type stays sharp at any zoom and the file stays small enough to
 email (~50 KB):
 
-cover · executive summary · journey map with a vector radar · one page per
-stage (what's working, gaps, recommendations, tools) · prioritised action plan
-with quick wins and 30/60/90 · next steps and offers · about Tulivo.
+cover · why this comes before the ad spend · executive summary · journey map
+with a vector radar · one page per stage (what's working, gaps,
+recommendations, tools) · the 90-day focus cycle with quick wins · next steps
+and offers · about Tulivo.
+
+Page two makes the case for fixing the journey before spending on advertising,
+and every figure on it is attributable, with the sources printed at the foot of
+the page: the Harvard Business Review audit of 2,241 firms on lead response
+(2011), the MIT Sloan / InsideSales lead response study (2007), Opon et al.'s
+systematic review of appointment reminders (PAMJ One Health, 2020), and
+Reichheld and Sasser's "Zero Defections" (HBR, 1990). If a claim can't be
+sourced, it doesn't belong in a paid report.
 
 It's generated in the browser, which keeps the server free of a rendering
 runtime, then posted to the API as a data URI to be attached to the email.

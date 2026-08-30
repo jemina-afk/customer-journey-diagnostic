@@ -53,6 +53,7 @@ export async function buildReport(
   doc.setLineCap("round");
 
   coverPage(doc, result, profile);
+  whyItMattersPage(doc, profile);
   executiveSummary(doc, result, profile, answers);
   journeyMapPage(doc, result, profile);
   result.sections.forEach((section, i) => sectionPage(doc, section, profile, i + 1));
@@ -292,6 +293,124 @@ function coverPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
     258,
   );
   doc.text(DIAGNOSTIC.contactEmail, PAGE_W - M, 258, { align: "right" });
+}
+
+/*
+  The case for doing this before spending on ads, made with sourced evidence
+  rather than assertion. Every figure here is attributable, and the sources are
+  printed at the foot of the page - this is a paid deliverable, and a number
+  without a source is worth less than no number at all.
+*/
+function whyItMattersPage(doc: Doc, profile: Profile) {
+  doc.addPage();
+  pageFurniture(doc, profile, "Why this matters");
+
+  eyebrow(doc, "Before you spend another pound on ads", M, 30);
+  setText(doc, 21, INK, "bold");
+  doc.text("Your journey decides what your", M, 40);
+  doc.text("marketing is worth", M, 49);
+
+  let y = paragraph(
+    doc,
+    "Most service businesses don't have a marketing problem. They have a journey problem. Advertising changes how many people arrive; the journey decides how many of them become clients, how many turn up, and how many come back. Spend more without fixing it and you simply buy the same losses at a larger scale.",
+    M,
+    62,
+    COL_W,
+    { size: 10, colour: INK, leading: 5 },
+  );
+
+  y = paragraph(
+    doc,
+    "This is not opinion. The gaps this diagnostic measures are the ones with the strongest evidence behind them.",
+    M,
+    y + 5,
+    COL_W,
+    { size: 10, colour: MUTED, leading: 5 },
+  );
+
+  // Four findings, each a headline number with its source attached.
+  const findings = [
+    {
+      stat: "23%",
+      title: "Speed decides the sale",
+      body:
+        "of firms never replied to an enquiry at all, in an audit of 2,241 companies. Those who replied within an hour were seven times more likely to qualify the lead than those who replied an hour later, and sixty times more than those who waited a day.",
+    },
+    {
+      stat: "21x",
+      title: "The first five minutes",
+      body:
+        "more likely to qualify a lead when contact is made within five minutes rather than thirty, measured across 15,000 leads and 100,000 call attempts. Not a better script - the same script, sooner.",
+    },
+    {
+      stat: "41%",
+      title: "The diary you actually work",
+      body:
+        "average reduction in missed appointments where reminders are used, across a systematic review of reminder studies. A no-show is a client already paid for, in time that cannot be resold.",
+    },
+    {
+      stat: "5-25x",
+      title: "Keeping beats winning",
+      body:
+        "the cost of winning a new client compared with keeping one. Cutting client defections by 5% lifted profits by 25-85% in the businesses studied. Retention is the cheapest growth available to you.",
+    },
+  ];
+
+  y += 8;
+  const boxW = (COL_W - 6) / 2;
+  findings.forEach((finding, i) => {
+    const x = M + (i % 2) * (boxW + 6);
+    const top = y + Math.floor(i / 2) * 46;
+
+    doc.setFillColor(VEIL[0], VEIL[1], VEIL[2]);
+    doc.roundedRect(x, top, boxW, 42, 3, 3, "F");
+    let titleSize = 8;
+    setText(doc, titleSize, MUTED, "bold");
+    while (doc.getTextWidth(finding.title.toUpperCase()) > boxW - 10 && titleSize > 6.5) {
+      titleSize -= 0.25;
+      setText(doc, titleSize, MUTED, "bold");
+    }
+    doc.text(finding.title.toUpperCase(), x + 5, top + 8, { charSpace: 0.5 });
+    setText(doc, 18, CLAY, "bold");
+    doc.text(finding.stat, x + 5, top + 18);
+    paragraph(doc, finding.body, x + 5, top + 24, boxW - 10, { size: 8, colour: MUTED, leading: 3.8 });
+  });
+
+  y += 46 * Math.ceil(findings.length / 2) + 4;
+
+  // The arithmetic that makes the point better than any of the above.
+  doc.setFillColor(CLAY_SOFT[0], CLAY_SOFT[1], CLAY_SOFT[2]);
+  doc.roundedRect(M, y, COL_W, 40, 3, 3, "F");
+  setText(doc, 7.5, CLAY, "bold");
+  doc.text("WHAT THIS MEANS FOR AN AD BUDGET", M + 6, y + 8, { charSpace: 0.8 });
+  paragraph(
+    doc,
+    "Say enquiries cost £25 and one in five becomes a client. A £1,000 month buys 40 enquiries and 8 clients. Lift that to one in three and the same £1,000 buys 12. To win those four extra clients through advertising alone, you would have to spend £500 more every month, for as long as you keep advertising. Fixing the journey costs you once.",
+    M + 6,
+    y + 15,
+    COL_W - 12,
+    { size: 9, colour: INK, leading: 4.4 },
+  );
+  y += 46;
+
+  paragraph(
+    doc,
+    "Every week these gaps stay open, you pay for them twice: once to create the enquiry, and again when that person quietly books somewhere else. The cheapest clients you will ever win are the ones already sitting in your inbox.",
+    M,
+    y,
+    COL_W,
+    { size: 10, colour: INK, leading: 5 },
+  );
+
+  rule(doc, PAGE_H - 40);
+  paragraph(
+    doc,
+    "Sources: The Short Life of Online Sales Leads, Harvard Business Review (2011). Lead Response Management study, MIT Sloan / InsideSales (2007). Opon et al., The effect of patient reminders in reducing missed appointments in medical settings: a systematic review, PAMJ One Health (2020). Zero Defections: Quality Comes to Services, Harvard Business Review (1990); customer acquisition versus retention cost, Harvard Business Review.",
+    M,
+    PAGE_H - 33,
+    COL_W,
+    { size: 7, colour: FAINT, leading: 3.4 },
+  );
 }
 
 function executiveSummary(doc: Doc, result: DiagnosticResult, profile: Profile, answers: Answers) {
