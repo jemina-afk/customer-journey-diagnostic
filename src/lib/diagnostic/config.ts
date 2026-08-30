@@ -22,7 +22,7 @@ export const DIAGNOSTIC = {
   consultant: "Jemina Semakula",
   company: "Tulivo Digital",
   website: process.env.NEXT_PUBLIC_SITE_URL ?? "tulivodigital.com",
-  reportPages: 15,
+  reportPages: 16,
   /** Written out for the sign-in screen, e.g. "twice in any 30 days". */
   runsPerWindowLabel: `${
     Number(process.env.NEXT_PUBLIC_RUNS_PER_WINDOW ?? 2) === 2
@@ -45,7 +45,7 @@ export const DIAGNOSTIC = {
         "Specific recommendations written from your answers",
         "Your 90-day focus KPI and aligned priorities",
         "Quick wins you can implement this week",
-        `The ${Number(process.env.NEXT_PUBLIC_REPORT_PAGES ?? 15)}-page PDF report`,
+        `The ${Number(process.env.NEXT_PUBLIC_REPORT_PAGES ?? 16)}-page PDF report`,
       ],
       recommended: false,
     },

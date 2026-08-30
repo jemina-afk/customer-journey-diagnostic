@@ -172,6 +172,7 @@ export function scoreSection(section: Section, answers: Answers): SectionResult 
     fixes,
     verdict,
     tools: section.tools,
+    measure: section.kpi.measure,
     answered: answeredCount > 0,
   };
 }
@@ -336,6 +337,7 @@ function buildCycle(
     kpi: kpi.name,
     metric: kpi.metric,
     why: kpi.why,
+    measure: kpi.measure,
     current: kpi.current(answers),
     target: kpi.target(answers),
     worth,

@@ -121,6 +121,15 @@ export interface Kpi {
   current: (answers: Answers) => string | null;
   /** Where it should be in 90 days. */
   target: (answers: Answers) => string;
+  /** How to actually get the number, so the KPI isn't just a nice idea. */
+  measure: {
+    /** What to count. */
+    what: string;
+    /** Where the number comes from. */
+    where: string;
+    /** How often to look. */
+    cadence: string;
+  };
 }
 
 export interface Section {
@@ -171,6 +180,8 @@ export interface SectionResult {
   fixes: Fix[];
   verdict: string;
   tools: string[];
+  /** How to get the number that tells them this stage is improving. */
+  measure: { what: string; where: string; cadence: string };
   answered: boolean;
 }
 
@@ -211,6 +222,8 @@ export interface FocusCycle {
   kpi: string;
   metric: string;
   why: string;
+  /** How to measure the focus KPI. */
+  measure: { what: string; where: string; cadence: string };
   /** Where they are now, when we have a number for it. */
   current: string | null;
   target: string;

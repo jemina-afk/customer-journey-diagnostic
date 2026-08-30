@@ -58,6 +58,7 @@ export async function buildReport(
   journeyMapPage(doc, result, profile);
   result.sections.forEach((section, i) => sectionPage(doc, section, profile, i + 1));
   actionPlanPage(doc, result, profile);
+  measurementPage(doc, result, profile);
   nextStepsPage(doc, result, profile);
   aboutPage(doc, profile);
 
@@ -653,13 +654,30 @@ function sectionPage(doc: Doc, section: SectionResult, profile: Profile, index: 
     ) + 6;
   }
 
-  // Tools sit at the foot of the page so every stage page ends the same way.
-  const toolsY = Math.max(y + 4, 248);
-  rule(doc, toolsY - 6);
-  eyebrow(doc, "Tools worth considering", M, toolsY, FAINT);
-  let ty = toolsY + 5;
+  // The foot of every stage page: how to measure it, then what to measure with.
+  const footY = Math.max(y + 4, 232);
+  rule(doc, footY - 6);
+  eyebrow(doc, "How you'll know it's working", M, footY, GOLD);
+  let my = paragraph(doc, section.measure.what, M, footY + 6, COL_W, {
+    size: 8.5,
+    colour: INK,
+    leading: 4,
+  });
+  my = paragraph(doc, `Where from: ${section.measure.where}`, M, my + 1.5, COL_W, {
+    size: 8,
+    colour: MUTED,
+    leading: 3.8,
+  });
+  my = paragraph(doc, `How often: ${section.measure.cadence}`, M, my + 1, COL_W, {
+    size: 8,
+    colour: MUTED,
+    leading: 3.8,
+  });
+
+  eyebrow(doc, "Tools worth considering", M, my + 7, FAINT);
+  let ty = my + 12;
   section.tools.slice(0, 3).forEach((tool) => {
-    ty = paragraph(doc, `· ${tool}`, M, ty, COL_W, { size: 8.5, colour: MUTED, leading: 4 }) + 0.5;
+    ty = paragraph(doc, `· ${tool}`, M, ty, COL_W, { size: 8, colour: MUTED, leading: 3.8 }) + 0.5;
   });
 }
 
@@ -764,6 +782,126 @@ function actionPlanPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
     setText(doc, 9.5, INK, "bold");
     doc.text(`${cycle.next.kpi} - ${cycle.next.stage}`, M + 5, nextY + 12);
   }
+}
+
+/*
+  Guidance is only useful if someone can tell whether it worked. This page names
+  the numbers that follow from their own priorities, says where each one comes
+  from, and gives them a scoreboard small enough that it might actually get kept.
+*/
+function measurementPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
+  doc.addPage();
+  pageFurniture(doc, profile, "How to know it's working");
+
+  eyebrow(doc, "Measuring the change", M, 30);
+  setText(doc, 21, INK, "bold");
+  doc.text("How you'll know it's working", M, 40);
+  const metrics: { name: string; measure: SectionResult["measure"]; lead: boolean }[] = [
+    { name: result.cycle.kpi, measure: result.cycle.measure, lead: true },
+  ];
+  result.cycle.priorities.slice(1).forEach((priority) => {
+    const section = result.sections.find((s) => s.title === priority.stage);
+    if (section && !metrics.some((m) => m.measure.what === section.measure.what)) {
+      metrics.push({ name: priority.stage, measure: section.measure, lead: false });
+    }
+  });
+  const shown = metrics.slice(0, 3);
+  const counts = ["One number", "Two numbers", "Three numbers"];
+
+  paragraph(
+    doc,
+    `${counts[shown.length - 1] ?? "These numbers"}, checked at the right interval, will tell you whether any of this landed. Everything else is noise until ${shown.length === 1 ? "it moves" : "they move"}.`,
+    M,
+    50,
+    COL_W,
+    { size: 10, colour: MUTED, leading: 5 },
+  );
+
+  let y = 64;
+  shown.forEach((metric, i) => {
+    const whatLines = doc.splitTextToSize(metric.measure.what, COL_W - 14) as string[];
+    const whereLines = doc.splitTextToSize(`Where from: ${metric.measure.where}`, COL_W - 14) as string[];
+    const cadenceLines = doc.splitTextToSize(`How often: ${metric.measure.cadence}`, COL_W - 14) as string[];
+    const boxH = 24 + whatLines.length * 4.2 + (whereLines.length + cadenceLines.length) * 3.9;
+
+    const tint = metric.lead ? CLAY_SOFT : VEIL;
+    doc.setFillColor(tint[0], tint[1], tint[2]);
+    doc.roundedRect(M, y, COL_W, boxH, 3, 3, "F");
+
+    setText(doc, 7.5, metric.lead ? CLAY : FAINT, "bold");
+    doc.text(metric.lead ? "YOUR FOCUS NUMBER" : `SUPPORTING NUMBER ${i}`, M + 6, y + 8, { charSpace: 0.8 });
+    setText(doc, 12.5, INK, "bold");
+    doc.text(metric.name, M + 6, y + 15.5);
+
+    let inner = paragraph(doc, metric.measure.what, M + 6, y + 22, COL_W - 14, {
+      size: 9,
+      colour: INK,
+      leading: 4.2,
+    });
+    inner = paragraph(doc, `Where from: ${metric.measure.where}`, M + 6, inner + 1.5, COL_W - 14, {
+      size: 8,
+      colour: MUTED,
+      leading: 3.9,
+    });
+    paragraph(doc, `How often: ${metric.measure.cadence}`, M + 6, inner + 1, COL_W - 14, {
+      size: 8,
+      colour: MUTED,
+      leading: 3.9,
+    });
+
+    y += boxH + 5;
+  });
+
+  // A scoreboard small enough to rule on one page and keep by the till.
+  y += 2;
+  eyebrow(doc, "A scoreboard worth keeping", M, y, CLAY);
+  y = paragraph(
+    doc,
+    "Five numbers, written down every Monday for the week just gone. Two minutes, and it is the whole measurement system: a spreadsheet nobody fills in is worth less than a notebook that gets used.",
+    M,
+    y + 7,
+    COL_W,
+    { size: 9, colour: MUTED, leading: 4.3 },
+  ) + 5;
+
+  const columns = ["Week", "Enquiries", "Replied in 5 min", "Booked", "No-shows"];
+  const colW = COL_W / columns.length;
+  doc.setFillColor(VEIL[0], VEIL[1], VEIL[2]);
+  doc.roundedRect(M, y, COL_W, 9, 2, 2, "F");
+  columns.forEach((column, i) => {
+    setText(doc, 7, MUTED, "bold");
+    doc.text(column.toUpperCase(), M + 3 + i * colW, y + 6, { charSpace: 0.3 });
+  });
+  y += 9;
+  doc.setDrawColor(LINE[0], LINE[1], LINE[2]);
+  doc.setLineWidth(0.25);
+  for (let row = 0; row < 4; row++) {
+    const rowY = y + row * 7.5;
+    doc.line(M, rowY + 7.5, M + COL_W, rowY + 7.5);
+    doc.line(M, rowY, M, rowY + 7.5);
+    doc.line(M + COL_W, rowY, M + COL_W, rowY + 7.5);
+    columns.forEach((_, i) => {
+      if (i > 0) doc.line(M + i * colW, rowY, M + i * colW, rowY + 7.5);
+    });
+  }
+  y += 4 * 7.5 + 6;
+
+  y = paragraph(
+    doc,
+    "Once a month, work out the two that need a month's distance: what share of enquiries became clients, and what share of your appointments were repeat clients.",
+    M,
+    y,
+    COL_W,
+    { size: 9, colour: MUTED, leading: 4.3 },
+  );
+
+  const noteY = Math.min(Math.max(y + 6, 244), 250);
+  doc.setFillColor(INK[0], INK[1], INK[2]);
+  doc.roundedRect(M, noteY, COL_W, 24, 3, 3, "F");
+  setText(doc, 10.5, WHITE, "bold");
+  doc.text("If a number hasn't moved in six weeks", M + 8, noteY + 10);
+  setText(doc, 9, [214, 206, 198], "normal");
+  doc.text("Go back to the priority behind it rather than adding another one on top.", M + 8, noteY + 17.5);
 }
 
 function nextStepsPage(doc: Doc, result: DiagnosticResult, profile: Profile) {

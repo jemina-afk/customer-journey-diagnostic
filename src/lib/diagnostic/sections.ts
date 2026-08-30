@@ -93,6 +93,12 @@ export const SECTIONS: Section[] = [
         return `${sources.length} route${sources.length === 1 ? "" : "s"} in`;
       },
       target: () => "Three dependable routes, with Google as one of them",
+      measure: {
+        what: "Enquiries received, split by where each one came from.",
+        where:
+          "A one-line log per enquiry - date, source, did they book - plus your Google Business Profile insights for calls, direction requests and website clicks.",
+        cadence: "Count weekly. Review by source monthly.",
+      },
     },
     questions: [
       {
@@ -344,6 +350,12 @@ export const SECTIONS: Section[] = [
       supports: ["lead-response", "lead-nurture", "booking"],
       current: (answers) => label(answers, "lead-response", "speed"),
       target: () => "Under five minutes, every time, including when you're with a client",
+      measure: {
+        what: "Minutes between an enquiry landing and a useful reply going out.",
+        where:
+          "The timestamps already in your inbox and your Instagram and Facebook threads. Take the last ten enquiries and write down the gap for each.",
+        cadence: "Weekly, on a sample of ten. Watch the worst one, not the average.",
+      },
     },
     questions: [
       {
@@ -599,6 +611,12 @@ export const SECTIONS: Section[] = [
         const value = num(answers, "lead-nurture.conversion-rate");
         if (value === null) return "Measured first, then lifted by 10–15 points";
         return `${Math.min(value + 15, 70)}%`;
+      },
+      measure: {
+        what: "The share of enquiries that become paying clients.",
+        where:
+          "Your enquiry log: enquiries in one column, first appointments in the other. Count last month's enquiries, not this month's - they need time to book.",
+        cadence: "Monthly, always a month behind.",
       },
     },
     questions: [
@@ -900,6 +918,12 @@ export const SECTIONS: Section[] = [
       supports: ["booking", "lead-response", "lead-sources"],
       current: (answers) => label(answers, "booking", "247"),
       target: () => "Every core service bookable 24/7 in two taps",
+      measure: {
+        what: "The share of bookings made online, with no messages exchanged first.",
+        where:
+          "Your booking system's report of online bookings versus ones you entered by hand. If it doesn't split them, tally manual bookings for a fortnight.",
+        cadence: "Monthly.",
+      },
     },
     questions: [
       {
@@ -1185,6 +1209,11 @@ export const SECTIONS: Section[] = [
       supports: ["confirmation", "reminders", "booking"],
       current: (answers) => label(answers, "confirmation", "confirmation"),
       target: () => "Automated confirmation, preparation and forms before every first visit",
+      measure: {
+        what: "The share of first-time bookings that arrive, and how many forms are completed before the appointment.",
+        where: "Your booking system: new clients booked against new clients attended.",
+        cadence: "Monthly.",
+      },
     },
     questions: [
       {
@@ -1411,6 +1440,12 @@ export const SECTIONS: Section[] = [
         const value = answer(answers, "reminders.noshow-rate");
         if (typeof value !== "number") return "Measured weekly, then under 5%";
         return value <= 5 ? "Held under 5%" : `Under ${Math.max(5, Math.round(value / 2))}%`;
+      },
+      measure: {
+        what: "Missed and late-cancelled appointments as a share of everything booked.",
+        where:
+          "Mark every no-show in the diary as it happens - most booking systems will then report the rate for you. Count late cancellations you couldn't refill as no-shows.",
+        cadence: "Tally weekly, work out the rate monthly.",
       },
     },
     questions: [
@@ -1680,6 +1715,12 @@ export const SECTIONS: Section[] = [
         const value = num(answers, "lead-sources.reviews-count") ?? 0;
         return value >= 25 ? "10 new reviews a quarter, on autopilot" : "25 reviews, then 10 a quarter";
       },
+      measure: {
+        what: "Total reviews, new reviews this month, and your average rating.",
+        where:
+          "Google Business Profile. Write down the same three numbers for your two closest competitors while you're there - your count only matters relative to theirs.",
+        cadence: "Monthly.",
+      },
     },
     questions: [
       {
@@ -1914,6 +1955,13 @@ export const SECTIONS: Section[] = [
         const value = num(answers, "retention.repeat-rate");
         if (value === null) return "Measured first, then 60%+";
         return `${Math.min(Math.max(value + 20, 60), 85)}% repeat`;
+      },
+      measure: {
+        what:
+          "The share of appointments taken by clients who have been before, and the share who rebook before they leave.",
+        where:
+          "Your booking system's client report - new against returning. For rebooking, count it yourself for a fortnight: it's the number in-room habits move fastest.",
+        cadence: "Monthly for repeat rate, fortnightly when you're actively working on rebooking.",
       },
     },
     questions: [

@@ -483,6 +483,20 @@ export function ResultsScreen({
                       </p>
                     </div>
                   </div>
+                  <div className="rounded-[14px] border border-tulivo-line bg-tulivo-card p-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-tulivo-gold">
+                      How to measure it
+                    </p>
+                    <p className="mt-1.5 text-[13.5px] leading-relaxed text-tulivo-ink">
+                      {result.cycle.measure.what}
+                    </p>
+                    <p className="mt-1.5 text-[12.5px] leading-relaxed text-tulivo-muted">
+                      {result.cycle.measure.where}
+                    </p>
+                    <p className="mt-1.5 text-[12.5px] font-medium text-tulivo-muted">
+                      {result.cycle.measure.cadence}
+                    </p>
+                  </div>
                   {result.cycle.worth !== null && (
                     <div className="rounded-[14px] border border-tulivo-line bg-tulivo-card p-4">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-tulivo-faint">
@@ -765,6 +779,19 @@ function SectionDetail({ section }: { section: SectionResult }) {
             </li>
           )}
         </ol>
+        <div className="mt-5 rounded-[14px] border border-tulivo-line bg-tulivo-card p-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-tulivo-gold">
+            How you&apos;ll know it&apos;s working
+          </p>
+          <p className="mt-2 text-[14px] leading-relaxed text-tulivo-ink">{section.measure.what}</p>
+          <p className="mt-2 text-[13px] leading-relaxed text-tulivo-muted">
+            <span className="font-medium text-tulivo-ink">Where from:</span> {section.measure.where}
+          </p>
+          <p className="mt-1.5 text-[13px] leading-relaxed text-tulivo-muted">
+            <span className="font-medium text-tulivo-ink">How often:</span> {section.measure.cadence}
+          </p>
+        </div>
+
         <div className="mt-5">
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-tulivo-faint">
             Tools worth considering
