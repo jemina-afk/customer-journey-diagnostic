@@ -11,7 +11,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Customer Journey Diagnostic - Tulivo Digital",
   description:
-    "Discover exactly where your business is losing enquiries - and what to fix first. A free 10-minute diagnostic for wellness and beauty business owners.",
+    "See where your business loses enquiries, what each gap costs you, and what to fix first. A free diagnostic for service business owners.",
   openGraph: {
     title: "Customer Journey Diagnostic - Tulivo Digital",
     description:

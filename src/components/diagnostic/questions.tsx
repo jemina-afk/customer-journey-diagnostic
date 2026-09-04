@@ -1,5 +1,6 @@
 "use client";
 
+import { useMoneyText } from "./CurrencyContext";
 import { cn } from "@/lib/utils";
 import { UNKNOWN } from "@/lib/diagnostic/types";
 import type {
@@ -52,6 +53,7 @@ function ChoiceControl({
   value: AnswerValue | undefined;
   onChange: (v: AnswerValue) => void;
 }) {
+  const text = useMoneyText();
   return (
     <div role="radiogroup" aria-label={question.prompt} className="grid gap-2.5">
       {question.options.map((option) => {
@@ -71,7 +73,7 @@ function ChoiceControl({
             )}
           >
             <Tick checked={checked} round />
-            <span className={cn(checked && "font-medium")}>{option.label}</span>
+            <span className={cn(checked && "font-medium")}>{text(option.label)}</span>
           </button>
         );
       })}
@@ -92,6 +94,7 @@ function MultiControl({
   detail?: AnswerValue;
   onDetail?: (v: AnswerValue) => void;
 }) {
+  const text = useMoneyText();
   const selected = Array.isArray(value) ? value : [];
   const showSpecify = Boolean(question.specify && selected.includes(question.specify.whenValue));
   function toggle(option: string) {
@@ -118,7 +121,7 @@ function MultiControl({
             )}
           >
             <Tick checked={checked} />
-            <span className={cn(checked && "font-medium")}>{option.label}</span>
+            <span className={cn(checked && "font-medium")}>{text(option.label)}</span>
           </button>
         );
       })}
@@ -152,7 +155,10 @@ function SliderControl({
   const dontKnow = value === UNKNOWN;
   const current = typeof value === "number" ? value : question.defaultValue;
   const fill = ((current - question.min) / (question.max - question.min)) * 100;
-  const display = question.format ? question.format(current) : `${current}${question.unit ?? ""}`;
+  const text = useMoneyText();
+  const display = text(
+    question.format ? question.format(current) : `${current}${question.unit ?? ""}`,
+  );
 
   return (
     <div>
@@ -185,8 +191,8 @@ function SliderControl({
         />
         {question.endLabels && (
           <div className="flex justify-between text-[12px] text-tulivo-faint">
-            <span>{question.endLabels[0]}</span>
-            <span>{question.endLabels[1]}</span>
+            <span>{text(question.endLabels[0])}</span>
+            <span>{text(question.endLabels[1])}</span>
           </div>
         )}
       </div>

@@ -26,7 +26,7 @@ export interface Fix {
 export interface Option {
   value: string;
   label: string;
-  /** 0–1. 1 = best practice. */
+  /** 0-1. 1 = best practice. */
   score: number;
   /** Shown in "what's working" when they pick this. */
   strength?: string;
@@ -162,6 +162,8 @@ export interface Profile {
   businessType: string;
   /** Optional - so their site can be looked at alongside their answers. */
   website?: string;
+  /** ISO code from CURRENCIES. Every money figure is shown in this. */
+  currency?: string;
 }
 
 export type Band = "optimised" | "functional" | "leaking" | "critical";

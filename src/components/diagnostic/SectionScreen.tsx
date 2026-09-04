@@ -24,7 +24,7 @@ export function SectionScreen({
   onAnswer: (key: string, value: AnswerValue) => void;
   onBack: () => void;
   onNext: () => void;
-  /** 0–1 across the whole assessment. */
+  /** 0-1 across the whole assessment. */
   progress: number;
 }) {
   const top = useRef<HTMLDivElement>(null);

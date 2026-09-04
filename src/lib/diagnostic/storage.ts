@@ -3,7 +3,7 @@
 import type { Answers, Profile } from "./types";
 
 /*
-  Session persistence. The diagnostic takes 10–15 minutes, so progress is saved
+  Session persistence. The diagnostic takes 10-15 minutes, so progress is saved
   to localStorage on every answer - a dropped connection or a closed tab never
   costs someone their answers.
 */

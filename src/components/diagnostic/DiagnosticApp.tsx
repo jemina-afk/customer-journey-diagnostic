@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { SECTIONS } from "@/lib/diagnostic/sections";
 import { completionOf, scoreDiagnostic } from "@/lib/diagnostic/scoring";
+import { currencyFor } from "@/lib/diagnostic/currency";
+import { CurrencyProvider } from "./CurrencyContext";
 import { DIAGNOSTIC } from "@/lib/diagnostic/config";
 import { downloadReport, reportDataUri } from "@/lib/diagnostic/pdf";
 import {
@@ -173,7 +175,11 @@ export function DiagnosticApp() {
   }, [stage, paymentLive]);
 
   const answers = useMemo(() => session?.answers ?? {}, [session?.answers]);
-  const result = useMemo(() => scoreDiagnostic(answers), [answers]);
+  const currency = useMemo(
+    () => currencyFor(session?.profile?.currency),
+    [session?.profile?.currency],
+  );
+  const result = useMemo(() => scoreDiagnostic(answers, currency), [answers, currency]);
   const progress = useMemo(() => completionOf(answers), [answers]);
   const index = session?.sectionIndex ?? 0;
 
@@ -422,7 +428,7 @@ export function DiagnosticApp() {
   }
 
   return (
-    <>
+    <CurrencyProvider currency={currency}>
       {testMode && (
         <TestBar
           stage={stage}
@@ -484,6 +490,6 @@ export function DiagnosticApp() {
         </motion.div>
       )}
       </AnimatePresence>
-    </>
+    </CurrencyProvider>
   );
 }

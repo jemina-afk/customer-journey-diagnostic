@@ -4,74 +4,90 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { BUSINESS_TYPES, SECTIONS } from "@/lib/diagnostic/sections";
 import { DIAGNOSTIC } from "@/lib/diagnostic/config";
+import {
+  CURRENCIES,
+  DEFAULT_CURRENCY,
+  currencyFor,
+} from "@/lib/diagnostic/currency";
 import type { Profile } from "@/lib/diagnostic/types";
 import { Button, Card, Eyebrow, Field, Wordmark, inputClass } from "./ui";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 /*
-  A worked example rather than a benchmark. Every figure below is arithmetic the
-  reader can check, which is the whole point: no single step looks alarming, and
-  the damage only appears once you multiply them.
+  A worked example, not a benchmark. Every step is arithmetic the reader can
+  check. No single one looks alarming, which is exactly why the losses are so
+  easy to miss.
 */
 const LADDER = [
   {
-    label: "people enquire",
-    now: 100,
+    n: 100,
+    label: "people ask about you",
     note: "A month of marketing doing its job",
   },
   {
+    n: 75,
     label: "get a reply while they still care",
-    now: 75,
-    note: "75% get an answer in time",
+    note: "3 in 4 answered in time",
   },
   {
-    label: "reach a booking they can complete",
-    now: 45,
-    note: "60% of those get through",
+    n: 45,
+    label: "get as far as booking",
+    note: "3 in 5 of those get through",
   },
-  { label: "actually turn up", now: 38, note: "85% arrive" },
-  { label: "come back within the year", now: 11, note: "30% rebook" },
+  { n: 38, label: "turn up", note: "Around 1 in 7 drops out" },
+  {
+    n: 11,
+    label: "come back again that year",
+    note: "Fewer than 1 in 3 rebook",
+  },
 ];
 
-/* Findings that sit behind the eight stages. Same sources as the report. */
+/*
+  Four findings, each from a named survey or audit published in the last two
+  years. The number carries the point; the line under it says why it matters.
+*/
 const EVIDENCE = [
   {
-    stat: "23%",
-    title: "Speed decides the sale",
-    body: "of firms never replied to an enquiry at all, in an audit of 2,241 companies. Those who replied within an hour were seven times more likely to qualify the lead than those who took an hour longer.",
+    stat: "75%",
+    unit: "decide in under 30 minutes",
+    body: "More than 1 in 4 decide in under five minutes. Most people look at three businesses or fewer. Reply tomorrow and the job has already gone.",
+    source: "BrightLocal, Consumer Search Behavior, 2026",
   },
   {
-    stat: "21x",
-    title: "The first five minutes",
-    body: "more likely to qualify a lead when you make contact within five minutes rather than thirty. Not a better script - the same script, sooner.",
+    stat: "71%",
+    unit: "gave up on booking",
+    body: "That is regular clients, not strangers. It was too hard to reach someone or book online, so they left. They did not complain. They just went somewhere else.",
+    source: "Zenoti, Salon and Spa Consumer Survey, 2025",
   },
   {
-    stat: "41%",
-    title: "The diary you actually work",
-    body: "average reduction in missed appointments where reminders are used, across a systematic review. A no-show is a client you already paid to win, in time you cannot resell.",
+    stat: "1 in 3",
+    unit: "no-shows stopped by one text",
+    body: "Missed appointments fell from 7.5% to 5.0% after one text the day before. A no-show is a client you already paid for, in time you cannot sell twice.",
+    source: "Chong & Jawad, closed loop audit, 2025",
   },
   {
-    stat: "5-25x",
-    title: "Keeping beats winning",
-    body: "the cost of winning a new client compared with keeping one. Cutting client defections by 5% lifted profits by 25-85% in the businesses studied.",
+    stat: "97%",
+    unit: "read your reviews first",
+    body: "More than two thirds will only use a business rated 4 stars or better. People read your reviews before they ever see your website.",
+    source: "BrightLocal, Local Consumer Review Survey, 2026",
   },
 ];
 
 const FREE = [
-  "Your overall journey score out of 100",
-  "All eight stages scored and colour-coded, so the weak ones are obvious",
-  "Your three biggest leaks named in plain language",
-  "An estimate, in pounds, of what those gaps are costing you over a year",
+  "Your score out of 100",
+  "All eight stages scored, so you can see the weak ones at a glance",
+  "Your three biggest leaks, named in plain words",
+  "What those leaks cost you in a year, in money",
 ];
 
 const PAID = [
-  "Every stage written up: what's working, what's leaking and what to do about it",
-  "Recommendations built from your answers, not a template with your name on it",
-  "Your 90-day focus KPI and the three or four priorities aligned to it",
-  "How to measure each one, using numbers you can already get at",
-  "Quick wins you can switch on this week without buying anything",
-  `The ${DIAGNOSTIC.reportPages}-page PDF report to keep and work from`,
+  "Every stage written up: what works, what leaks, what to do",
+  "Advice built from your answers, not a template with your name on it",
+  "The one number to move in 90 days, and the 3 or 4 jobs that move it",
+  "How to track each one, using numbers you can already get",
+  "Quick wins you can turn on this week for nothing",
+  `A ${DIAGNOSTIC.reportPages}-page PDF to keep and work from`,
 ];
 
 function Reveal({
@@ -107,6 +123,7 @@ export function WelcomeScreen({
       business: "",
       businessType: "",
       website: "",
+      currency: DEFAULT_CURRENCY.code,
     },
   );
   const [errors, setErrors] = useState<Partial<Record<keyof Profile, string>>>(
@@ -127,6 +144,7 @@ export function WelcomeScreen({
       business: current.business || initial.business || "",
       businessType: current.businessType || initial.businessType || "",
       website: current.website || initial.website || "",
+      currency: current.currency || initial.currency || DEFAULT_CURRENCY.code,
     }));
   }, [initial]);
 
@@ -153,8 +171,12 @@ export function WelcomeScreen({
       business: profile.business.trim(),
       businessType: profile.businessType,
       website: profile.website?.trim() || undefined,
+      currency: currencyFor(profile.currency).code,
     });
   }
+
+  // The ad-budget example uses whatever currency they have picked.
+  const symbol = currencyFor(profile.currency).symbol;
 
   function toForm() {
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -171,47 +193,47 @@ export function WelcomeScreen({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
         >
-          <Eyebrow>For wellness &amp; beauty business owners</Eyebrow>
+          <Eyebrow>For service business owners</Eyebrow>
           <h1 className="mt-5 text-[38px] font-semibold leading-[1.05] tracking-[-0.03em] text-tulivo-ink sm:text-[52px]">
             Customer Journey
             <br />
             Diagnostic
           </h1>
-          <p className="mt-6 max-w-[48ch] text-[17px] leading-relaxed text-tulivo-muted sm:text-[19px]">
-            Find out exactly where your business is losing enquiries, what each
-            gap is costing you over a year, and which one to fix first.
+          <p className="mt-6 max-w-[46ch] text-[17px] leading-relaxed text-tulivo-muted sm:text-[19px]">
+            See where your business loses enquiries. See what each gap costs you
+            in a year. See which one to fix first.
           </p>
 
           <div className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-2 text-[13px] text-tulivo-faint">
             <span>10-15 minutes</span>
             <span className="hidden h-1 w-1 rounded-full bg-tulivo-line sm:inline-block" />
-            <span>{SECTIONS.length} stages assessed</span>
+            <span>{SECTIONS.length} stages checked</span>
             <span className="hidden h-1 w-1 rounded-full bg-tulivo-line sm:inline-block" />
-            <span>Score and cost estimate, free</span>
+            <span>Score and cost, free</span>
           </div>
 
           <div className="mt-10 border-l border-tulivo-line pl-6">
             <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-tulivo-faint">
-              What you leave with
+              What you walk away with
             </p>
             <ul className="mt-4 space-y-3 text-[15px] leading-relaxed text-tulivo-muted">
               <li>
                 <span className="font-medium text-tulivo-ink">
-                  A score for each of the eight stages
+                  A score for all eight stages
                 </span>{" "}
-                between an enquiry arriving and a client coming back.
+                between someone asking about you and coming back again.
               </li>
               <li>
                 <span className="font-medium text-tulivo-ink">
-                  A figure in pounds
-                </span>{" "}
-                against every gap, worked out from your own appointment numbers.
-              </li>
-              <li>
-                <span className="font-medium text-tulivo-ink">
-                  One number to move over 90 days
+                  A cost for every gap
                 </span>
-                , with the three or four priorities that move it.
+                , worked out from your own appointment numbers.
+              </li>
+              <li>
+                <span className="font-medium text-tulivo-ink">
+                  One number to move in 90 days
+                </span>
+                , and the 3 or 4 jobs that move it.
               </li>
             </ul>
           </div>
@@ -289,8 +311,29 @@ export function WelcomeScreen({
               </Field>
 
               <Field
+                label="Your currency"
+                hint="Every money figure in your results uses this."
+              >
+                <select
+                  className={`${inputClass} appearance-none bg-[length:16px] bg-[right_1rem_center] bg-no-repeat pr-11`}
+                  style={{
+                    backgroundImage:
+                      "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%236a6058' stroke-width='1.5'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E\")",
+                  }}
+                  value={profile.currency ?? DEFAULT_CURRENCY.code}
+                  onChange={(e) => set("currency", e.target.value)}
+                >
+                  {CURRENCIES.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+
+              <Field
                 label="Website (optional)"
-                hint="Share the link and we'll look at your site alongside your answers."
+                hint="Add it and we'll look at your site alongside your answers."
               >
                 <input
                   className={inputClass}
@@ -318,57 +361,57 @@ export function WelcomeScreen({
       {/* Why the journey matters */}
       <section className="mt-24 border-t border-tulivo-line pt-16 sm:mt-32">
         <Reveal>
-          <Eyebrow>Before you spend another pound on ads</Eyebrow>
-          <h2 className="mt-5 max-w-[20ch] text-[30px] font-semibold leading-[1.12] tracking-[-0.028em] text-tulivo-ink sm:text-[40px]">
-            Your journey decides what your marketing is worth
+          <Eyebrow>Before you spend more on ads</Eyebrow>
+          <h2 className="mt-5 max-w-[20ch] text-[30px] font-semibold leading-[1.12] tracking-[-0.028em] text-tulivo-ink sm:text-[42px]">
+            Fix the journey first. Then the ads are worth paying for.
           </h2>
         </Reveal>
 
-        <div className="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-14">
+        <div className="mt-9 grid gap-10 lg:grid-cols-2 lg:gap-14">
           <Reveal delay={0.05}>
-            <p className="text-[16px] leading-relaxed text-tulivo-ink sm:text-[17px]">
-              Most wellness and beauty businesses do not have a marketing
-              problem. They have a journey problem. Advertising changes how many
-              people arrive. What happens next - how quickly you reply, how easy
-              you are to book, whether anything reminds them, whether anyone
-              ever asks them back - decides how many of those people become
-              clients. Spend more without fixing that and you buy the same
-              losses at a larger scale.
+            <p className="text-[17px] leading-[1.65] text-tulivo-ink sm:text-[18px]">
+              Ads change one thing. They change how many people ask about you.
             </p>
-            <p className="mt-5 text-[16px] leading-relaxed text-tulivo-muted sm:text-[17px]">
-              The journey is not one moment, it is eight of them, and they
-              multiply rather than add up. A stage that holds on to three
-              quarters of people looks perfectly respectable on its own. Put
-              four of those in a row and most of the interest you paid to create
-              has quietly gone elsewhere. That is why the losses are so hard to
-              spot from the inside: nothing is broken, everything is simply a
-              bit leaky.
+            <p className="mt-4 text-[17px] leading-[1.65] text-tulivo-ink sm:text-[18px]">
+              What happens next decides how many of them become clients. How
+              fast you reply. How easy you are to book. Whether anything reminds
+              them. Whether anyone asks them back.
+            </p>
+            <p className="mt-4 text-[17px] leading-[1.65] text-tulivo-muted sm:text-[18px]">
+              If people slip away along the way, more ads just means more people
+              slipping away. You pay twice. Once for the ad. Again for the
+              client you never got.
+            </p>
+            <p className="mt-4 text-[17px] leading-[1.65] text-tulivo-muted sm:text-[18px]">
+              And it is never one big problem. It is eight small ones, and they
+              stack up. Hold on to three out of four people at each step and
+              that sounds fine. Do it four steps in a row and most of the
+              interest you paid for has gone.
             </p>
           </Reveal>
 
           <Reveal delay={0.1}>
-            <Card className="p-6 sm:p-7">
+            <Card className="p-6 sm:p-8">
               <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-tulivo-clay">
-                A worked example
+                Out of every 100 enquiries
               </p>
               <p className="mt-3 text-[14px] leading-relaxed text-tulivo-muted">
-                Out of every 100 enquiries, using percentages you can argue
-                with. The point is not the numbers, it is what happens when you
-                multiply them.
+                An example, not your numbers. Nothing here looks like a
+                disaster. That is the problem.
               </p>
 
-              <ul className="mt-6 space-y-3">
+              <ul className="mt-7 space-y-4">
                 {LADDER.map((step, i) => (
                   <li key={step.label} className="flex items-baseline gap-4">
                     <span
-                      className="w-[2.6rem] shrink-0 text-right text-[19px] font-semibold tabular-nums tracking-[-0.02em] text-tulivo-ink"
-                      style={{ opacity: 1 - i * 0.11 }}
+                      className="w-[3rem] shrink-0 text-right text-[26px] font-semibold tabular-nums leading-none tracking-[-0.03em] text-tulivo-ink"
+                      style={{ opacity: 1 - i * 0.1 }}
                     >
-                      {step.now}
+                      {step.n}
                     </span>
-                    <span className="flex-1 text-[14px] leading-snug text-tulivo-muted">
+                    <span className="flex-1 text-[15px] leading-snug text-tulivo-ink">
                       {step.label}
-                      <span className="block text-[12px] text-tulivo-faint">
+                      <span className="mt-0.5 block text-[12px] text-tulivo-faint">
                         {step.note}
                       </span>
                     </span>
@@ -376,16 +419,18 @@ export function WelcomeScreen({
                 ))}
               </ul>
 
-              <div className="mt-6 rounded-[16px] bg-tulivo-clay-soft p-5">
+              <div className="mt-7 rounded-[16px] bg-tulivo-clay-soft p-5">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-tulivo-clay">
-                  Now fix one stage
+                  Now fix one step
                 </p>
-                <p className="mt-3 text-[14px] leading-relaxed text-tulivo-ink">
-                  Reply to 90 of those 100 instead of 75 and every number below
-                  it moves with you: 54 bookings instead of 45, 46 people
-                  through the door instead of 38, 14 who come back instead of
-                  11. A fifth more clients from exactly the same enquiries, and
-                  not one extra pound of ad spend.
+                <p className="mt-3 text-[15px] leading-[1.6] text-tulivo-ink">
+                  Reply to 90 of the 100 instead of 75. Every number under it
+                  moves too. 54 bookings, not 45. 46 people through the door,
+                  not 38. 14 who come back, not 11.
+                </p>
+                <p className="mt-3 text-[15px] font-medium leading-[1.6] text-tulivo-ink">
+                  That is a fifth more clients from the same enquiries,
+                  without spending a penny more on ads.
                 </p>
               </div>
             </Card>
@@ -396,16 +441,31 @@ export function WelcomeScreen({
         <Reveal delay={0.05}>
           <Card className="mt-10 bg-tulivo-veil p-7 sm:p-9">
             <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-tulivo-clay">
-              What this means for an ad budget
+              What this means for your ad budget
             </p>
-            <p className="mt-4 max-w-[68ch] text-[16px] leading-relaxed text-tulivo-ink sm:text-[17px]">
-              Say enquiries cost you £25 and one in five becomes a client. A
-              £1,000 month buys 40 enquiries and 8 clients. Lift that to one in
-              three and the same £1,000 buys 12. To win those four extra clients
-              through advertising alone you would have to spend £500 more every
-              single month, for as long as you keep advertising. Fixing the
-              journey costs you once.
-            </p>
+            <div className="mt-5 grid gap-6 sm:grid-cols-2">
+              <div>
+                <p className="text-[16px] leading-[1.7] text-tulivo-ink sm:text-[17px]">
+                  Say each enquiry costs you {symbol}25, and one in five becomes
+                  a client. So {symbol}1,000 buys 40 enquiries and 8 clients.
+                </p>
+                <p className="mt-3 text-[16px] leading-[1.7] text-tulivo-ink sm:text-[17px]">
+                  Now make it one in three. The same {symbol}1,000 buys 12.
+                </p>
+              </div>
+              <div className="rounded-[16px] bg-tulivo-card p-5">
+                <p className="text-[15px] leading-[1.6] text-tulivo-muted">
+                  To get those 4 extra clients from ads alone, you would spend
+                </p>
+                <p className="mt-2 text-[30px] font-semibold leading-none tracking-[-0.03em] text-tulivo-clay">
+                  {symbol}500 more a month
+                </p>
+                <p className="mt-2 text-[15px] leading-[1.6] text-tulivo-muted">
+                  every month, for as long as you keep advertising. Fixing the
+                  journey is a one-off.
+                </p>
+              </div>
+            </div>
           </Card>
         </Reveal>
       </section>
@@ -413,53 +473,45 @@ export function WelcomeScreen({
       {/* Evidence */}
       <section className="mt-24 sm:mt-28">
         <Reveal>
-          <Eyebrow>Why these eight stages</Eyebrow>
-          <h2 className="mt-5 max-w-[24ch] text-[26px] font-semibold leading-[1.15] tracking-[-0.025em] text-tulivo-ink sm:text-[32px]">
-            The gaps with the strongest evidence behind them
+          <Eyebrow>What the research says</Eyebrow>
+          <h2 className="mt-5 max-w-[24ch] text-[26px] font-semibold leading-[1.15] tracking-[-0.025em] text-tulivo-ink sm:text-[34px]">
+            Four numbers worth knowing before you spend anything
           </h2>
         </Reveal>
 
-        <div className="mt-9 grid gap-4 sm:grid-cols-2">
+        <div className="mt-10 grid gap-4 sm:grid-cols-2">
           {EVIDENCE.map((item, i) => (
-            <Reveal key={item.title} delay={0.04 * i}>
-              <Card className="h-full bg-tulivo-veil p-6">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-tulivo-muted">
-                  {item.title}
-                </p>
-                <p className="mt-3 text-[34px] font-semibold leading-none tracking-[-0.03em] text-tulivo-clay">
+            <Reveal key={item.stat} delay={0.04 * i}>
+              <Card className="flex h-full flex-col bg-tulivo-veil p-7">
+                <p className="text-[56px] font-semibold leading-[0.9] tracking-[-0.04em] text-tulivo-clay sm:text-[64px]">
                   {item.stat}
                 </p>
-                <p className="mt-3 text-[14px] leading-relaxed text-tulivo-muted">
+                <p className="mt-3 text-[17px] font-semibold leading-snug tracking-[-0.015em] text-tulivo-ink">
+                  {item.unit}
+                </p>
+                <p className="mt-3 flex-1 text-[15px] leading-[1.6] text-tulivo-muted">
                   {item.body}
+                </p>
+                <p className="mt-5 border-t border-tulivo-line pt-3 text-[12px] text-tulivo-faint">
+                  {item.source}
                 </p>
               </Card>
             </Reveal>
           ))}
         </div>
-
-        <Reveal>
-          <p className="mt-6 max-w-[80ch] text-[12px] leading-relaxed text-tulivo-faint">
-            Sources: The Short Life of Online Sales Leads, Harvard Business
-            Review (2011). Lead Response Management study, MIT Sloan /
-            InsideSales (2007). Opon et al., The effect of patient reminders in
-            reducing missed appointments in medical settings: a systematic
-            review, PAMJ One Health (2020). Zero Defections: Quality Comes to
-            Services, Harvard Business Review (1990).
-          </p>
-        </Reveal>
       </section>
 
       {/* The eight stages */}
       <section className="mt-24 sm:mt-28">
         <Reveal>
-          <Eyebrow>What gets assessed</Eyebrow>
-          <h2 className="mt-5 max-w-[26ch] text-[26px] font-semibold leading-[1.15] tracking-[-0.025em] text-tulivo-ink sm:text-[32px]">
+          <Eyebrow>What gets checked</Eyebrow>
+          <h2 className="mt-5 max-w-[26ch] text-[26px] font-semibold leading-[1.15] tracking-[-0.025em] text-tulivo-ink sm:text-[34px]">
             Eight stages, from the first search to the second booking
           </h2>
-          <p className="mt-5 max-w-[62ch] text-[16px] leading-relaxed text-tulivo-muted">
-            Each one is scored separately, because they fail separately. You
-            will see which are holding, which are leaking, and which single
-            stage is costing you the most.
+          <p className="mt-5 max-w-[58ch] text-[17px] leading-[1.65] text-tulivo-muted">
+            Each stage is scored on its own, because they break on their own.
+            You will see which ones hold, which ones leak, and which one costs
+            you the most.
           </p>
         </Reveal>
 
@@ -495,7 +547,7 @@ export function WelcomeScreen({
       <section className="mt-24 sm:mt-28">
         <Reveal>
           <Eyebrow>What you get at the end</Eyebrow>
-          <h2 className="mt-5 max-w-[24ch] text-[26px] font-semibold leading-[1.15] tracking-[-0.025em] text-tulivo-ink sm:text-[32px]">
+          <h2 className="mt-5 max-w-[24ch] text-[26px] font-semibold leading-[1.15] tracking-[-0.025em] text-tulivo-ink sm:text-[34px]">
             Your gaps priced, not just described
           </h2>
         </Reveal>
@@ -505,15 +557,19 @@ export function WelcomeScreen({
             <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-tulivo-clay">
               The number you will see
             </p>
-            <p className="mt-4 max-w-[70ch] text-[16px] leading-relaxed text-tulivo-ink sm:text-[17px]">
-              Two questions near the end ask how many appointments you do in a
-              typical week and what an average one is worth. From those, every
-              gap you have is given a figure: not a vague &ldquo;this is costing
-              you&rdquo;, but a number per stage and a total for the year. It is
-              worked out deliberately conservatively - each individual leak is
-              capped, and the total is held to a fraction of your revenue -
-              because a figure you do not believe is no use to you. You see that
-              estimate before you pay for anything.
+            <p className="mt-4 max-w-[64ch] text-[17px] leading-[1.7] text-tulivo-ink sm:text-[18px]">
+              Near the end we ask two things. How many appointments do you do in
+              a normal week? What is one worth on average?
+            </p>
+            <p className="mt-4 max-w-[64ch] text-[17px] leading-[1.7] text-tulivo-ink sm:text-[18px]">
+              From that, every gap gets a price. Not &ldquo;this is costing
+              you&rdquo;, but a figure for each stage and a total for the year,
+              in your currency.
+            </p>
+            <p className="mt-4 max-w-[64ch] text-[16px] leading-[1.7] text-tulivo-muted">
+              We keep it low on purpose. Each gap is capped, and the total is
+              held to a small share of your revenue. A number you do not believe
+              is no use to you. You see it before you pay for anything.
             </p>
           </Card>
         </Reveal>
@@ -533,9 +589,9 @@ export function WelcomeScreen({
                 {FREE.map((item) => (
                   <li
                     key={item}
-                    className="flex gap-3 text-[14px] leading-relaxed text-tulivo-muted"
+                    className="flex gap-3 text-[15px] leading-relaxed text-tulivo-muted"
                   >
-                    <span className="mt-[7px] h-[5px] w-[5px] shrink-0 rounded-full bg-tulivo-gold" />
+                    <span className="mt-[8px] h-[5px] w-[5px] shrink-0 rounded-full bg-tulivo-gold" />
                     <span>{item}</span>
                   </li>
                 ))}
@@ -558,9 +614,9 @@ export function WelcomeScreen({
                 {PAID.map((item) => (
                   <li
                     key={item}
-                    className="flex gap-3 text-[14px] leading-relaxed text-tulivo-muted"
+                    className="flex gap-3 text-[15px] leading-relaxed text-tulivo-muted"
                   >
-                    <span className="mt-[7px] h-[5px] w-[5px] shrink-0 rounded-full bg-tulivo-clay" />
+                    <span className="mt-[8px] h-[5px] w-[5px] shrink-0 rounded-full bg-tulivo-clay" />
                     <span>{item}</span>
                   </li>
                 ))}
@@ -574,13 +630,16 @@ export function WelcomeScreen({
       <section className="mt-24 sm:mt-28">
         <Reveal>
           <Card className="p-8 text-center sm:p-12">
-            <h2 className="mx-auto max-w-[26ch] text-[26px] font-semibold leading-[1.15] tracking-[-0.025em] text-tulivo-ink sm:text-[32px]">
+            <h2 className="mx-auto max-w-[26ch] text-[26px] font-semibold leading-[1.15] tracking-[-0.025em] text-tulivo-ink sm:text-[34px]">
               The cheapest clients you will ever win are already in your inbox
             </h2>
-            <p className="mx-auto mt-5 max-w-[56ch] text-[16px] leading-relaxed text-tulivo-muted">
-              Every week these gaps stay open you pay for them twice: once to
-              create the enquiry, and again when that person quietly books
-              somewhere else. Fifteen minutes will tell you exactly where.
+            <p className="mx-auto mt-5 max-w-[52ch] text-[17px] leading-[1.65] text-tulivo-muted">
+              Every week these gaps stay open, you pay for them twice. Once to
+              get the enquiry. Again when that person quietly books somewhere
+              else.
+            </p>
+            <p className="mx-auto mt-3 max-w-[52ch] text-[17px] leading-[1.65] text-tulivo-ink">
+              Fifteen minutes will tell you exactly where.
             </p>
             <Button className="mt-8" onClick={toForm}>
               Start your diagnostic

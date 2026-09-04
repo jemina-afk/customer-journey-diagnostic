@@ -6,7 +6,7 @@ import { Button, Card, Eyebrow, Rule, Wordmark } from "@/components/diagnostic/u
 export const metadata: Metadata = {
   title: "Book a call - Tulivo Digital",
   description:
-    "A free call for wellness and beauty business owners: where your enquiries are leaking, and the one number to fix first.",
+    "A free call for service business owners: where your enquiries are leaking, and the one number to fix first.",
   // Parked: the sprint landing page is the ad destination, and two pages
   // competing for the same search terms helps nobody.
   robots: { index: false, follow: false },
@@ -61,7 +61,7 @@ export default function CallPage() {
 
       <section className="mt-12 grid gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
         <div>
-          <Eyebrow>For wellness &amp; beauty business owners</Eyebrow>
+          <Eyebrow>For service business owners</Eyebrow>
           <h1 className="mt-5 text-[38px] font-semibold leading-[1.03] tracking-[-0.03em] text-tulivo-ink sm:text-[52px]">
             You&apos;re not short of
             <br />

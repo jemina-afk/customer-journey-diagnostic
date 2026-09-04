@@ -1,6 +1,7 @@
 import { SECTIONS } from "./sections";
 import { estimateImpact } from "./impact";
 import { UNKNOWN } from "./types";
+import { DEFAULT_CURRENCY, localise, money, type Currency } from "./currency";
 import type {
   Answers,
   CyclePriority,
@@ -79,7 +80,7 @@ export function hasAnswer(q: Question, value: AnswerValue | undefined): boolean 
   return true;
 }
 
-/** 0–1 for a single question, or null when it hasn't been answered. */
+/** 0-1 for a single question, or null when it hasn't been answered. */
 export function scoreQuestion(q: Question, value: AnswerValue | undefined): number | null {
   if (!isScored(q) || !hasAnswer(q, value)) return null;
   switch (q.kind) {
@@ -177,7 +178,10 @@ export function scoreSection(section: Section, answers: Answers): SectionResult 
   };
 }
 
-export function scoreDiagnostic(answers: Answers): DiagnosticResult {
+export function scoreDiagnostic(
+  answers: Answers,
+  currency: Currency = DEFAULT_CURRENCY,
+): DiagnosticResult {
   const sections = SECTIONS.map((s) => scoreSection(s, answers));
 
   let weighted = 0;
@@ -211,7 +215,7 @@ export function scoreDiagnostic(answers: Answers): DiagnosticResult {
     priorities,
     quickWins,
     cycle: buildCycle(priorities, sections, answers, quickWins),
-    clientValue: clientValueOf(answers),
+    clientValue: clientValueOf(answers, currency),
     completedAt: new Date().toISOString(),
   };
 }
@@ -228,24 +232,30 @@ export function scoreDiagnostic(answers: Answers): DiagnosticResult {
   band, and the open top band is read conservatively rather than optimistically.
 */
 const CLIENT_VALUE_BANDS: Record<string, ClientValue> = {
-  "under-250": { label: "under £250", midpoint: 150 },
-  "250-500": { label: "£250–£500", midpoint: 350 },
-  "500-1000": { label: "£500–£1,000", midpoint: 700 },
-  "1000-2500": { label: "£1,000–£2,500", midpoint: 1600 },
-  "2500-5000": { label: "£2,500–£5,000", midpoint: 3500 },
-  "5000-plus": { label: "over £5,000", midpoint: 7000 },
+  "under-250": { label: "under ¤250", midpoint: 150 },
+  "250-500": { label: "¤250-¤500", midpoint: 350 },
+  "500-1000": { label: "¤500-¤1,000", midpoint: 700 },
+  "1000-2500": { label: "¤1,000-¤2,500", midpoint: 1600 },
+  "2500-5000": { label: "¤2,500-¤5,000", midpoint: 3500 },
+  "5000-plus": { label: "over ¤5,000", midpoint: 7000 },
 };
 
-export function clientValueOf(answers: Answers): ClientValue | null {
+export function clientValueOf(
+  answers: Answers,
+  currency: Currency = DEFAULT_CURRENCY,
+): ClientValue | null {
   const answer = answers["retention.client-value"];
   if (typeof answer !== "string") return null;
-  return CLIENT_VALUE_BANDS[answer] ?? null;
+  const band = CLIENT_VALUE_BANDS[answer];
+  return band ? { ...band, label: localise(band.label, currency) } : null;
 }
 
 /** What twelve extra clients - one a month - are worth over their lifetimes. */
-export function annualValueOfOneMoreClientPerMonth(value: ClientValue): string {
-  const total = value.midpoint * 12;
-  return `£${total.toLocaleString("en-GB")}`;
+export function annualValueOfOneMoreClientPerMonth(
+  value: ClientValue,
+  currency: Currency = DEFAULT_CURRENCY,
+): string {
+  return money(value.midpoint * 12, currency);
 }
 
 function dedupeFixes(fixes: Fix[]): Fix[] {
@@ -265,7 +275,7 @@ function dedupeFixes(fixes: Fix[]): Fix[] {
   on. Priorities come from the stages the KPI actually depends on - so the work
   compounds on one number instead of being spread thinly across eight.
 */
-const WINDOWS = ["Weeks 1–2", "Weeks 3–6", "Weeks 7–10", "Weeks 11–13"];
+const WINDOWS = ["Weeks 1-2", "Weeks 3-6", "Weeks 7-10", "Weeks 11-13"];
 
 function buildCycle(
   priorities: SectionResult[],
@@ -346,7 +356,7 @@ function buildCycle(
   };
 }
 
-/** How far through the assessment they are, 0–1. */
+/** How far through the assessment they are, 0-1. */
 export function completionOf(answers: Answers): number {
   const required = SECTIONS.flatMap((s) =>
     s.questions.filter((q) => q.kind !== "text").map((q) => questionKey(s, q)),

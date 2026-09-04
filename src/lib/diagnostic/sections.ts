@@ -50,13 +50,23 @@ export const BUSINESS_TYPES = [
   "Beauty salon",
   "Hair salon",
   "Spa or wellness centre",
+  "Nails or lashes",
   "Pilates or yoga studio",
   "Fitness or personal training",
   "Massage or bodywork",
   "Therapy or counselling",
-  "Nails or lashes",
   "Nutrition or health coaching",
-  "Other wellness or beauty business",
+  "Dental or orthodontic practice",
+  "Veterinary practice",
+  "Private clinic or healthcare",
+  "Trades (plumbing, electrical, building)",
+  "Cleaning or domestic services",
+  "Garden or outdoor services",
+  "Motor or vehicle services",
+  "Photography or events",
+  "Legal, accounting or financial services",
+  "Consulting or coaching",
+  "Other service business",
 ];
 
 export const SECTIONS: Section[] = [
@@ -138,7 +148,7 @@ export const SECTIONS: Section[] = [
               action:
                 "Add one owned discovery channel you control - a fully filled Google Business Profile with services, photos and a booking link - so search traffic reaches you without paying for it.",
               impact:
-                "Most local wellness businesses see enquiries rise 20–40% within 90 days of a properly optimised profile, with no ad spend.",
+                "A properly filled-out profile is one of the few things that lifts local enquiries without spending on ads.",
               effort: "quick",
             },
           };
@@ -379,7 +389,7 @@ export const SECTIONS: Section[] = [
             fix: {
               action:
                 "Add an instant automated acknowledgement that answers the two questions everyone asks (price and availability) and offers a booking link, so the five-minute window is covered even when you're with a client.",
-              impact: "Holds attention until you can reply personally. Typically lifts enquiry-to-booking by 10–20%.",
+              impact: "Holds attention until you can reply personally. Typically lifts enquiry-to-booking by 10-20%.",
               effort: "quick",
             },
           },
@@ -400,7 +410,7 @@ export const SECTIONS: Section[] = [
             value: "nextday",
             label: "Next day or longer",
             score: 0.1,
-            gap: "Enquiries wait a day or more, and most people booking a wellness or beauty appointment will have chosen someone else by then.",
+            gap: "Enquiries wait a day or more, and most people booking a service will have chosen someone else by then.",
             fix: {
               action:
                 "Put an instant auto-reply on every enquiry channel this week, and set a single daily slot to clear the inbox properly.",
@@ -609,7 +619,7 @@ export const SECTIONS: Section[] = [
       },
       target: (answers) => {
         const value = num(answers, "lead-nurture.conversion-rate");
-        if (value === null) return "Measured first, then lifted by 10–15 points";
+        if (value === null) return "Measured first, then lifted by 10-15 points";
         return `${Math.min(value + 15, 70)}%`;
       },
       measure: {
@@ -654,7 +664,7 @@ export const SECTIONS: Section[] = [
               action:
                 "Build a three-message follow-up: next day (helpful answer), day three (reassurance plus a review), day seven (a reason to book now).",
               impact:
-                "Following up three times typically converts an extra 10–25% of enquiries that would otherwise have gone quiet.",
+                "Following up three times typically converts an extra 10-25% of enquiries that would otherwise have gone quiet.",
               effort: "project",
             },
           },
@@ -955,7 +965,7 @@ export const SECTIONS: Section[] = [
             value: "phone",
             label: "By phone",
             score: 0.3,
-            gap: "Phone-only booking excludes anyone who won't ring - which is most people under 40 enquiring about a beauty or wellness appointment.",
+            gap: "Phone-only booking excludes anyone who won't ring - which is most people under 40 enquiring about an appointment.",
             fix: {
               action: "Add online booking alongside the phone, and keep the phone for complex or first-time consultations.",
               impact: "Opens up bookings from people who'd never have called.",
@@ -1001,7 +1011,7 @@ export const SECTIONS: Section[] = [
             fix: {
               action:
                 "Strip the booking down to service, time, name, contact and payment. Move consent forms and history to a follow-up link after booking.",
-              impact: "Shorter booking flows routinely recover 15–30% of abandoned bookings.",
+              impact: "Shorter booking flows routinely recover 15-30% of abandoned bookings.",
               effort: "project",
             },
           },
@@ -1049,7 +1059,7 @@ export const SECTIONS: Section[] = [
             fix: {
               action: "Set up online booking with your real availability, and link it from your bio, website and auto-replies.",
               impact:
-                "Most wellness and beauty bookings are made outside 9–5. This opens a window that's currently closed.",
+                "Plenty of bookings are made outside 9-5. This opens a window that's currently closed.",
               effort: "project",
             },
           },
@@ -1133,7 +1143,7 @@ export const SECTIONS: Section[] = [
             fix: {
               action: "Publish 'from' prices for your main treatments this week - start with your three most-booked.",
               impact:
-                "Removes the single most common reason people leave a wellness or beauty website without enquiring.",
+                "Removes the single most common reason people leave a service website without enquiring.",
               effort: "quick",
             },
           },
@@ -1938,7 +1948,7 @@ export const SECTIONS: Section[] = [
     },
     tools: [
       "Rebooking prompted before the client leaves the room",
-      "An automated 'we've missed you' sequence at 8–12 weeks",
+      "An automated 'we've missed you' sequence at 8-12 weeks",
       "A simple referral reward for existing clients",
     ],
     purpose: "Turn first visits into regulars",
@@ -1973,12 +1983,12 @@ export const SECTIONS: Section[] = [
         // Context, not performance: this shapes the report but never the score.
         weight: 0,
         options: [
-          { value: "under-250", label: "Under £250 - a visit or two and they move on", score: 1 },
-          { value: "250-500", label: "£250 – £500", score: 1 },
-          { value: "500-1000", label: "£500 – £1,000 - a regular for around a year", score: 1 },
-          { value: "1000-2500", label: "£1,000 – £2,500", score: 1 },
-          { value: "2500-5000", label: "£2,500 – £5,000 - a loyal client over several years", score: 1 },
-          { value: "5000-plus", label: "More than £5,000", score: 1 },
+          { value: "under-250", label: "Under ¤250 - a visit or two and they move on", score: 1 },
+          { value: "250-500", label: "¤250 - ¤500", score: 1 },
+          { value: "500-1000", label: "¤500 - ¤1,000 - a regular for around a year", score: 1 },
+          { value: "1000-2500", label: "¤1,000 - ¤2,500", score: 1 },
+          { value: "2500-5000", label: "¤2,500 - ¤5,000 - a loyal client over several years", score: 1 },
+          { value: "5000-plus", label: "More than ¤5,000", score: 1 },
           {
             value: "unknown",
             label: "I don't know",
@@ -2194,8 +2204,8 @@ export const NUMBERS_QUESTIONS: Question[] = [
     max: 300,
     step: 5,
     defaultValue: 60,
-    format: (v) => (v >= 300 ? "£300+" : `£${v}`),
-    endLabels: ["£0", "£300+"],
+    format: (v) => (v >= 300 ? "¤300+" : `¤${v}`),
+    endLabels: ["¤0", "¤300+"],
     scoreValue: () => 0,
   },
 ];

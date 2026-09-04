@@ -1,3 +1,4 @@
+import { DEFAULT_CURRENCY, money, type Currency } from "./currency";
 import { NUMBERS_KEYS } from "./sections";
 import { clientValueOf } from "./scoring";
 import { UNKNOWN } from "./types";
@@ -57,7 +58,10 @@ function round(value: number): number {
   return Math.round(value / 10) * 10;
 }
 
-export function estimateImpact(answers: Answers): Impact {
+export function estimateImpact(
+  answers: Answers,
+  currency: Currency = DEFAULT_CURRENCY,
+): Impact {
   const perWeek = numberAnswer(answers, NUMBERS_KEYS.appointments);
   const value = numberAnswer(answers, NUMBERS_KEYS.value);
 
@@ -79,7 +83,7 @@ export function estimateImpact(answers: Answers): Impact {
   const cap = revenue * PER_LEAK_CAP;
   const leaks: Leak[] = [];
   const assumptions = [
-    `${perWeek} appointment${perWeek === 1 ? "" : "s"} a week at £${value}, over ${WORKING_WEEKS} working weeks.`,
+    `${perWeek} appointment${perWeek === 1 ? "" : "s"} a week at ${money(value, currency)}, over ${WORKING_WEEKS} working weeks.`,
   ];
 
   // 1. Missed appointments - half of them are winnable with reminders,
@@ -110,7 +114,7 @@ export function estimateImpact(answers: Answers): Impact {
   const conversion = answers["lead-nurture.conversion-rate"];
   const repeat = answers["retention.repeat-rate"];
   if (typeof conversion === "number" && conversion >= 5 && conversion < 70) {
-    const lifetime = clientValueOf(answers);
+    const lifetime = clientValueOf(answers, currency);
     /*
       Working back to how many enquiries this business actually gets.
 
@@ -191,6 +195,6 @@ function numberAnswer(answers: Answers, key: string): number | null {
   return typeof value === "number" && value > 0 ? value : null;
 }
 
-export function formatMoney(value: number): string {
-  return `£${Math.round(value).toLocaleString("en-GB")}`;
+export function formatMoney(value: number, currency: Currency = DEFAULT_CURRENCY): string {
+  return money(value, currency);
 }

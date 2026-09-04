@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { scoreDiagnostic } from "@/lib/diagnostic/scoring";
+import { currencyFor } from "@/lib/diagnostic/currency";
 import {
   SERVER_CONFIG,
   clientReportEmail,
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Missing recipient" }, { status: 400 });
   }
 
-  const result = scoreDiagnostic(body.answers ?? {});
+  const result = scoreDiagnostic(body.answers ?? {}, currencyFor(profile.currency));
 
   const base64 = typeof pdf === "string" ? pdf.split("base64,").pop() ?? "" : "";
   const attachments = base64 ? [{ filename: fileName(profile), content: base64 }] : undefined;

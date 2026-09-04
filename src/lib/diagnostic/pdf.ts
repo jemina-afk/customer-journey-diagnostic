@@ -2,6 +2,7 @@ import type { Answers, DiagnosticResult, Profile, SectionResult } from "./types"
 import { DIAGNOSTIC } from "./config";
 import { STATUS_LABEL, annualValueOfOneMoreClientPerMonth } from "./scoring";
 import { estimateImpact, formatMoney } from "./impact";
+import { currencyFor } from "./currency";
 
 /*
   The consulting deliverable. Drawn as vectors with jsPDF rather than a screen
@@ -305,110 +306,111 @@ function coverPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
 function whyItMattersPage(doc: Doc, profile: Profile) {
   doc.addPage();
   pageFurniture(doc, profile, "Why this matters");
+  const c = currencyFor(profile.currency).symbol;
 
-  eyebrow(doc, "Before you spend another pound on ads", M, 30);
+  eyebrow(doc, "Before you spend more on ads", M, 30);
   setText(doc, 21, INK, "bold");
-  doc.text("Your journey decides what your", M, 40);
-  doc.text("marketing is worth", M, 49);
+  doc.text("Fix the journey first. Then", M, 40);
+  doc.text("the ads are worth paying for.", M, 49);
 
   let y = paragraph(
     doc,
-    "Most service businesses don't have a marketing problem. They have a journey problem. Advertising changes how many people arrive; the journey decides how many of them become clients, how many turn up, and how many come back. Spend more without fixing it and you simply buy the same losses at a larger scale.",
+    "Ads change one thing: how many people ask about you. What happens next decides how many of them become clients. If people are slipping away along the way, more ads just means more people slipping away. You pay twice - once for the ad, and again for the client you never got.",
     M,
-    62,
+    61,
     COL_W,
     { size: 10, colour: INK, leading: 5 },
   );
 
   y = paragraph(
     doc,
-    "This is not opinion. The gaps this diagnostic measures are the ones with the strongest evidence behind them.",
+    "Here is what the research says about the eight stages in this report.",
     M,
-    y + 5,
+    y + 4,
     COL_W,
     { size: 10, colour: MUTED, leading: 5 },
   );
 
-  // Four findings, each a headline number with its source attached.
+  // Four findings. Big number first, one short line under it.
   const findings = [
     {
-      stat: "23%",
-      title: "Speed decides the sale",
+      stat: "75%",
+      title: "People choose fast",
       body:
-        "of firms never replied to an enquiry at all, in an audit of 2,241 companies. Those who replied within an hour were seven times more likely to qualify the lead than those who replied an hour later, and sixty times more than those who waited a day.",
+        "of people pick a local business in under 30 minutes. More than one in four decide in under five. Most look at three businesses or fewer. Reply tomorrow and the job has gone.",
     },
     {
-      stat: "21x",
-      title: "The first five minutes",
+      stat: "71%",
+      title: "Hard to book means no booking",
       body:
-        "more likely to qualify a lead when contact is made within five minutes rather than thirty, measured across 15,000 leads and 100,000 call attempts. Not a better script - the same script, sooner.",
+        "of regular clients say they have given up on booking because it was too hard to reach someone or book online. They did not complain. They just went elsewhere.",
     },
     {
-      stat: "41%",
-      title: "The diary you actually work",
+      stat: "a third",
+      title: "One text saves the slot",
       body:
-        "average reduction in missed appointments where reminders are used, across a systematic review of reminder studies. A no-show is a client already paid for, in time that cannot be resold.",
+        "fewer missed appointments after one text reminder the day before: 7.5% down to 5.0%. A no-show is a client you already paid for, in time you cannot sell twice.",
     },
     {
-      stat: "5-25x",
-      title: "Keeping beats winning",
+      stat: "97%",
+      title: "Everyone checks you first",
       body:
-        "the cost of winning a new client compared with keeping one. Cutting client defections by 5% lifted profits by 25-85% in the businesses studied. Retention is the cheapest growth available to you.",
+        "of people read reviews before choosing a local business. More than two thirds will only use one rated 4 stars or better. Your reviews are read before your website.",
     },
   ];
 
-  y += 8;
+  y += 6;
   const boxW = (COL_W - 6) / 2;
   findings.forEach((finding, i) => {
     const x = M + (i % 2) * (boxW + 6);
-    const top = y + Math.floor(i / 2) * 46;
+    const top = y + Math.floor(i / 2) * 50;
 
     doc.setFillColor(VEIL[0], VEIL[1], VEIL[2]);
-    doc.roundedRect(x, top, boxW, 42, 3, 3, "F");
+    doc.roundedRect(x, top, boxW, 46, 3, 3, "F");
+    setText(doc, 24, CLAY, "bold");
+    doc.text(finding.stat, x + 5, top + 14);
     let titleSize = 8;
-    setText(doc, titleSize, MUTED, "bold");
+    setText(doc, titleSize, INK, "bold");
     while (doc.getTextWidth(finding.title.toUpperCase()) > boxW - 10 && titleSize > 6.5) {
       titleSize -= 0.25;
-      setText(doc, titleSize, MUTED, "bold");
+      setText(doc, titleSize, INK, "bold");
     }
-    doc.text(finding.title.toUpperCase(), x + 5, top + 8, { charSpace: 0.5 });
-    setText(doc, 18, CLAY, "bold");
-    doc.text(finding.stat, x + 5, top + 18);
-    paragraph(doc, finding.body, x + 5, top + 24, boxW - 10, { size: 8, colour: MUTED, leading: 3.8 });
+    doc.text(finding.title.toUpperCase(), x + 5, top + 21, { charSpace: 0.5 });
+    paragraph(doc, finding.body, x + 5, top + 27, boxW - 10, { size: 8, colour: MUTED, leading: 3.8 });
   });
 
-  y += 46 * Math.ceil(findings.length / 2) + 4;
+  y += 50 * Math.ceil(findings.length / 2) + 2;
 
   // The arithmetic that makes the point better than any of the above.
   doc.setFillColor(CLAY_SOFT[0], CLAY_SOFT[1], CLAY_SOFT[2]);
-  doc.roundedRect(M, y, COL_W, 40, 3, 3, "F");
+  doc.roundedRect(M, y, COL_W, 34, 3, 3, "F");
   setText(doc, 7.5, CLAY, "bold");
-  doc.text("WHAT THIS MEANS FOR AN AD BUDGET", M + 6, y + 8, { charSpace: 0.8 });
+  doc.text("WHAT THIS MEANS FOR YOUR AD BUDGET", M + 6, y + 8, { charSpace: 0.8 });
   paragraph(
     doc,
-    "Say enquiries cost £25 and one in five becomes a client. A £1,000 month buys 40 enquiries and 8 clients. Lift that to one in three and the same £1,000 buys 12. To win those four extra clients through advertising alone, you would have to spend £500 more every month, for as long as you keep advertising. Fixing the journey costs you once.",
+    `Say each enquiry costs you ${c}25, and one in five becomes a client. So ${c}1,000 buys 40 enquiries and 8 clients. Now make it one in three. The same ${c}1,000 buys 12 clients. To get those 4 extra clients from ads alone you would spend ${c}500 more, every month, for as long as you keep advertising. Fixing the journey is a one-off.`,
     M + 6,
     y + 15,
     COL_W - 12,
     { size: 9, colour: INK, leading: 4.4 },
   );
-  y += 46;
+  y += 41;
 
   paragraph(
     doc,
-    "Every week these gaps stay open, you pay for them twice: once to create the enquiry, and again when that person quietly books somewhere else. The cheapest clients you will ever win are the ones already sitting in your inbox.",
+    "The cheapest clients you will ever win are the ones already in your inbox.",
     M,
     y,
     COL_W,
     { size: 10, colour: INK, leading: 5 },
   );
 
-  rule(doc, PAGE_H - 40);
+  rule(doc, PAGE_H - 38);
   paragraph(
     doc,
-    "Sources: The Short Life of Online Sales Leads, Harvard Business Review (2011). Lead Response Management study, MIT Sloan / InsideSales (2007). Opon et al., The effect of patient reminders in reducing missed appointments in medical settings: a systematic review, PAMJ One Health (2020). Zero Defections: Quality Comes to Services, Harvard Business Review (1990); customer acquisition versus retention cost, Harvard Business Review.",
+    "Sources: Consumer Search Behavior, BrightLocal (2026), 1,200+ US consumers. Salon and Spa Consumer Survey, Zenoti (2025), 1,000+ US clients. Chong & Jawad, Reducing Did Not Attends at a Community Mental Health Service Through the Implementation of SMS Reminders: A Closed Loop Audit (2025). Local Consumer Review Survey, BrightLocal (2026), 1,002 US adults.",
     M,
-    PAGE_H - 33,
+    PAGE_H - 32,
     COL_W,
     { size: 7, colour: FAINT, leading: 3.4 },
   );
@@ -447,7 +449,8 @@ function executiveSummary(doc: Doc, result: DiagnosticResult, profile: Profile, 
   );
   // With a money estimate to show, this paragraph is the one to lose - the
   // figures below make the same point harder.
-  if (!estimateImpact(answers).available) {
+  const currency = currencyFor(profile.currency);
+  if (!estimateImpact(answers, currency).available) {
     y = paragraph(
       doc,
       "Every finding is drawn from what you told us. Nothing here is generic: the gaps are the ones your answers revealed, and the recommendations are ordered by what a fix is worth to you.",
@@ -461,7 +464,7 @@ function executiveSummary(doc: Doc, result: DiagnosticResult, profile: Profile, 
   if (result.clientValue) {
     y = paragraph(
       doc,
-      `At ${result.clientValue.label} per client, one extra client a month adds around ${annualValueOfOneMoreClientPerMonth(result.clientValue)} in lifetime value over a year - the bar every recommendation in this report has to clear.`,
+      `At ${result.clientValue.label} per client, one extra client a month adds around ${annualValueOfOneMoreClientPerMonth(result.clientValue, currency)} in lifetime value over a year - the bar every recommendation in this report has to clear.`,
       textX,
       y + 5,
       textW,
@@ -472,7 +475,7 @@ function executiveSummary(doc: Doc, result: DiagnosticResult, profile: Profile, 
   // What it's costing, before the priorities - it's the line that makes the
   // rest of the page feel urgent rather than interesting.
   y = Math.max(y, 104) + 8;
-  const impact = estimateImpact(answers);
+  const impact = estimateImpact(answers, currency);
   if (impact.available) {
     const boxH = 15 + impact.leaks.length * 5;
     doc.setFillColor(CLAY_SOFT[0], CLAY_SOFT[1], CLAY_SOFT[2]);
@@ -480,13 +483,15 @@ function executiveSummary(doc: Doc, result: DiagnosticResult, profile: Profile, 
     setText(doc, 7.5, CLAY, "bold");
     doc.text("WHAT THE GAPS ARE COSTING YOU", M + 6, y + 8, { charSpace: 0.8 });
     setText(doc, 14, INK, "bold");
-    doc.text(`${formatMoney(impact.recoverable)} a year`, PAGE_W - M - 6, y + 9, { align: "right" });
+    doc.text(`${formatMoney(impact.recoverable, currency)} a year`, PAGE_W - M - 6, y + 9, {
+      align: "right",
+    });
     let ly = y + 14.5;
     impact.leaks.forEach((leak) => {
       setText(doc, 8.5, MUTED, "normal");
       doc.text(leak.label, M + 6, ly);
       setText(doc, 8.5, INK, "bold");
-      doc.text(formatMoney(leak.annual), PAGE_W - M - 6, ly, { align: "right" });
+      doc.text(formatMoney(leak.annual, currency), PAGE_W - M - 6, ly, { align: "right" });
       ly += 5;
     });
     y += boxH + 8;
@@ -738,7 +743,11 @@ function actionPlanPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
 
   if (cycle.worth !== null) {
     setText(doc, 9, INK, "bold");
-    doc.text(`Worth roughly ${formatMoney(cycle.worth)} a year once it moves.`, M, y);
+    doc.text(
+      `Worth roughly ${formatMoney(cycle.worth, currencyFor(profile.currency))} a year once it moves.`,
+      M,
+      y,
+    );
     y += 8;
   }
 
@@ -969,7 +978,7 @@ function aboutPage(doc: Doc, profile: Profile) {
 
   let y = paragraph(
     doc,
-    `${DIAGNOSTIC.consultant} helps wellness and beauty business owners fix the journey between "I'm interested" and "I've rebooked". Most businesses in this sector don't have a marketing problem - they have a journey problem: enquiries that go unanswered, follow-ups that never happen, and clients who simply drift away.`,
+    `${DIAGNOSTIC.consultant} helps service business owners fix the journey between "I'm interested" and "I've booked again". Most of them don't have a marketing problem - they have a journey problem: enquiries that go unanswered, follow-ups that never happen, and clients who simply drift away.`,
     M,
     54,
     COL_W,

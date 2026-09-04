@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { DIAGNOSTIC } from "@/lib/diagnostic/config";
 import { STATUS_LABEL, annualValueOfOneMoreClientPerMonth } from "@/lib/diagnostic/scoring";
 import { estimateImpact, formatMoney } from "@/lib/diagnostic/impact";
+import { currencyFor } from "@/lib/diagnostic/currency";
 import type { Answers, DiagnosticResult, Profile, SectionResult } from "@/lib/diagnostic/types";
 import { RadarChart, ScoreDial } from "./RadarChart";
 import { Locked, LockIcon } from "./Locked";
@@ -46,7 +47,8 @@ export function ResultsScreen({
 }) {
   const [code, setCode] = useState("");
   const [showCode, setShowCode] = useState(false);
-  const impact = useMemo(() => estimateImpact(answers), [answers]);
+  const currency = useMemo(() => currencyFor(profile.currency), [profile.currency]);
+  const impact = useMemo(() => estimateImpact(answers, currency), [answers, currency]);
 
   return (
     <div className="mx-auto w-full max-w-[1080px] px-5 py-10 sm:px-8 sm:py-14">
@@ -89,7 +91,7 @@ export function ResultsScreen({
             <p className="mt-5 max-w-[60ch] rounded-[14px] border border-tulivo-line bg-tulivo-veil/50 px-4 py-3.5 text-[15px] leading-relaxed text-tulivo-ink">
               At {result.clientValue.label} per client, just one extra client a month adds around{" "}
               <strong className="tabular font-semibold">
-                {annualValueOfOneMoreClientPerMonth(result.clientValue)}
+                {annualValueOfOneMoreClientPerMonth(result.clientValue, currency)}
               </strong>{" "}
               in lifetime value over a year - that&apos;s the bar every fix below has to clear.
             </p>
@@ -110,7 +112,7 @@ export function ResultsScreen({
               <div>
                 <Eyebrow>What the gaps are costing you</Eyebrow>
                 <div className="tabular mt-4 text-[44px] font-semibold leading-none tracking-[-0.04em] text-tulivo-ink sm:text-[52px]">
-                  {formatMoney(impact.recoverable)}
+                  {formatMoney(impact.recoverable, currency)}
                 </div>
                 <p className="mt-2 text-[15px] font-medium text-tulivo-clay">recoverable a year</p>
                 <p className="mt-4 text-[14px] leading-relaxed text-tulivo-muted">
@@ -126,7 +128,7 @@ export function ResultsScreen({
                       <div className="flex items-baseline justify-between gap-4">
                         <span className="text-[15px] font-medium text-tulivo-ink">{leak.label}</span>
                         <span className="tabular text-[16px] font-semibold text-tulivo-ink">
-                          {formatMoney(leak.annual)}
+                          {formatMoney(leak.annual, currency)}
                         </span>
                       </div>
                       <p className="mt-1 text-[13px] leading-relaxed text-tulivo-faint">{leak.basis}</p>
@@ -174,7 +176,7 @@ export function ResultsScreen({
               <StatusDot status="green" /> Strong (75+)
             </span>
             <span className="inline-flex items-center gap-2">
-              <StatusDot status="amber" /> Needs work (50–74)
+              <StatusDot status="amber" /> Needs work (50-74)
             </span>
             <span className="inline-flex items-center gap-2">
               <StatusDot status="red" /> Critical gap (under 50)
@@ -248,7 +250,7 @@ export function ResultsScreen({
                   <>
                     Roughly{" "}
                     <strong className="font-semibold text-tulivo-ink">
-                      {formatMoney(impact.recoverable)} a year
+                      {formatMoney(impact.recoverable, currency)} a year
                     </strong>{" "}
                     is sitting in these three areas:
                   </>
@@ -345,7 +347,7 @@ export function ResultsScreen({
                     <>
                       Both are one-off. Set against roughly{" "}
                       <strong className="font-semibold text-tulivo-ink">
-                        {formatMoney(impact.recoverable)}
+                        {formatMoney(impact.recoverable, currency)}
                       </strong>{" "}
                       a year currently leaking out of your journey.
                     </>
@@ -503,7 +505,7 @@ export function ResultsScreen({
                         Worth
                       </p>
                       <p className="tabular mt-1.5 text-[16px] font-semibold text-tulivo-ink">
-                        {formatMoney(result.cycle.worth)} a year
+                        {formatMoney(result.cycle.worth, currency)} a year
                       </p>
                     </div>
                   )}
