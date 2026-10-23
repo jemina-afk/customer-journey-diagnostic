@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "methodology": "node scripts/build-methodology.mjs public/customer-journey-diagnostic-methodology.pdf"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",

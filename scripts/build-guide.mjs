@@ -48,6 +48,9 @@ function setText(size, colour, weight = "normal") {
   doc.setFont("helvetica", weight);
   doc.setFontSize(size);
   doc.setTextColor(colour[0], colour[1], colour[2]);
+  // charSpace is stateful in jsPDF, so an earlier tracked line would leak into
+  // this one. Reset it; callers that want tracking pass it per call.
+  doc.setCharSpace(0);
 }
 
 function paragraph(text, x, y, width, opts = {}) {
