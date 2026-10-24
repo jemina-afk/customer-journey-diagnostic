@@ -152,9 +152,9 @@ export function LinkMaker() {
         </form>
 
         {link && (
-          <div className="mt-7 rounded-[16px] border border-tulivo-clay/30 bg-tulivo-clay-soft/40 p-5">
+          <div className="mt-7 rounded-[4px] border border-tulivo-purple/30 bg-tulivo-section/40 p-5">
             <Eyebrow>Their link</Eyebrow>
-            <p className="mt-3 break-all rounded-[12px] border border-tulivo-line bg-tulivo-card px-3.5 py-3 text-[13px] leading-relaxed text-tulivo-ink">
+            <p className="mt-3 break-all rounded-[4px] border border-tulivo-line bg-tulivo-card px-3.5 py-3 text-[13px] leading-relaxed text-tulivo-ink">
               {link}
             </p>
             <div className="mt-4 flex flex-wrap items-center gap-3">

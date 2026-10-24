@@ -73,7 +73,7 @@ export function SignInScreen({
               Sorry - this is our end, not yours. Please try again shortly, or email{" "}
               <a
                 href={`mailto:${DIAGNOSTIC.contactEmail}`}
-                className="font-medium text-tulivo-ink underline decoration-tulivo-clay/40 underline-offset-4"
+                className="font-medium text-tulivo-ink underline decoration-tulivo-purple/40 underline-offset-4"
               >
                 {DIAGNOSTIC.contactEmail}
               </a>
@@ -113,14 +113,14 @@ export function SignInScreen({
                   href={DIAGNOSTIC.bookingUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="font-medium text-tulivo-ink underline decoration-tulivo-clay/40 underline-offset-4 hover:decoration-tulivo-clay"
+                  className="font-medium text-tulivo-ink underline decoration-tulivo-purple/40 underline-offset-4 hover:decoration-tulivo-purple"
                 >
                   Book a call
                 </a>{" "}
                 or email{" "}
                 <a
                   href={`mailto:${DIAGNOSTIC.contactEmail}`}
-                  className="font-medium text-tulivo-ink underline decoration-tulivo-clay/40 underline-offset-4"
+                  className="font-medium text-tulivo-ink underline decoration-tulivo-purple/40 underline-offset-4"
                 >
                   {DIAGNOSTIC.contactEmail}
                 </a>
@@ -156,7 +156,7 @@ export function SignInScreen({
                 <p className="mt-2 text-[13px] leading-relaxed text-tulivo-muted">
                   No email provider is configured, so here&apos;s the link:
                 </p>
-                <a href={devLink} className="mt-2 block break-all text-[12.5px] text-tulivo-clay underline">
+                <a href={devLink} className="mt-2 block break-all text-[12.5px] text-tulivo-muted underline">
                   {devLink}
                 </a>
               </Card>

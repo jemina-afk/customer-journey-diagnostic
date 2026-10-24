@@ -22,10 +22,10 @@ export function TestBar({
   stage: "welcome" | "sections" | "numbers" | "results";
 }) {
   return (
-    <div className="sticky top-0 z-40 border-b border-tulivo-gold/40 bg-tulivo-gold-soft/95 backdrop-blur-md">
+    <div className="sticky top-0 z-40 border-b border-tulivo-purple/40 bg-tulivo-section/95 backdrop-blur-md">
       <div className="mx-auto flex w-full max-w-[1080px] flex-wrap items-center gap-x-4 gap-y-2 px-5 py-2.5 sm:px-8">
-        <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-tulivo-gold">
-          <span className="inline-block h-2 w-2 rounded-full bg-tulivo-gold" aria-hidden />
+        <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-tulivo-muted">
+          <span className="inline-block h-2 w-2 rounded-full bg-tulivo-purple" aria-hidden />
           Test mode
         </span>
         <span className="hidden text-[12px] text-tulivo-muted sm:inline">
@@ -60,9 +60,9 @@ function TestButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "min-h-[36px] rounded-full border border-tulivo-gold/50 bg-tulivo-card/80 px-3.5 text-[13px] font-medium text-tulivo-ink",
+        "min-h-[36px] rounded-full border border-tulivo-purple/50 bg-tulivo-card/80 px-3.5 text-[13px] font-medium text-tulivo-ink",
         "transition-colors hover:bg-tulivo-card disabled:cursor-not-allowed disabled:opacity-45",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tulivo-gold/50",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tulivo-purple/50",
       )}
     >
       {children}

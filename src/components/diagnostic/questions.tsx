@@ -23,7 +23,7 @@ function Tick({ checked, round }: { checked: boolean; round?: boolean }) {
       className={cn(
         "mt-[2px] flex h-6 w-6 flex-none items-center justify-center border transition-all duration-200",
         round ? "rounded-full" : "rounded-[7px]",
-        checked ? "border-tulivo-clay bg-tulivo-clay" : "border-tulivo-line bg-white",
+        checked ? "border-tulivo-purple bg-tulivo-purple" : "border-tulivo-line bg-white",
       )}
       aria-hidden
     >
@@ -42,7 +42,7 @@ function Tick({ checked, round }: { checked: boolean; round?: boolean }) {
 }
 
 const optionRow =
-  "flex w-full items-start gap-3.5 rounded-[16px] border px-4 py-4 text-left text-[15px] leading-snug transition-all duration-200 min-h-[60px]";
+  "flex w-full items-start gap-3.5 rounded-[4px] border px-4 py-4 text-left text-[15px] leading-snug transition-all duration-200 min-h-[60px]";
 
 function ChoiceControl({
   question,
@@ -68,8 +68,8 @@ function ChoiceControl({
             className={cn(
               optionRow,
               checked
-                ? "border-tulivo-clay bg-tulivo-clay-soft/70 text-tulivo-ink shadow-[0_8px_20px_-16px_rgba(154,71,47,0.9)]"
-                : "border-tulivo-line bg-white/60 text-tulivo-ink hover:border-tulivo-clay/40 hover:bg-tulivo-clay-soft/30",
+                ? "border-tulivo-purple bg-tulivo-section/70 text-tulivo-ink shadow-[0_8px_20px_-16px_rgba(154,71,47,0.9)]"
+                : "border-tulivo-line bg-white/60 text-tulivo-ink hover:border-tulivo-purple/40 hover:bg-tulivo-section/30",
             )}
           >
             <Tick checked={checked} round />
@@ -116,8 +116,8 @@ function MultiControl({
             className={cn(
               optionRow,
               checked
-                ? "border-tulivo-clay bg-tulivo-clay-soft/70 text-tulivo-ink shadow-[0_8px_20px_-16px_rgba(154,71,47,0.9)]"
-                : "border-tulivo-line bg-white/60 text-tulivo-ink hover:border-tulivo-clay/40 hover:bg-tulivo-clay-soft/30",
+                ? "border-tulivo-purple bg-tulivo-section/70 text-tulivo-ink shadow-[0_8px_20px_-16px_rgba(154,71,47,0.9)]"
+                : "border-tulivo-line bg-white/60 text-tulivo-ink hover:border-tulivo-purple/40 hover:bg-tulivo-section/30",
             )}
           >
             <Tick checked={checked} />
@@ -166,7 +166,7 @@ function SliderControl({
         <span
           className={cn(
             "tabular text-[34px] font-semibold leading-none tracking-[-0.03em]",
-            dontKnow ? "text-tulivo-faint" : "text-tulivo-clay",
+            dontKnow ? "text-tulivo-faint" : "text-tulivo-muted",
           )}
         >
           {dontKnow ? "-" : display}
@@ -205,8 +205,8 @@ function SliderControl({
           className={cn(
             "mt-4 inline-flex min-h-[44px] items-center gap-2.5 rounded-full border px-4 text-[14px] transition-all duration-200",
             dontKnow
-              ? "border-tulivo-clay bg-tulivo-clay-soft/70 font-medium text-tulivo-ink"
-              : "border-tulivo-line bg-white/60 text-tulivo-muted hover:border-tulivo-clay/40 hover:bg-tulivo-clay-soft/30",
+              ? "border-tulivo-purple bg-tulivo-section/70 font-medium text-tulivo-ink"
+              : "border-tulivo-line bg-white/60 text-tulivo-muted hover:border-tulivo-purple/40 hover:bg-tulivo-section/30",
           )}
         >
           <Tick checked={dontKnow} round />
@@ -239,10 +239,10 @@ function ScaleControl({
               aria-checked={checked}
               onClick={() => onChange(n)}
               className={cn(
-                "tabular flex h-[62px] items-center justify-center rounded-[16px] border text-[18px] font-medium transition-all duration-200",
+                "tabular flex h-[62px] items-center justify-center rounded-[4px] border text-[18px] font-medium transition-all duration-200",
                 checked
-                  ? "border-tulivo-clay bg-tulivo-clay text-white shadow-[0_10px_22px_-14px_rgba(154,71,47,0.9)]"
-                  : "border-tulivo-line bg-white/60 text-tulivo-muted hover:border-tulivo-clay/40 hover:bg-tulivo-clay-soft/30",
+                  ? "border-tulivo-purple bg-tulivo-purple text-white shadow-[0_10px_22px_-14px_rgba(154,71,47,0.9)]"
+                  : "border-tulivo-line bg-white/60 text-tulivo-muted hover:border-tulivo-purple/40 hover:bg-tulivo-section/30",
               )}
             >
               {n}

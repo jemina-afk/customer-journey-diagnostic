@@ -3,6 +3,28 @@ import { DIAGNOSTIC } from "./config";
 import { STATUS_LABEL, annualValueOfOneMoreClientPerMonth } from "./scoring";
 import { estimateImpact, formatMoney } from "./impact";
 import { currencyFor } from "./currency";
+import {
+  AMBER,
+  CREAM,
+  DISPLAY,
+  FAINT,
+  GREEN,
+  INK,
+  LILAC,
+  LINE,
+  MUTED,
+  MUTED_ON_NAVY,
+  NAVY,
+  OFF_WHITE,
+  PURPLE,
+  RED,
+  SANS,
+  SERIF,
+  WARM_GREY,
+  WHITE,
+  type RGB,
+} from "./brand";
+import { BRAND_FONTS, GRADIENT, LOGO_RATIO, LOGO_WHITE } from "./brandAssets";
 
 /*
   The consulting deliverable. Drawn as vectors with jsPDF rather than a screen
@@ -10,21 +32,6 @@ import { currencyFor } from "./currency";
   email. Loaded on demand - jsPDF never enters the initial bundle.
 */
 
-const INK: RGB = [32, 27, 24];
-const MUTED: RGB = [106, 96, 88];
-const FAINT: RGB = [154, 143, 134];
-const LINE: RGB = [226, 217, 206];
-const CLAY: RGB = [190, 96, 68];
-const CLAY_SOFT: RGB = [246, 232, 225];
-const GOLD: RGB = [173, 138, 79];
-const CANVAS: RGB = [250, 247, 243];
-const VEIL: RGB = [244, 239, 232];
-const GREEN: RGB = [62, 122, 96];
-const AMBER: RGB = [191, 141, 51];
-const RED: RGB = [178, 66, 51];
-const WHITE: RGB = [255, 255, 255];
-
-type RGB = [number, number, number];
 type Doc = import("jspdf").jsPDF;
 
 const PAGE_W = 210;
@@ -38,7 +45,7 @@ function statusColour(status: SectionResult["status"]): RGB {
 
 function bandColour(score: number): RGB {
   if (score >= 80) return GREEN;
-  if (score >= 60) return GOLD;
+  if (score >= 60) return PURPLE;
   if (score >= 40) return AMBER;
   return RED;
 }
@@ -52,6 +59,7 @@ export async function buildReport(
   const doc = new jsPDF({ unit: "mm", format: "a4", compress: true });
   doc.setLineJoin("round");
   doc.setLineCap("round");
+  registerFonts(doc);
 
   coverPage(doc, result, profile);
   whyItMattersPage(doc, profile);
@@ -95,10 +103,51 @@ export function fileName(profile: Profile): string {
 
 /* ---------------------------------------------------------------- helpers */
 
-function setText(doc: Doc, size: number, colour: RGB, weight: "normal" | "bold" = "normal") {
-  doc.setFont("helvetica", weight);
+/** Registers the brand fonts. Called once per document, before drawing. */
+function registerFonts(doc: Doc) {
+  Object.entries(BRAND_FONTS).forEach(([key, { file, data }]) => {
+    doc.addFileToVFS(file, data);
+    const family = key === "italiana" ? DISPLAY : key.startsWith("cormorant") ? SERIF : SANS;
+    const style = key.endsWith("Bold") || key.endsWith("SemiBold") ? "bold" : "normal";
+    doc.addFont(file, family, style);
+  });
+}
+
+type TextOpts = { font?: string; weight?: "normal" | "bold"; charSpace?: number };
+
+function setText(
+  doc: Doc,
+  size: number,
+  colour: RGB,
+  weight: "normal" | "bold" | TextOpts = "normal",
+) {
+  const opts: TextOpts = typeof weight === "string" ? { weight } : weight;
+  doc.setFont(opts.font ?? SANS, opts.weight ?? "normal");
   doc.setFontSize(size);
   doc.setTextColor(colour[0], colour[1], colour[2]);
+  // charSpace is stateful in jsPDF, so reset it rather than let it leak.
+  doc.setCharSpace(opts.charSpace ?? 0);
+}
+
+/** The signature gradient, as a still image, for the cover. */
+function gradientPage(doc: Doc) {
+  doc.addImage(
+    `data:image/jpeg;base64,${GRADIENT}`,
+    "JPEG",
+    0,
+    0,
+    PAGE_W,
+    PAGE_H,
+    "tulivo-gradient",
+    "FAST",
+  );
+}
+
+/** A display heading in Italiana, sentence case. */
+function title(doc: Doc, lines: string[], x: number, y: number, size: number, colour: RGB, leading = size * 0.42) {
+  setText(doc, size, colour, { font: DISPLAY });
+  lines.forEach((line, i) => doc.text(line, x, y + i * leading));
+  return y + lines.length * leading;
 }
 
 /** Draws wrapped text and returns the y position just below it. */
@@ -108,19 +157,31 @@ function paragraph(
   x: number,
   y: number,
   width: number,
-  opts: { size?: number; colour?: RGB; weight?: "normal" | "bold"; leading?: number } = {},
+  opts: {
+    size?: number;
+    colour?: RGB;
+    weight?: "normal" | "bold";
+    leading?: number;
+    font?: string;
+  } = {},
 ): number {
   const size = opts.size ?? 10;
   const leading = opts.leading ?? size * 0.52;
-  setText(doc, size, opts.colour ?? MUTED, opts.weight ?? "normal");
+  setText(doc, size, opts.colour ?? MUTED, { weight: opts.weight, font: opts.font });
   const lines = doc.splitTextToSize(text, width) as string[];
   lines.forEach((line, i) => doc.text(line, x, y + i * leading));
   return y + lines.length * leading;
 }
 
-function eyebrow(doc: Doc, text: string, x: number, y: number, colour: RGB = CLAY) {
-  setText(doc, 7.5, colour, "bold");
-  doc.text(text.toUpperCase(), x, y, { charSpace: 0.9 });
+function eyebrow(doc: Doc, text: string, x: number, y: number, colour: RGB = PURPLE) {
+  // A short thin rule, then a small label-grey label, as the brand asks.
+  const onDark = colour === LILAC || colour === MUTED_ON_NAVY;
+  const ruleColour = onDark ? LILAC : PURPLE;
+  doc.setDrawColor(ruleColour[0], ruleColour[1], ruleColour[2]);
+  doc.setLineWidth(0.3);
+  doc.line(x, y - 1.2, x + 7, y - 1.2);
+  setText(doc, 8.5, onDark ? MUTED_ON_NAVY : MUTED);
+  doc.text(text, x + 10, y);
 }
 
 function rule(doc: Doc, y: number, x = M, w = COL_W, colour: RGB = LINE) {
@@ -136,11 +197,11 @@ function bullet(doc: Doc, text: string, x: number, y: number, width: number, col
 }
 
 function pageFurniture(doc: Doc, profile: Profile, label: string) {
-  doc.setFillColor(CANVAS[0], CANVAS[1], CANVAS[2]);
+  doc.setFillColor(OFF_WHITE[0], OFF_WHITE[1], OFF_WHITE[2]);
   doc.rect(0, 0, PAGE_W, PAGE_H, "F");
   setText(doc, 7.5, FAINT, "bold");
-  doc.text(label.toUpperCase(), M, 14, { charSpace: 0.8 });
-  doc.text(profile.business.toUpperCase(), PAGE_W - M, 14, { align: "right", charSpace: 0.8 });
+  doc.text(label, M, 14);
+  doc.text(profile.business, PAGE_W - M, 14, { align: "right" });
   rule(doc, 17.5);
 }
 
@@ -156,10 +217,21 @@ function paginate(doc: Doc) {
 }
 
 /** A ring gauge, drawn as short segments so it renders as clean vectors. */
-function dial(doc: Doc, cx: number, cy: number, radius: number, score: number) {
-  const colour = bandColour(score);
+function dial(
+  doc: Doc,
+  cx: number,
+  cy: number,
+  radius: number,
+  score: number,
+  tone: "light" | "dark" = "light",
+) {
+  // On navy the arc is lilac, which is the brand's highlight there. On light
+  // pages it keeps the status colour, so the score still reads at a glance.
+  const onDark = tone === "dark";
+  const colour = onDark ? LILAC : bandColour(score);
   doc.setLineWidth(3.4);
-  doc.setDrawColor(LINE[0], LINE[1], LINE[2]);
+  const track: RGB = onDark ? [58, 64, 90] : LINE;
+  doc.setDrawColor(track[0], track[1], track[2]);
   doc.circle(cx, cy, radius, "S");
 
   const segments = Math.max(1, Math.round((score / 100) * 72));
@@ -167,15 +239,20 @@ function dial(doc: Doc, cx: number, cy: number, radius: number, score: number) {
   for (let i = 0; i < segments; i++) {
     const a0 = -Math.PI / 2 + (i / 72) * Math.PI * 2;
     const a1 = -Math.PI / 2 + ((i + 1) / 72) * Math.PI * 2;
-    doc.line(cx + Math.cos(a0) * radius, cy + Math.sin(a0) * radius, cx + Math.cos(a1) * radius, cy + Math.sin(a1) * radius);
+    doc.line(
+      cx + Math.cos(a0) * radius,
+      cy + Math.sin(a0) * radius,
+      cx + Math.cos(a1) * radius,
+      cy + Math.sin(a1) * radius,
+    );
   }
 
   const big = radius >= 18;
-  setText(doc, big ? 26 : 20, INK, "bold");
-  doc.text(String(score), cx, cy + (big ? 1 : 2.4), { align: "center" });
+  setText(doc, big ? 30 : 24, onDark ? CREAM : INK, { font: DISPLAY });
+  doc.text(String(score), cx, cy + (big ? 2 : 3), { align: "center" });
   if (big) {
-    setText(doc, 7, FAINT, "normal");
-    doc.text("OUT OF 100", cx, cy + 7.5, { align: "center", charSpace: 0.6 });
+    setText(doc, 7, onDark ? MUTED_ON_NAVY : FAINT);
+    doc.text("out of 100", cx, cy + 9, { align: "center" });
   }
 }
 
@@ -205,8 +282,8 @@ function radar(doc: Doc, cx: number, cy: number, radius: number, sections: Secti
   const pts = values.map((v, i) => point(i, v));
   const deltas = pts.slice(1).map((p, i) => [p[0] - pts[i][0], p[1] - pts[i][1]] as [number, number]);
   deltas.push([pts[0][0] - pts[pts.length - 1][0], pts[0][1] - pts[pts.length - 1][1]]);
-  doc.setFillColor(CLAY[0], CLAY[1], CLAY[2]);
-  doc.setDrawColor(CLAY[0], CLAY[1], CLAY[2]);
+  doc.setFillColor(PURPLE[0], PURPLE[1], PURPLE[2]);
+  doc.setDrawColor(PURPLE[0], PURPLE[1], PURPLE[2]);
   doc.setLineWidth(0.6);
   doc.setGState(doc.GState({ opacity: 0.22 }));
   doc.lines(deltas, pts[0][0], pts[0][1], [1, 1], "F", true);
@@ -230,86 +307,81 @@ function radar(doc: Doc, cx: number, cy: number, radius: number, sections: Secti
 
 function scoreBar(doc: Doc, x: number, y: number, width: number, score: number, colour: RGB) {
   doc.setFillColor(LINE[0], LINE[1], LINE[2]);
-  doc.roundedRect(x, y, width, 2.2, 1.1, 1.1, "F");
+  doc.rect(x, y, width, 2.2, "F");
   doc.setFillColor(colour[0], colour[1], colour[2]);
   const w = Math.max((width * score) / 100, 2.2);
-  doc.roundedRect(x, y, w, 2.2, 1.1, 1.1, "F");
+  doc.rect(x, y, w, 2.2, "F");
 }
 
 /* ------------------------------------------------------------------ pages */
 
 function coverPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
-  doc.setFillColor(CANVAS[0], CANVAS[1], CANVAS[2]);
-  doc.rect(0, 0, PAGE_W, PAGE_H, "F");
+  // The signature gradient, kept still, with the white wordmark and an
+  // Italiana title, as the brand book asks of document covers.
+  gradientPage(doc);
+  doc.addImage(LOGO_WHITE, "PNG", M, 24, 13 / LOGO_RATIO, 13, "tulivo-logo", "FAST");
 
-  doc.setFillColor(CLAY_SOFT[0], CLAY_SOFT[1], CLAY_SOFT[2]);
-  doc.rect(0, 0, PAGE_W, 6, "F");
-  doc.setFillColor(CLAY[0], CLAY[1], CLAY[2]);
-  doc.rect(0, 0, 62, 6, "F");
+  eyebrow(doc, "Customer journey diagnostic", M, 100, LILAC);
+  title(doc, ["Your journey,", "stage by stage"], M, 126, 34, WHITE, 15);
 
-  // Wordmark
-  doc.setFillColor(CLAY[0], CLAY[1], CLAY[2]);
-  doc.rect(M, 32, 2.4, 2.4, "F");
-  setText(doc, 8.5, MUTED, "bold");
-  doc.text("TULIVO DIGITAL", M + 5.5, 34.2, { charSpace: 1.6 });
+  paragraph(
+    doc,
+    "A stage-by-stage review of how your business turns attention into booked, returning clients.",
+    M,
+    168,
+    COL_W - 44,
+    { size: 11.5, colour: CREAM, font: SERIF, leading: 6.2 },
+  );
 
-  setText(doc, 34, INK, "bold");
-  doc.text("Customer Journey", M, 96);
-  doc.text("Diagnostic Report", M, 110);
+  // Score block, on the darkest part of the gradient so it reads clearly.
+  doc.setFillColor(NAVY[0], NAVY[1], NAVY[2]);
+  doc.rect(M, 186, COL_W, 46, "F");
+  dial(doc, M + 30, 209, 16, result.overall, "dark");
+  eyebrow(doc, "Overall score", M + 58, 201, LILAC);
+  setText(doc, 18, LILAC, { font: DISPLAY });
+  doc.text(result.bandLabel, M + 58, 211);
+  paragraph(doc, result.bandSummary, M + 58, 217, COL_W - 68, {
+    size: 8.5,
+    colour: MUTED_ON_NAVY,
+    leading: 4,
+  });
 
-  setText(doc, 11, MUTED, "normal");
-  doc.text("A stage-by-stage review of how your business turns", M, 126);
-  doc.text("attention into booked, returning clients.", M, 132);
+  rule(doc, 248, M, COL_W, [70, 78, 104]);
 
-  // Score block
-  doc.setFillColor(VEIL[0], VEIL[1], VEIL[2]);
-  doc.roundedRect(M, 150, COL_W, 46, 4, 4, "F");
-  dial(doc, M + 30, 173, 16, result.overall);
-  eyebrow(doc, "Overall score", M + 58, 165);
-  setText(doc, 16, INK, "bold");
-  doc.text(result.bandLabel, M + 58, 174);
-  paragraph(doc, result.bandSummary, M + 58, 180, COL_W - 68, { size: 8.5, colour: MUTED, leading: 4 });
-
-  rule(doc, 214);
-  eyebrow(doc, "Prepared for", M, 224, FAINT);
-  setText(doc, 14, INK, "bold");
-  doc.text(profile.name, M, 232);
-  setText(doc, 10.5, MUTED, "normal");
-  doc.text(`${profile.business} · ${profile.businessType}`, M, 239);
+  eyebrow(doc, "Prepared for", M, 258, LILAC);
+  setText(doc, 15, CREAM, { font: SERIF });
+  doc.text(profile.name, M, 266);
+  setText(doc, 10, MUTED_ON_NAVY);
+  doc.text(`${profile.business} \u00b7 ${profile.businessType}`, M, 272);
   if (profile.website) {
-    setText(doc, 9, FAINT, "normal");
-    doc.text(profile.website, M, 244.5);
+    setText(doc, 9, MUTED_ON_NAVY);
+    doc.text(profile.website, M, 277.5);
   }
 
-  eyebrow(doc, "Prepared by", PAGE_W / 2 + 10, 224, FAINT);
-  setText(doc, 14, INK, "bold");
-  doc.text(DIAGNOSTIC.consultant, PAGE_W / 2 + 10, 232);
-  setText(doc, 10.5, MUTED, "normal");
-  doc.text(DIAGNOSTIC.company, PAGE_W / 2 + 10, 239);
-
-  rule(doc, 250);
-  setText(doc, 9, FAINT, "normal");
+  eyebrow(doc, "Prepared by", PAGE_W / 2 + 10, 258, LILAC);
+  setText(doc, 15, CREAM, { font: SERIF });
+  doc.text(DIAGNOSTIC.consultant, PAGE_W / 2 + 10, 266);
+  setText(doc, 10, MUTED_ON_NAVY);
+  doc.text(DIAGNOSTIC.company, PAGE_W / 2 + 10, 272);
+  setText(doc, 9, MUTED_ON_NAVY);
   doc.text(
-    new Date(result.completedAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }),
-    M,
-    258,
+    new Date(result.completedAt).toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }),
+    PAGE_W / 2 + 10,
+    277.5,
   );
-  doc.text(DIAGNOSTIC.contactEmail, PAGE_W - M, 258, { align: "right" });
 }
 
-/*
-  The case for doing this before spending on ads, made with sourced evidence
-  rather than assertion. Every figure here is attributable, and the sources are
-  printed at the foot of the page - this is a paid deliverable, and a number
-  without a source is worth less than no number at all.
-*/
 function whyItMattersPage(doc: Doc, profile: Profile) {
   doc.addPage();
   pageFurniture(doc, profile, "Why this matters");
   const c = currencyFor(profile.currency).symbol;
 
   eyebrow(doc, "Before you spend more on ads", M, 30);
-  setText(doc, 21, INK, "bold");
+  setText(doc, 26, INK, { font: DISPLAY });
   doc.text("Fix the journey first. Then", M, 40);
   doc.text("the ads are worth paying for.", M, 49);
 
@@ -365,27 +437,27 @@ function whyItMattersPage(doc: Doc, profile: Profile) {
     const x = M + (i % 2) * (boxW + 6);
     const top = y + Math.floor(i / 2) * 50;
 
-    doc.setFillColor(VEIL[0], VEIL[1], VEIL[2]);
-    doc.roundedRect(x, top, boxW, 46, 3, 3, "F");
-    setText(doc, 24, CLAY, "bold");
+    doc.setFillColor(WARM_GREY[0], WARM_GREY[1], WARM_GREY[2]);
+    doc.rect(x, top, boxW, 46, "F");
+    setText(doc, 26, INK, { font: DISPLAY });
     doc.text(finding.stat, x + 5, top + 14);
     let titleSize = 8;
     setText(doc, titleSize, INK, "bold");
-    while (doc.getTextWidth(finding.title.toUpperCase()) > boxW - 10 && titleSize > 6.5) {
+    while (doc.getTextWidth(finding.title) > boxW - 10 && titleSize > 6.5) {
       titleSize -= 0.25;
       setText(doc, titleSize, INK, "bold");
     }
-    doc.text(finding.title.toUpperCase(), x + 5, top + 21, { charSpace: 0.5 });
+    doc.text(finding.title, x + 5, top + 21);
     paragraph(doc, finding.body, x + 5, top + 27, boxW - 10, { size: 8, colour: MUTED, leading: 3.8 });
   });
 
   y += 50 * Math.ceil(findings.length / 2) + 2;
 
   // The arithmetic that makes the point better than any of the above.
-  doc.setFillColor(CLAY_SOFT[0], CLAY_SOFT[1], CLAY_SOFT[2]);
-  doc.roundedRect(M, y, COL_W, 34, 3, 3, "F");
-  setText(doc, 7.5, CLAY, "bold");
-  doc.text("WHAT THIS MEANS FOR YOUR AD BUDGET", M + 6, y + 8, { charSpace: 0.8 });
+  doc.setFillColor(WARM_GREY[0], WARM_GREY[1], WARM_GREY[2]);
+  doc.rect(M, y, COL_W, 34, "F");
+  setText(doc, 7.5, INK, "bold");
+  doc.text("What this means for a marketing budget", M + 6, y + 8);
   paragraph(
     doc,
     `Say each enquiry costs you ${c}25, and one in five becomes a client. So ${c}1,000 buys 40 enquiries and 8 clients. Now make it one in three. The same ${c}1,000 buys 12 clients. To get those 4 extra clients from ads alone you would spend ${c}500 more, every month, for as long as you keep advertising. Fixing the journey is a one-off.`,
@@ -421,12 +493,12 @@ function executiveSummary(doc: Doc, result: DiagnosticResult, profile: Profile, 
   pageFurniture(doc, profile, "Executive summary");
 
   eyebrow(doc, "Executive summary", M, 30);
-  setText(doc, 21, INK, "bold");
+  setText(doc, 26, INK, { font: DISPLAY });
   doc.text("What your answers show", M, 40);
 
   dial(doc, M + 26, 70, 20, result.overall);
   setText(doc, 11, bandColour(result.overall), "bold");
-  doc.text(result.bandLabel.toUpperCase(), M + 26, 98, { align: "center", charSpace: 1.2 });
+  doc.text(result.bandLabel, M + 26, 98, { align: "center" });
 
   const textX = M + 58;
   const textW = COL_W - 58;
@@ -478,10 +550,10 @@ function executiveSummary(doc: Doc, result: DiagnosticResult, profile: Profile, 
   const impact = estimateImpact(answers, currency);
   if (impact.available) {
     const boxH = 15 + impact.leaks.length * 5;
-    doc.setFillColor(CLAY_SOFT[0], CLAY_SOFT[1], CLAY_SOFT[2]);
-    doc.roundedRect(M, y, COL_W, boxH, 3, 3, "F");
-    setText(doc, 7.5, CLAY, "bold");
-    doc.text("WHAT THE GAPS ARE COSTING YOU", M + 6, y + 8, { charSpace: 0.8 });
+    doc.setFillColor(WARM_GREY[0], WARM_GREY[1], WARM_GREY[2]);
+    doc.rect(M, y, COL_W, boxH, "F");
+    setText(doc, 7.5, INK, "bold");
+    doc.text("What the gaps are costing you", M + 6, y + 8);
     setText(doc, 14, INK, "bold");
     doc.text(`${formatMoney(impact.recoverable, currency)} a year`, PAGE_W - M - 6, y + 9, {
       align: "right",
@@ -508,13 +580,13 @@ function executiveSummary(doc: Doc, result: DiagnosticResult, profile: Profile, 
     const lines = doc.splitTextToSize(summary, COL_W - 16) as string[];
     const boxH = 20 + lines.length * 4.2;
 
-    doc.setFillColor(VEIL[0], VEIL[1], VEIL[2]);
-    doc.roundedRect(M, y, COL_W, boxH, 3, 3, "F");
+    doc.setFillColor(WARM_GREY[0], WARM_GREY[1], WARM_GREY[2]);
+    doc.rect(M, y, COL_W, boxH, "F");
     doc.setFillColor(colour[0], colour[1], colour[2]);
-    doc.roundedRect(M, y, 1.6, boxH, 0.8, 0.8, "F");
+    doc.rect(M, y, 1.6, boxH, "F");
 
-    setText(doc, 7.5, CLAY, "bold");
-    doc.text(`#${i + 1} PRIORITY`, M + 7, y + 8, { charSpace: 0.8 });
+    setText(doc, 7.5, INK, "bold");
+    doc.text(`Priority ${i + 1}`, M + 7, y + 8);
     setText(doc, 12.5, INK, "bold");
     doc.text(section.title, M + 7, y + 15);
     setText(doc, 9, colour, "bold");
@@ -546,7 +618,7 @@ function journeyMapPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
   pageFurniture(doc, profile, "Your journey map");
 
   eyebrow(doc, "Your customer journey map", M, 30);
-  setText(doc, 21, INK, "bold");
+  setText(doc, 26, INK, { font: DISPLAY });
   doc.text("Where clients flow - and where they leak", M, 40);
   paragraph(
     doc,
@@ -589,16 +661,16 @@ function sectionPage(doc: Doc, section: SectionResult, profile: Profile, index: 
   const colour = statusColour(section.status);
 
   eyebrow(doc, `Stage ${index}`, M, 30);
-  setText(doc, 21, INK, "bold");
+  setText(doc, 26, INK, { font: DISPLAY });
   doc.text(section.title, M, 40);
 
-  setText(doc, 22, colour, "bold");
+  setText(doc, 26, colour, { font: DISPLAY });
   doc.text(String(section.score), PAGE_W - M, 40, { align: "right" });
   setText(doc, 8, FAINT, "normal");
   doc.text("/100", PAGE_W - M, 45, { align: "right" });
   scoreBar(doc, M, 47, COL_W, section.score, colour);
   setText(doc, 8.5, colour, "bold");
-  doc.text(STATUS_LABEL[section.status].toUpperCase(), M, 55, { charSpace: 0.8 });
+  doc.text(STATUS_LABEL[section.status], M, 55);
 
   let y = paragraph(doc, section.verdict, M, 65, COL_W, { size: 10, colour: INK, leading: 5 });
   y += 8;
@@ -622,17 +694,17 @@ function sectionPage(doc: Doc, section: SectionResult, profile: Profile, index: 
   }
 
   if (section.fixes.length > 0) {
-    eyebrow(doc, "Recommendations", M, y, CLAY);
+    eyebrow(doc, "Recommendations", M, y, PURPLE);
     y += 6;
     section.fixes.slice(0, 3).forEach((fix, i) => {
       const boxTop = y - 4;
       const actionLines = doc.splitTextToSize(fix.action, COL_W - 12) as string[];
       const impactLines = doc.splitTextToSize(`Impact: ${fix.impact}`, COL_W - 12) as string[];
       const boxH = 10 + actionLines.length * 4.4 + impactLines.length * 4;
-      doc.setFillColor(VEIL[0], VEIL[1], VEIL[2]);
-      doc.roundedRect(M, boxTop, COL_W, boxH, 2.5, 2.5, "F");
+      doc.setFillColor(WARM_GREY[0], WARM_GREY[1], WARM_GREY[2]);
+      doc.rect(M, boxTop, COL_W, boxH, "F");
 
-      setText(doc, 7.5, CLAY, "bold");
+      setText(doc, 7.5, INK, "bold");
       doc.text(`${String(i + 1).padStart(2, "0")} · ${fix.effort === "quick" ? "QUICK WIN" : "PROJECT"}`, M + 5, boxTop + 6, {
         charSpace: 0.6,
       });
@@ -662,7 +734,7 @@ function sectionPage(doc: Doc, section: SectionResult, profile: Profile, index: 
   // The foot of every stage page: how to measure it, then what to measure with.
   const footY = Math.max(y + 4, 232);
   rule(doc, footY - 6);
-  eyebrow(doc, "How you'll know it's working", M, footY, GOLD);
+  eyebrow(doc, "How you'll know it's working", M, footY, PURPLE);
   let my = paragraph(doc, section.measure.what, M, footY + 6, COL_W, {
     size: 8.5,
     colour: INK,
@@ -692,7 +764,7 @@ function actionPlanPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
   const cycle = result.cycle;
 
   eyebrow(doc, "Your 90-day focus", M, 30);
-  setText(doc, 21, INK, "bold");
+  setText(doc, 26, INK, { font: DISPLAY });
   doc.text("One number, three or four priorities", M, 40);
   paragraph(
     doc,
@@ -718,10 +790,10 @@ function actionPlanPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
     34 + whyLines.length * 4.3,
     26 + (currentLines.length + targetLines.length) * 4.3,
   );
-  doc.setFillColor(VEIL[0], VEIL[1], VEIL[2]);
-  doc.roundedRect(M, y, COL_W, panelH, 3, 3, "F");
-  setText(doc, 7.5, CLAY, "bold");
-  doc.text("YOUR FOCUS KPI", M + 6, y + 8, { charSpace: 0.8 });
+  doc.setFillColor(WARM_GREY[0], WARM_GREY[1], WARM_GREY[2]);
+  doc.rect(M, y, COL_W, panelH, "F");
+  setText(doc, 7.5, INK, "bold");
+  doc.text("Your focus KPI", M + 6, y + 8);
   setText(doc, 15, INK, "bold");
   doc.text(cycle.kpi, M + 6, y + 17);
   setText(doc, 8.5, MUTED, "normal");
@@ -731,13 +803,13 @@ function actionPlanPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
   // Today → target, in the right-hand column of the panel.
   const boxX = PAGE_W - M - boxW - 6;
   setText(doc, 7, FAINT, "bold");
-  doc.text("TODAY", boxX, y + 8, { charSpace: 0.6 });
+  doc.text("Today", boxX, y + 8);
   setText(doc, 9.5, INK, "bold");
   doc.text(currentLines, boxX, y + 13);
   const targetY = y + 17 + currentLines.length * 4.3;
-  setText(doc, 7, CLAY, "bold");
-  doc.text("IN 90 DAYS", boxX, targetY, { charSpace: 0.6 });
-  setText(doc, 9.5, CLAY, "bold");
+  setText(doc, 7, INK, "bold");
+  doc.text("In 90 days", boxX, targetY);
+  setText(doc, 9.5, INK, "bold");
   doc.text(targetLines, boxX, targetY + 5);
   y += panelH + 8;
 
@@ -752,10 +824,10 @@ function actionPlanPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
   }
 
   // The aligned priorities.
-  eyebrow(doc, "The priorities in this cycle", M, y, CLAY);
+  eyebrow(doc, "The priorities in this cycle", M, y, PURPLE);
   y += 8;
   cycle.priorities.forEach((priority, i) => {
-    doc.setFillColor(CLAY[0], CLAY[1], CLAY[2]);
+    doc.setFillColor(PURPLE[0], PURPLE[1], PURPLE[2]);
     doc.circle(M + 3, y - 1.2, 3, "F");
     setText(doc, 8, WHITE, "bold");
     doc.text(String(i + 1), M + 3, y + 0.2, { align: "center" });
@@ -763,12 +835,12 @@ function actionPlanPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
     setText(doc, 11, INK, "bold");
     doc.text(priority.title, M + 10, y);
     setText(doc, 8, FAINT, "bold");
-    doc.text(priority.window.toUpperCase(), PAGE_W - M, y, { align: "right", charSpace: 0.6 });
-    setText(doc, 8, CLAY, "normal");
+    doc.text(priority.window, PAGE_W - M, y, { align: "right" });
+    setText(doc, 8, INK, "normal");
     doc.text(`via ${priority.stage}`, M + 10, y + 4.6);
     y += 10;
     priority.steps.slice(0, i === 0 ? 3 : 2).forEach((step) => {
-      y = bullet(doc, step, M + 10, y, COL_W - 10, GOLD) + 2;
+      y = bullet(doc, step, M + 10, y, COL_W - 10, PURPLE) + 2;
     });
     y += 4;
   });
@@ -779,15 +851,15 @@ function actionPlanPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
   eyebrow(doc, "Three things you can do this week", M, footTop, FAINT);
   let wy = footTop + 6;
   result.quickWins.slice(0, 3).forEach((win) => {
-    wy = bullet(doc, win.action, M, wy, COL_W, CLAY) + 1.5;
+    wy = bullet(doc, win.action, M, wy, COL_W, PURPLE) + 1.5;
   });
 
   if (cycle.next) {
     const nextY = Math.max(wy + 4, 262);
-    doc.setFillColor(VEIL[0], VEIL[1], VEIL[2]);
-    doc.roundedRect(M, nextY, COL_W, 16, 2.5, 2.5, "F");
+    doc.setFillColor(WARM_GREY[0], WARM_GREY[1], WARM_GREY[2]);
+    doc.rect(M, nextY, COL_W, 16, "F");
     setText(doc, 7.5, FAINT, "bold");
-    doc.text("THEN THE NEXT CYCLE", M + 5, nextY + 6, { charSpace: 0.8 });
+    doc.text("Then the next cycle", M + 5, nextY + 6);
     setText(doc, 9.5, INK, "bold");
     doc.text(`${cycle.next.kpi} - ${cycle.next.stage}`, M + 5, nextY + 12);
   }
@@ -803,7 +875,7 @@ function measurementPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
   pageFurniture(doc, profile, "How to know it's working");
 
   eyebrow(doc, "Measuring the change", M, 30);
-  setText(doc, 21, INK, "bold");
+  setText(doc, 26, INK, { font: DISPLAY });
   doc.text("How you'll know it's working", M, 40);
   const metrics: { name: string; measure: SectionResult["measure"]; lead: boolean }[] = [
     { name: result.cycle.kpi, measure: result.cycle.measure, lead: true },
@@ -833,12 +905,12 @@ function measurementPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
     const cadenceLines = doc.splitTextToSize(`How often: ${metric.measure.cadence}`, COL_W - 14) as string[];
     const boxH = 24 + whatLines.length * 4.2 + (whereLines.length + cadenceLines.length) * 3.9;
 
-    const tint = metric.lead ? CLAY_SOFT : VEIL;
+    const tint = metric.lead ? WARM_GREY : WARM_GREY;
     doc.setFillColor(tint[0], tint[1], tint[2]);
-    doc.roundedRect(M, y, COL_W, boxH, 3, 3, "F");
+    doc.rect(M, y, COL_W, boxH, "F");
 
-    setText(doc, 7.5, metric.lead ? CLAY : FAINT, "bold");
-    doc.text(metric.lead ? "YOUR FOCUS NUMBER" : `SUPPORTING NUMBER ${i}`, M + 6, y + 8, { charSpace: 0.8 });
+    setText(doc, 7.5, metric.lead ? PURPLE : FAINT, "bold");
+    doc.text(metric.lead ? "Your focus number" : `Supporting number ${i}`, M + 6, y + 8);
     setText(doc, 12.5, INK, "bold");
     doc.text(metric.name, M + 6, y + 15.5);
 
@@ -863,7 +935,7 @@ function measurementPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
 
   // A scoreboard small enough to rule on one page and keep by the till.
   y += 2;
-  eyebrow(doc, "A scoreboard worth keeping", M, y, CLAY);
+  eyebrow(doc, "A scoreboard worth keeping", M, y, PURPLE);
   y = paragraph(
     doc,
     "Five numbers, written down every Monday for the week just gone. Two minutes, and it is the whole measurement system: a spreadsheet nobody fills in is worth less than a notebook that gets used.",
@@ -875,11 +947,11 @@ function measurementPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
 
   const columns = ["Week", "Enquiries", "Replied in 5 min", "Booked", "No-shows"];
   const colW = COL_W / columns.length;
-  doc.setFillColor(VEIL[0], VEIL[1], VEIL[2]);
-  doc.roundedRect(M, y, COL_W, 9, 2, 2, "F");
+  doc.setFillColor(WARM_GREY[0], WARM_GREY[1], WARM_GREY[2]);
+  doc.rect(M, y, COL_W, 9, "F");
   columns.forEach((column, i) => {
     setText(doc, 7, MUTED, "bold");
-    doc.text(column.toUpperCase(), M + 3 + i * colW, y + 6, { charSpace: 0.3 });
+    doc.text(column, M + 3 + i * colW, y + 6);
   });
   y += 9;
   doc.setDrawColor(LINE[0], LINE[1], LINE[2]);
@@ -906,7 +978,7 @@ function measurementPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
 
   const noteY = Math.min(Math.max(y + 6, 244), 250);
   doc.setFillColor(INK[0], INK[1], INK[2]);
-  doc.roundedRect(M, noteY, COL_W, 24, 3, 3, "F");
+  doc.rect(M, noteY, COL_W, 24, "F");
   setText(doc, 10.5, WHITE, "bold");
   doc.text("If a number hasn't moved in six weeks", M + 8, noteY + 10);
   setText(doc, 9, [214, 206, 198], "normal");
@@ -918,7 +990,7 @@ function nextStepsPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
   pageFurniture(doc, profile, "Next steps");
 
   eyebrow(doc, "Next steps", M, 30);
-  setText(doc, 21, INK, "bold");
+  setText(doc, 26, INK, { font: DISPLAY });
   doc.text("Three ways to close these gaps", M, 40);
   paragraph(
     doc,
@@ -933,14 +1005,14 @@ function nextStepsPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
   DIAGNOSTIC.offers.forEach((offer, i) => {
     const lines = doc.splitTextToSize(offer.description, COL_W - 14) as string[];
     const boxH = 20 + lines.length * 4.4;
-    const tint = offer.emphasis ? CLAY_SOFT : VEIL;
+    const tint: RGB = offer.emphasis ? WARM_GREY : OFF_WHITE;
     doc.setFillColor(tint[0], tint[1], tint[2]);
-    doc.roundedRect(M, y, COL_W, boxH, 3, 3, "F");
-    setText(doc, 8, CLAY, "bold");
-    doc.text(`OPTION ${i + 1}`, M + 6, y + 8, { charSpace: 0.8 });
+    doc.rect(M, y, COL_W, boxH, "F");
+    setText(doc, 8, INK, "bold");
+    doc.text(`Option ${i + 1}`, M + 6, y + 8);
     setText(doc, 13, INK, "bold");
     doc.text(offer.name, M + 6, y + 15);
-    setText(doc, 11, CLAY, "bold");
+    setText(doc, 11, INK, "bold");
     doc.text(offer.price, PAGE_W - M - 6, y + 15, { align: "right" });
     paragraph(doc, offer.description, M + 6, y + 21, COL_W - 14, { size: 9, colour: MUTED, leading: 4.4 });
     y += boxH + 6;
@@ -948,7 +1020,7 @@ function nextStepsPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
 
   y += 4;
   doc.setFillColor(INK[0], INK[1], INK[2]);
-  doc.roundedRect(M, y, COL_W, 34, 3, 3, "F");
+  doc.rect(M, y, COL_W, 34, "F");
   setText(doc, 13, WHITE, "bold");
   doc.text(`Book a ${DIAGNOSTIC.callMinutes}-minute call`, M + 8, y + 13);
   setText(doc, 9.5, [214, 206, 198], "normal");
@@ -973,7 +1045,7 @@ function aboutPage(doc: Doc, profile: Profile) {
   pageFurniture(doc, profile, "About");
 
   eyebrow(doc, "About", M, 30);
-  setText(doc, 21, INK, "bold");
+  setText(doc, 26, INK, { font: DISPLAY });
   doc.text(DIAGNOSTIC.company, M, 40);
 
   let y = paragraph(
@@ -1005,7 +1077,7 @@ function aboutPage(doc: Doc, profile: Profile) {
     "Websites and booking journeys designed to convert",
     "Reputation, retention and referral systems",
   ].forEach((line) => {
-    y = bullet(doc, line, M, y, COL_W, CLAY) + 2.5;
+    y = bullet(doc, line, M, y, COL_W, PURPLE) + 2.5;
   });
 
   y += 10;
@@ -1019,7 +1091,7 @@ function aboutPage(doc: Doc, profile: Profile) {
   doc.text(DIAGNOSTIC.website, M, y + 7);
   doc.text(DIAGNOSTIC.bookingUrl, M, y + 14);
 
-  doc.setFillColor(CLAY[0], CLAY[1], CLAY[2]);
+  doc.setFillColor(PURPLE[0], PURPLE[1], PURPLE[2]);
   doc.rect(M, PAGE_H - 40, 20, 1.4, "F");
   setText(doc, 8.5, FAINT, "normal");
   doc.text(

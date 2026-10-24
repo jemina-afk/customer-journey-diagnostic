@@ -89,7 +89,7 @@ export default function CallPage() {
           <div className="mt-12 space-y-5 border-l border-tulivo-line pl-6">
             {LEAKS.map((leak) => (
               <div key={leak.stat}>
-                <span className="tabular text-[15px] font-semibold text-tulivo-clay">{leak.stat}</span>
+                <span className="tabular text-[15px] font-semibold text-tulivo-muted">{leak.stat}</span>
                 <p className="mt-1 max-w-[46ch] text-[15px] leading-relaxed text-tulivo-muted">{leak.line}</p>
               </div>
             ))}
@@ -129,7 +129,7 @@ export default function CallPage() {
         <div className="mt-6 grid gap-5 md:grid-cols-3">
           {STEPS.map((step, i) => (
             <Card key={step.title} className="p-6">
-              <span className="tabular text-[11px] font-semibold uppercase tracking-[0.2em] text-tulivo-clay">
+              <span className="tabular text-[11px] font-semibold uppercase tracking-[0.2em] text-tulivo-muted">
                 {String(i + 1).padStart(2, "0")}
               </span>
               <h3 className="mt-3 text-[17px] font-semibold tracking-[-0.02em] text-tulivo-ink">
@@ -143,7 +143,7 @@ export default function CallPage() {
 
       <section id="book" className="mt-16 scroll-mt-8">
         <Card className="overflow-hidden">
-          <div className="border-b border-tulivo-line bg-tulivo-veil/60 px-6 py-8 text-center sm:px-10">
+          <div className="border-b border-tulivo-line bg-tulivo-section/60 px-6 py-8 text-center sm:px-10">
             <h2 className="text-[26px] font-semibold tracking-[-0.025em] text-tulivo-ink sm:text-[30px]">
               Pick a time that suits you
             </h2>
@@ -166,12 +166,12 @@ export default function CallPage() {
                 href={booking}
                 target="_blank"
                 rel="noreferrer"
-                className="font-medium text-tulivo-ink underline decoration-tulivo-clay/40 underline-offset-4 hover:decoration-tulivo-clay"
+                className="font-medium text-tulivo-ink underline decoration-tulivo-purple/40 underline-offset-4 hover:decoration-tulivo-purple"
               >
                 Open it in a new tab
               </a>{" "}
               or email{" "}
-              <a href={`mailto:${DIAGNOSTIC.contactEmail}`} className="font-medium text-tulivo-ink underline decoration-tulivo-clay/40 underline-offset-4">
+              <a href={`mailto:${DIAGNOSTIC.contactEmail}`} className="font-medium text-tulivo-ink underline decoration-tulivo-purple/40 underline-offset-4">
                 {DIAGNOSTIC.contactEmail}
               </a>
               .

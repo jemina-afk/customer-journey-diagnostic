@@ -111,16 +111,16 @@ const M = 20;
 const total = doc.getNumberOfPages();
 
 doc.setPage(1);
-doc.setFillColor(190, 96, 68);
-doc.roundedRect(PAGE_W - M - 42, 28, 42, 9, 4.5, 4.5, "F");
+doc.setFillColor(203, 182, 232);
+doc.roundedRect(PAGE_W - M - 40, 27, 40, 9, 4.5, 4.5, "F");
 doc.setFont("helvetica", "bold");
 doc.setFontSize(8);
-doc.setTextColor(255, 255, 255);
-doc.text("SAMPLE REPORT", PAGE_W - M - 21, 34, { align: "center", charSpace: 0.6 });
+doc.setTextColor(27, 33, 56);
+doc.text("SAMPLE REPORT", PAGE_W - M - 20, 33, { align: "center", charSpace: 0.6 });
 
 doc.setFont("helvetica", "normal");
 doc.setFontSize(8);
-doc.setTextColor(154, 143, 134);
+doc.setTextColor(140, 147, 168);
 doc.text(
   "An example of a completed report. Lumen Skin Clinic is a fictional business; every figure is produced by the real scoring model.",
   M,
@@ -131,7 +131,7 @@ for (let i = 2; i <= total; i++) {
   doc.setPage(i);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(7);
-  doc.setTextColor(190, 96, 68);
+  doc.setTextColor(140, 147, 168);
   doc.text("SAMPLE", PAGE_W / 2, PAGE_H - 12, { align: "center", charSpace: 0.8 });
 }
 

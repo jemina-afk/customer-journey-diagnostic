@@ -5,22 +5,55 @@ import { cn } from "@/lib/utils";
 /* Shared visual primitives for the diagnostic - kept deliberately small so the
    whole product reads as one considered surface rather than a kit of parts. */
 
-export function Wordmark({ className }: { className?: string }) {
+export function Wordmark({
+  className,
+  tone = "dark",
+}: {
+  className?: string;
+  /** "light" is the white logo, for navy and gradient surfaces. */
+  tone?: "dark" | "light";
+}) {
+  /* The real logo file, never retyped. Sized by height so the lockup keeps
+     its proportions, with clear space of at least the height of the "t". */
   return (
-    <div className={cn("flex items-center gap-3", className)}>
-      <span className="inline-block h-[7px] w-[7px] rotate-45 bg-tulivo-clay" aria-hidden />
-      <span className="text-[11px] font-semibold uppercase tracking-[0.34em] text-tulivo-muted">
-        Tulivo Digital
-      </span>
-    </div>
+    /* eslint-disable-next-line @next/next/no-img-element */
+    <img
+      src={tone === "light" ? "/brand/tulivo-logo-white.svg" : "/brand/tulivo-logo-original.svg"}
+      alt="Tulivo Digital"
+      className={cn("h-[34px] w-auto select-none", className)}
+      draggable={false}
+    />
   );
 }
 
-export function Eyebrow({ children, className }: { children: React.ReactNode; className?: string }) {
+/*
+  A section label in the brand's own form: a short thin rule, then a small
+  label-grey label. Sits above an Italiana title.
+*/
+export function Eyebrow({
+  children,
+  className,
+  tone = "dark",
+}: {
+  children: React.ReactNode;
+  className?: string;
+  tone?: "dark" | "light";
+}) {
   return (
-    <p className={cn("text-[11px] font-semibold uppercase tracking-[0.28em] text-tulivo-clay", className)}>
-      {children}
-    </p>
+    <div className={cn("flex items-center gap-3", className)}>
+      <span
+        className={cn("h-px w-7 flex-none", tone === "light" ? "bg-tulivo-lilac" : "bg-tulivo-purple")}
+        aria-hidden
+      />
+      <p
+        className={cn(
+          "text-[13px] leading-[1.3]",
+          tone === "light" ? "text-tulivo-muted-navy" : "text-tulivo-muted",
+        )}
+      >
+        {children}
+      </p>
+    </div>
   );
 }
 
@@ -33,11 +66,12 @@ export function Card({
   className?: string;
   as?: "div" | "section" | "article";
 }) {
+  /* Thin borders on off-white, consistent corners, no heavy shadows. */
   return (
     <Tag
       className={cn(
-        "rounded-[22px] border border-tulivo-line bg-tulivo-card",
-        "shadow-[0_1px_2px_rgba(32,27,24,0.04),0_18px_40px_-28px_rgba(32,27,24,0.35)]",
+        "rounded-[4px] border border-tulivo-line bg-tulivo-card",
+        "shadow-[0_1px_2px_rgba(27,33,56,0.03),0_18px_40px_-32px_rgba(27,33,56,0.25)]",
         className,
       )}
     >
@@ -47,7 +81,8 @@ export function Card({
 }
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: "primary" | "ghost" | "quiet";
+  /** "onDark" is the cream button for navy and gradient surfaces. */
+  variant?: "primary" | "onDark" | "ghost" | "quiet";
   full?: boolean;
 };
 
@@ -56,13 +91,14 @@ export function Button({ variant = "primary", full, className, ...props }: Butto
     <button
       {...props}
       className={cn(
-        "inline-flex min-h-[52px] items-center justify-center gap-2 rounded-full px-7 text-[15px] font-medium tracking-[-0.01em]",
-        "transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tulivo-clay/40 focus-visible:ring-offset-2 focus-visible:ring-offset-tulivo-canvas",
+        "inline-flex min-h-[52px] items-center justify-center gap-2 rounded-pill px-8 text-[14px] font-medium tracking-[0.02em]",
+        "transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tulivo-purple/40 focus-visible:ring-offset-2 focus-visible:ring-offset-tulivo-canvas",
         "disabled:cursor-not-allowed disabled:opacity-40",
         variant === "primary" &&
-          "bg-tulivo-clay text-white shadow-[0_10px_24px_-12px_rgba(154,71,47,0.7)] hover:bg-tulivo-clay-deep hover:shadow-[0_14px_30px_-12px_rgba(154,71,47,0.75)] active:translate-y-[1px]",
+          "bg-tulivo-dark text-white hover:bg-tulivo-navy active:translate-y-[1px]",
+        variant === "onDark" && "bg-tulivo-card text-tulivo-navy hover:bg-white active:translate-y-[1px]",
         variant === "ghost" &&
-          "border border-tulivo-line bg-tulivo-card text-tulivo-ink hover:border-tulivo-clay/40 hover:bg-tulivo-clay-soft/50",
+          "border border-tulivo-line bg-tulivo-card text-tulivo-ink hover:border-tulivo-purple/40 hover:bg-tulivo-section",
         variant === "quiet" && "px-3 text-tulivo-muted hover:text-tulivo-ink",
         full && "w-full",
         className,
@@ -93,9 +129,9 @@ export function Field({
 }
 
 export const inputClass =
-  "w-full min-h-[52px] rounded-[14px] border border-tulivo-line bg-white/70 px-4 text-[16px] text-tulivo-ink " +
-  "placeholder:text-tulivo-faint transition-colors focus:border-tulivo-clay/60 focus:bg-white focus:outline-none " +
-  "focus:ring-4 focus:ring-tulivo-clay/10";
+  "w-full min-h-[52px] rounded-[4px] border border-tulivo-line bg-white/70 px-4 text-[16px] text-tulivo-ink " +
+  "placeholder:text-tulivo-faint transition-colors focus:border-tulivo-purple/60 focus:bg-white focus:outline-none " +
+  "focus:ring-4 focus:ring-tulivo-purple/10";
 
 export function StatusDot({ status, className }: { status: "green" | "amber" | "red"; className?: string }) {
   return (

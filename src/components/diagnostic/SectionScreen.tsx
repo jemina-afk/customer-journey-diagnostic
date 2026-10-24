@@ -49,7 +49,7 @@ export function SectionScreen({
           </div>
           <div className="mt-3 h-[3px] w-full overflow-hidden rounded-full bg-tulivo-line">
             <motion.div
-              className="h-full rounded-full bg-tulivo-clay"
+              className="h-full rounded-full bg-tulivo-purple"
               initial={false}
               animate={{ width: `${Math.round(progress * 100)}%` }}
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
@@ -61,7 +61,7 @@ export function SectionScreen({
                 key={s.id}
                 className={cn(
                   "h-1 flex-1 rounded-full transition-colors duration-300",
-                  i < index ? "bg-tulivo-clay/45" : i === index ? "bg-tulivo-clay" : "bg-tulivo-line",
+                  i < index ? "bg-tulivo-purple/45" : i === index ? "bg-tulivo-purple" : "bg-tulivo-line",
                 )}
               />
             ))}
@@ -76,7 +76,7 @@ export function SectionScreen({
         transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
         className="mx-auto w-full max-w-[720px] px-5 pt-10 sm:px-8 sm:pt-14"
       >
-        <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-tulivo-clay">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-tulivo-muted">
           Stage {index + 1}
         </p>
         <h1 className="mt-3 text-[30px] font-semibold leading-[1.1] tracking-[-0.03em] text-tulivo-ink sm:text-[36px]">
@@ -97,12 +97,12 @@ export function SectionScreen({
                         {String(qi + 1).padStart(2, "0")}
                       </span>
                       {question.kind === "multi" && (
-                        <span className="rounded-full bg-tulivo-veil px-2 py-[3px] text-[10px] font-medium uppercase tracking-[0.12em] text-tulivo-muted">
+                        <span className="rounded-full bg-tulivo-section px-2 py-[3px] text-[10px] font-medium uppercase tracking-[0.12em] text-tulivo-muted">
                           Select all that apply
                         </span>
                       )}
                       {question.kind === "text" && (
-                        <span className="rounded-full bg-tulivo-veil px-2 py-[3px] text-[10px] font-medium uppercase tracking-[0.12em] text-tulivo-muted">
+                        <span className="rounded-full bg-tulivo-section px-2 py-[3px] text-[10px] font-medium uppercase tracking-[0.12em] text-tulivo-muted">
                           Optional
                         </span>
                       )}

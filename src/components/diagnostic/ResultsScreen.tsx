@@ -88,7 +88,7 @@ export function ResultsScreen({
             {result.bandSummary}
           </p>
           {result.clientValue && (
-            <p className="mt-5 max-w-[60ch] rounded-[14px] border border-tulivo-line bg-tulivo-veil/50 px-4 py-3.5 text-[15px] leading-relaxed text-tulivo-ink">
+            <p className="mt-5 max-w-[60ch] rounded-[4px] border border-tulivo-line bg-tulivo-section/50 px-4 py-3.5 text-[15px] leading-relaxed text-tulivo-ink">
               At {result.clientValue.label} per client, just one extra client a month adds around{" "}
               <strong className="tabular font-semibold">
                 {annualValueOfOneMoreClientPerMonth(result.clientValue, currency)}
@@ -107,14 +107,14 @@ export function ResultsScreen({
           transition={{ duration: 0.5, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
           className="mt-12"
         >
-          <Card className="overflow-hidden border-tulivo-clay/25">
+          <Card className="overflow-hidden border-tulivo-purple/25">
             <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[0.85fr_1.15fr] lg:gap-12">
               <div>
                 <Eyebrow>What the gaps are costing you</Eyebrow>
                 <div className="tabular mt-4 text-[44px] font-semibold leading-none tracking-[-0.04em] text-tulivo-ink sm:text-[52px]">
                   {formatMoney(impact.recoverable, currency)}
                 </div>
-                <p className="mt-2 text-[15px] font-medium text-tulivo-clay">recoverable a year</p>
+                <p className="mt-2 text-[15px] font-medium text-tulivo-muted">recoverable a year</p>
                 <p className="mt-4 text-[14px] leading-relaxed text-tulivo-muted">
                   A conservative estimate, built from the numbers you gave us - not from what&apos;s
                   theoretically possible.
@@ -200,7 +200,7 @@ export function ResultsScreen({
           {result.priorities.map((section, i) => (
             <Card key={section.id} className="flex flex-col p-6">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-tulivo-clay">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-tulivo-muted">
                   {ORDINAL[i]}
                 </span>
                 <StatusDot status={section.status} />
@@ -240,7 +240,7 @@ export function ResultsScreen({
       {!unlocked && (
         <section className="mt-14">
           <Card className="overflow-hidden">
-            <div className="border-b border-tulivo-line bg-tulivo-veil/60 px-6 py-8 text-center sm:px-10 sm:py-10">
+            <div className="border-b border-tulivo-line bg-tulivo-section/60 px-6 py-8 text-center sm:px-10 sm:py-10">
               <h2 className="text-[26px] font-semibold leading-tight tracking-[-0.025em] text-tulivo-ink sm:text-[32px]">
                 You&apos;ve identified the gaps.
                 <br className="hidden sm:block" /> Now get the solutions.
@@ -278,7 +278,7 @@ export function ResultsScreen({
 
             <div className="px-6 py-8 sm:px-10 sm:py-10">
               {paymentBypassed && (
-                <p className="mb-7 rounded-[14px] border border-tulivo-gold/40 bg-tulivo-gold-soft/70 px-4 py-3.5 text-[13px] leading-relaxed text-tulivo-ink">
+                <p className="mb-7 rounded-[4px] border border-tulivo-purple/40 bg-tulivo-section/70 px-4 py-3.5 text-[13px] leading-relaxed text-tulivo-ink">
                   <strong className="font-semibold">Payment isn&apos;t connected yet.</strong> Either button
                   below unlocks the full report free, so you can test the whole flow. Add your Stripe key to
                   start charging.
@@ -290,14 +290,14 @@ export function ResultsScreen({
                   <div
                     key={option.id}
                     className={cn(
-                      "relative flex flex-col rounded-[20px] border p-6 sm:p-7",
+                      "relative flex flex-col rounded-[4px] border p-6 sm:p-7",
                       option.recommended
-                        ? "border-tulivo-clay/45 bg-tulivo-clay-soft/40 shadow-[0_18px_40px_-30px_rgba(154,71,47,0.7)]"
-                        : "border-tulivo-line bg-tulivo-veil/40",
+                        ? "border-tulivo-purple/45 bg-tulivo-section/40 shadow-[0_18px_40px_-30px_rgba(154,71,47,0.7)]"
+                        : "border-tulivo-line bg-tulivo-section/40",
                     )}
                   >
                     {option.recommended && (
-                      <span className="absolute -top-3 left-6 rounded-full bg-tulivo-clay px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white">
+                      <span className="absolute -top-3 left-6 rounded-full bg-tulivo-purple px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white">
                         Most useful
                       </span>
                     )}
@@ -391,7 +391,7 @@ export function ResultsScreen({
       {/* ---------- Unlocked report ---------- */}
       {unlocked && (
         <section className="mt-14">
-          <Card className="flex flex-col items-start gap-5 border-tulivo-clay/30 bg-tulivo-clay-soft/40 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+          <Card className="flex flex-col items-start gap-5 border-tulivo-purple/30 bg-tulivo-section/40 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
             <div>
               <Eyebrow>Unlocked</Eyebrow>
               <h2 className="mt-2 text-[22px] font-semibold tracking-[-0.02em] text-tulivo-ink">
@@ -433,7 +433,7 @@ export function ResultsScreen({
             <div className="mt-6 grid gap-4 md:grid-cols-3">
               {result.quickWins.map((win, i) => (
                 <Card key={win.action} className="p-6">
-                  <span className="tabular text-[11px] font-semibold uppercase tracking-[0.2em] text-tulivo-clay">
+                  <span className="tabular text-[11px] font-semibold uppercase tracking-[0.2em] text-tulivo-muted">
                     Win {i + 1}
                   </span>
                   <p className="mt-3 text-[15px] leading-relaxed text-tulivo-ink">{win.action}</p>
@@ -453,10 +453,10 @@ export function ResultsScreen({
               most improvement plans stall - this one compounds instead.
             </p>
 
-            <Card className="mt-7 overflow-hidden border-tulivo-clay/25">
-              <div className="grid gap-6 border-b border-tulivo-line bg-tulivo-veil/50 p-6 sm:p-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-10">
+            <Card className="mt-7 overflow-hidden border-tulivo-purple/25">
+              <div className="grid gap-6 border-b border-tulivo-line bg-tulivo-section/50 p-6 sm:p-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-10">
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-tulivo-clay">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-tulivo-muted">
                     Your focus KPI
                   </p>
                   <h3 className="mt-3 text-[26px] font-semibold leading-tight tracking-[-0.025em] text-tulivo-ink">
@@ -468,7 +468,7 @@ export function ResultsScreen({
 
                 <div className="grid gap-3 self-start">
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded-[14px] border border-tulivo-line bg-tulivo-card p-4">
+                    <div className="rounded-[4px] border border-tulivo-line bg-tulivo-card p-4">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-tulivo-faint">
                         Today
                       </p>
@@ -476,8 +476,8 @@ export function ResultsScreen({
                         {result.cycle.current ?? "Not measured yet"}
                       </p>
                     </div>
-                    <div className="rounded-[14px] border border-tulivo-clay/35 bg-tulivo-clay-soft/60 p-4">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-tulivo-clay">
+                    <div className="rounded-[4px] border border-tulivo-purple/35 bg-tulivo-section/60 p-4">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-tulivo-muted">
                         In 90 days
                       </p>
                       <p className="mt-1.5 text-[16px] font-semibold leading-snug text-tulivo-ink">
@@ -485,8 +485,8 @@ export function ResultsScreen({
                       </p>
                     </div>
                   </div>
-                  <div className="rounded-[14px] border border-tulivo-line bg-tulivo-card p-4">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-tulivo-gold">
+                  <div className="rounded-[4px] border border-tulivo-line bg-tulivo-card p-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-tulivo-muted">
                       How to measure it
                     </p>
                     <p className="mt-1.5 text-[13.5px] leading-relaxed text-tulivo-ink">
@@ -500,7 +500,7 @@ export function ResultsScreen({
                     </p>
                   </div>
                   {result.cycle.worth !== null && (
-                    <div className="rounded-[14px] border border-tulivo-line bg-tulivo-card p-4">
+                    <div className="rounded-[4px] border border-tulivo-line bg-tulivo-card p-4">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-tulivo-faint">
                         Worth
                       </p>
@@ -516,7 +516,7 @@ export function ResultsScreen({
                 <ol className="space-y-5">
                   {result.cycle.priorities.map((priority, i) => (
                     <li key={priority.title} className="flex gap-4 sm:gap-5">
-                      <span className="tabular mt-[2px] flex h-8 w-8 flex-none items-center justify-center rounded-full border border-tulivo-clay/35 bg-tulivo-clay-soft/50 text-[13px] font-semibold text-tulivo-clay">
+                      <span className="tabular mt-[2px] flex h-8 w-8 flex-none items-center justify-center rounded-full border border-tulivo-purple/35 bg-tulivo-section/50 text-[13px] font-semibold text-tulivo-muted">
                         {i + 1}
                       </span>
                       <div className="flex-1 border-b border-tulivo-hairline pb-5 last:border-0 last:pb-0">
@@ -532,7 +532,7 @@ export function ResultsScreen({
                         <ul className="mt-3 space-y-2.5">
                           {priority.steps.map((step) => (
                             <li key={step} className="flex gap-3 text-[15px] leading-relaxed text-tulivo-muted">
-                              <span className="mt-[9px] h-1.5 w-1.5 flex-none rounded-full bg-tulivo-clay/60" />
+                              <span className="mt-[9px] h-1.5 w-1.5 flex-none rounded-full bg-tulivo-purple/60" />
                               <span>{step}</span>
                             </li>
                           ))}
@@ -626,17 +626,17 @@ export function ResultsScreen({
               <div
                 key={offer.name}
                 className={cn(
-                  "flex flex-col rounded-[18px] border p-5",
+                  "flex flex-col rounded-[4px] border p-5",
                   offer.emphasis
-                    ? "border-tulivo-clay/40 bg-tulivo-clay-soft/40 shadow-[0_16px_36px_-30px_rgba(154,71,47,0.8)]"
-                    : "border-tulivo-line bg-tulivo-veil/40",
+                    ? "border-tulivo-purple/40 bg-tulivo-section/40 shadow-[0_16px_36px_-30px_rgba(154,71,47,0.8)]"
+                    : "border-tulivo-line bg-tulivo-section/40",
                 )}
               >
                 <h3 className="text-[16px] font-semibold tracking-[-0.02em] text-tulivo-ink">{offer.name}</h3>
-                <p className="mt-1 text-[13px] font-medium text-tulivo-clay">{offer.price}</p>
+                <p className="mt-1 text-[13px] font-medium text-tulivo-muted">{offer.price}</p>
                 <p className="mt-3 flex-1 text-[14px] leading-relaxed text-tulivo-muted">{offer.description}</p>
                 {offer.emphasis && (
-                  <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-tulivo-clay">
+                  <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-tulivo-muted">
                     Built with you
                   </p>
                 )}
@@ -757,12 +757,12 @@ function SectionDetail({ section }: { section: SectionResult }) {
       </div>
 
       <div>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-tulivo-clay">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-tulivo-muted">
           Recommended actions
         </p>
         <ol className="mt-2.5 space-y-4">
           {section.fixes.slice(0, 3).map((fix, i) => (
-            <li key={fix.action} className="rounded-[14px] border border-tulivo-line bg-tulivo-veil/40 p-4">
+            <li key={fix.action} className="rounded-[4px] border border-tulivo-line bg-tulivo-section/40 p-4">
               <div className="flex items-center gap-2">
                 <span className="tabular text-[11px] font-semibold text-tulivo-faint">
                   {String(i + 1).padStart(2, "0")}
@@ -781,8 +781,8 @@ function SectionDetail({ section }: { section: SectionResult }) {
             </li>
           )}
         </ol>
-        <div className="mt-5 rounded-[14px] border border-tulivo-line bg-tulivo-card p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-tulivo-gold">
+        <div className="mt-5 rounded-[4px] border border-tulivo-line bg-tulivo-card p-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-tulivo-muted">
             How you&apos;ll know it&apos;s working
           </p>
           <p className="mt-2 text-[14px] leading-relaxed text-tulivo-ink">{section.measure.what}</p>

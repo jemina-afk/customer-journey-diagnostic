@@ -34,7 +34,7 @@ export function NumbersScreen({
             <span className="text-[12px] font-medium text-tulivo-muted">Last step</span>
           </div>
           <div className="mt-3 h-[3px] w-full overflow-hidden rounded-full bg-tulivo-line">
-            <div className="h-full w-full rounded-full bg-tulivo-clay" />
+            <div className="h-full w-full rounded-full bg-tulivo-purple" />
           </div>
         </div>
       </header>

@@ -194,14 +194,14 @@ export function WelcomeScreen({
           transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
         >
           <Eyebrow>For service business owners</Eyebrow>
-          <h1 className="mt-5 text-[38px] font-semibold leading-[1.05] tracking-[-0.03em] text-tulivo-ink sm:text-[52px]">
+          <h1 className="mt-6 font-display text-[42px] font-normal leading-[1.08] text-tulivo-ink sm:text-[62px]">
             Customer Journey
             <br />
             Diagnostic
           </h1>
           <p className="mt-6 max-w-[46ch] text-[17px] leading-relaxed text-tulivo-muted sm:text-[19px]">
-            See where your business loses enquiries. See what each gap costs you
-            in a year. See which one to fix first.
+            See where your business is losing enquiries, what each gap is
+            costing you over a year, and which one to fix first.
           </p>
 
           <div className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-2 text-[13px] text-tulivo-faint">
@@ -213,7 +213,7 @@ export function WelcomeScreen({
           </div>
 
           <div className="mt-10 border-l border-tulivo-line pl-6">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-tulivo-faint">
+            <p className="text-[13px] leading-[1.3] text-tulivo-faint">
               What you walk away with
             </p>
             <ul className="mt-4 space-y-3 text-[15px] leading-relaxed text-tulivo-muted">
@@ -246,7 +246,7 @@ export function WelcomeScreen({
           transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
         >
           <Card className="p-6 sm:p-8">
-            <h2 className="text-[20px] font-semibold tracking-[-0.02em] text-tulivo-ink">
+            <h2 className="font-serif text-[26px] font-medium leading-[1.2] text-tulivo-ink">
               Let&apos;s start with you
             </h2>
             <p className="mt-2 text-[14px] leading-relaxed text-tulivo-muted">
@@ -361,43 +361,43 @@ export function WelcomeScreen({
       {/* Why the journey matters */}
       <section className="mt-24 border-t border-tulivo-line pt-16 sm:mt-32">
         <Reveal>
-          <Eyebrow>Before you spend more on ads</Eyebrow>
-          <h2 className="mt-5 max-w-[20ch] text-[30px] font-semibold leading-[1.12] tracking-[-0.028em] text-tulivo-ink sm:text-[42px]">
-            Fix the journey first. Then the ads are worth paying for.
+          <Eyebrow>Before you spend more on getting found</Eyebrow>
+          <h2 className="mt-6 max-w-[20ch] font-display text-[34px] font-normal leading-[1.15] text-tulivo-ink sm:text-[48px]">
+            Fix the journey first, and everything else starts working harder
           </h2>
         </Reveal>
 
         <div className="mt-9 grid gap-10 lg:grid-cols-2 lg:gap-14">
           <Reveal delay={0.05}>
             <p className="text-[17px] leading-[1.65] text-tulivo-ink sm:text-[18px]">
-              Ads change one thing. They change how many people ask about you.
-            </p>
-            <p className="mt-4 text-[17px] leading-[1.65] text-tulivo-ink sm:text-[18px]">
-              What happens next decides how many of them become clients. How
-              fast you reply. How easy you are to book. Whether anything reminds
-              them. Whether anyone asks them back.
-            </p>
-            <p className="mt-4 text-[17px] leading-[1.65] text-tulivo-muted sm:text-[18px]">
-              If people slip away along the way, more ads just means more people
-              slipping away. You pay twice. Once for the ad. Again for the
-              client you never got.
+              Marketing changes one thing, which is how many people ask about
+              you. What happens after that decides how many of them become
+              clients, and it comes down to how fast you reply, how easy you are
+              to book, whether anything reminds them, and whether anyone ever
+              asks them back.
             </p>
             <p className="mt-4 text-[17px] leading-[1.65] text-tulivo-muted sm:text-[18px]">
-              And it is never one big problem. It is eight small ones, and they
-              stack up. Hold on to three out of four people at each step and
-              that sounds fine. Do it four steps in a row and most of the
-              interest you paid for has gone.
+              When people slip away along the way, spending more on getting
+              found just means more people slipping away, and you end up paying
+              twice: once to create the enquiry, and again when that person
+              quietly books somewhere else.
+            </p>
+            <p className="mt-4 text-[17px] leading-[1.65] text-tulivo-muted sm:text-[18px]">
+              It is never one big problem either. It is eight small ones, and
+              they stack up, so holding on to three out of four people at each
+              step sounds fine until you do it four steps in a row and most of
+              the interest you paid for has gone.
             </p>
           </Reveal>
 
           <Reveal delay={0.1}>
             <Card className="p-6 sm:p-8">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-tulivo-clay">
+              <p className="text-[13px] leading-[1.3] text-tulivo-muted">
                 Out of every 100 enquiries
               </p>
               <p className="mt-3 text-[14px] leading-relaxed text-tulivo-muted">
-                An example, not your numbers. Nothing here looks like a
-                disaster. That is the problem.
+                An example rather than your own numbers. Nothing here looks
+                like a disaster on its own, which is exactly the problem.
               </p>
 
               <ul className="mt-7 space-y-4">
@@ -419,18 +419,19 @@ export function WelcomeScreen({
                 ))}
               </ul>
 
-              <div className="mt-7 rounded-[16px] bg-tulivo-clay-soft p-5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-tulivo-clay">
+              <div className="mt-7 rounded-[4px] bg-tulivo-section p-5">
+                <p className="text-[13px] leading-[1.3] text-tulivo-muted">
                   Now fix one step
                 </p>
                 <p className="mt-3 text-[15px] leading-[1.6] text-tulivo-ink">
-                  Reply to 90 of the 100 instead of 75. Every number under it
-                  moves too. 54 bookings, not 45. 46 people through the door,
-                  not 38. 14 who come back, not 11.
+                  Reply to 90 of the 100 instead of 75 and every number under
+                  it moves with you, so you get 54 bookings instead of 45, 46
+                  people through the door instead of 38, and 14 who come back
+                  instead of 11.
                 </p>
                 <p className="mt-3 text-[15px] font-medium leading-[1.6] text-tulivo-ink">
-                  That is a fifth more clients from the same enquiries,
-                  without spending a penny more on ads.
+                  That is a fifth more clients from the same enquiries, without
+                  spending anything more on getting found.
                 </p>
               </div>
             </Card>
@@ -439,9 +440,9 @@ export function WelcomeScreen({
 
         {/* The ad-budget arithmetic */}
         <Reveal delay={0.05}>
-          <Card className="mt-10 bg-tulivo-veil p-7 sm:p-9">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-tulivo-clay">
-              What this means for your ad budget
+          <Card className="mt-10 bg-tulivo-section p-7 sm:p-9">
+            <p className="text-[13px] leading-[1.3] text-tulivo-muted">
+              What this means for a marketing budget
             </p>
             <div className="mt-5 grid gap-6 sm:grid-cols-2">
               <div>
@@ -453,16 +454,17 @@ export function WelcomeScreen({
                   Now make it one in three. The same {symbol}1,000 buys 12.
                 </p>
               </div>
-              <div className="rounded-[16px] bg-tulivo-card p-5">
+              <div className="rounded-[4px] bg-tulivo-card p-5">
                 <p className="text-[15px] leading-[1.6] text-tulivo-muted">
-                  To get those 4 extra clients from ads alone, you would spend
+                  To win those 4 extra clients through marketing alone, you
+                  would spend
                 </p>
-                <p className="mt-2 text-[30px] font-semibold leading-none tracking-[-0.03em] text-tulivo-clay">
+                <p className="mt-2 font-display text-[36px] font-normal leading-none text-tulivo-ink">
                   {symbol}500 more a month
                 </p>
                 <p className="mt-2 text-[15px] leading-[1.6] text-tulivo-muted">
-                  every month, for as long as you keep advertising. Fixing the
-                  journey is a one-off.
+                  every month, for as long as you keep it up, whereas fixing
+                  the journey is a one-off.
                 </p>
               </div>
             </div>
@@ -474,7 +476,7 @@ export function WelcomeScreen({
       <section className="mt-24 sm:mt-28">
         <Reveal>
           <Eyebrow>What the research says</Eyebrow>
-          <h2 className="mt-5 max-w-[24ch] text-[26px] font-semibold leading-[1.15] tracking-[-0.025em] text-tulivo-ink sm:text-[34px]">
+          <h2 className="mt-6 max-w-[24ch] font-display text-[30px] font-normal leading-[1.18] text-tulivo-ink sm:text-[42px]">
             Four numbers worth knowing before you spend anything
           </h2>
         </Reveal>
@@ -482,20 +484,20 @@ export function WelcomeScreen({
         <div className="mt-10 grid gap-4 sm:grid-cols-2">
           {EVIDENCE.map((item, i) => (
             <Reveal key={item.stat} delay={0.04 * i}>
-              <Card className="flex h-full flex-col bg-tulivo-veil p-7">
-                <p className="text-[56px] font-semibold leading-[0.9] tracking-[-0.04em] text-tulivo-clay sm:text-[64px]">
+              <div className="flex h-full flex-col rounded-[4px] bg-tulivo-navy p-7">
+                <p className="font-display text-[62px] font-normal leading-[0.95] text-tulivo-lilac sm:text-[72px]">
                   {item.stat}
                 </p>
-                <p className="mt-3 text-[17px] font-semibold leading-snug tracking-[-0.015em] text-tulivo-ink">
+                <p className="mt-3 font-serif text-[23px] font-medium leading-snug text-tulivo-on-navy">
                   {item.unit}
                 </p>
-                <p className="mt-3 flex-1 text-[15px] leading-[1.6] text-tulivo-muted">
+                <p className="mt-3 flex-1 text-[15px] leading-[1.6] text-tulivo-on-navy/75">
                   {item.body}
                 </p>
-                <p className="mt-5 border-t border-tulivo-line pt-3 text-[12px] text-tulivo-faint">
+                <p className="mt-5 border-t border-white/12 pt-3 text-[12px] text-tulivo-muted-navy">
                   {item.source}
                 </p>
-              </Card>
+              </div>
             </Reveal>
           ))}
         </div>
@@ -505,7 +507,7 @@ export function WelcomeScreen({
       <section className="mt-24 sm:mt-28">
         <Reveal>
           <Eyebrow>What gets checked</Eyebrow>
-          <h2 className="mt-5 max-w-[26ch] text-[26px] font-semibold leading-[1.15] tracking-[-0.025em] text-tulivo-ink sm:text-[34px]">
+          <h2 className="mt-6 max-w-[26ch] font-display text-[30px] font-normal leading-[1.18] text-tulivo-ink sm:text-[42px]">
             Eight stages, from the first search to the second booking
           </h2>
           <p className="mt-5 max-w-[58ch] text-[17px] leading-[1.65] text-tulivo-muted">
@@ -547,14 +549,14 @@ export function WelcomeScreen({
       <section className="mt-24 sm:mt-28">
         <Reveal>
           <Eyebrow>What you get at the end</Eyebrow>
-          <h2 className="mt-5 max-w-[24ch] text-[26px] font-semibold leading-[1.15] tracking-[-0.025em] text-tulivo-ink sm:text-[34px]">
+          <h2 className="mt-6 max-w-[24ch] font-display text-[30px] font-normal leading-[1.18] text-tulivo-ink sm:text-[42px]">
             Your gaps priced, not just described
           </h2>
         </Reveal>
 
         <Reveal delay={0.05}>
           <Card className="mt-9 p-7 sm:p-9">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-tulivo-clay">
+            <p className="text-[13px] leading-[1.3] text-tulivo-muted">
               The number you will see
             </p>
             <p className="mt-4 max-w-[64ch] text-[17px] leading-[1.7] text-tulivo-ink sm:text-[18px]">
@@ -576,9 +578,9 @@ export function WelcomeScreen({
 
         <div className="mt-5 grid gap-5 lg:grid-cols-2">
           <Reveal delay={0.05}>
-            <Card className="h-full bg-tulivo-veil p-7">
+            <Card className="h-full bg-tulivo-section p-7">
               <div className="flex items-baseline justify-between gap-4">
-                <p className="text-[17px] font-semibold tracking-[-0.02em] text-tulivo-ink">
+                <p className="font-serif text-[23px] font-medium leading-[1.2] text-tulivo-ink">
                   Free, as soon as you finish
                 </p>
                 <p className="text-[13px] font-medium text-tulivo-faint">
@@ -591,7 +593,7 @@ export function WelcomeScreen({
                     key={item}
                     className="flex gap-3 text-[15px] leading-relaxed text-tulivo-muted"
                   >
-                    <span className="mt-[8px] h-[5px] w-[5px] shrink-0 rounded-full bg-tulivo-gold" />
+                    <span className="mt-[8px] h-[5px] w-[5px] shrink-0 rounded-full bg-tulivo-purple" />
                     <span>{item}</span>
                   </li>
                 ))}
@@ -600,12 +602,12 @@ export function WelcomeScreen({
           </Reveal>
 
           <Reveal delay={0.1}>
-            <Card className="h-full border-tulivo-clay/30 p-7">
+            <Card className="h-full border-tulivo-purple/30 p-7">
               <div className="flex items-baseline justify-between gap-4">
-                <p className="text-[17px] font-semibold tracking-[-0.02em] text-tulivo-ink">
+                <p className="font-serif text-[23px] font-medium leading-[1.2] text-tulivo-ink">
                   The full report
                 </p>
-                <p className="text-[13px] font-medium text-tulivo-clay">
+                <p className="text-[13px] font-medium text-tulivo-muted">
                   From {DIAGNOSTIC.currencySymbol}
                   {DIAGNOSTIC.tiers[0].price}
                 </p>
@@ -616,7 +618,7 @@ export function WelcomeScreen({
                     key={item}
                     className="flex gap-3 text-[15px] leading-relaxed text-tulivo-muted"
                   >
-                    <span className="mt-[8px] h-[5px] w-[5px] shrink-0 rounded-full bg-tulivo-clay" />
+                    <span className="mt-[8px] h-[5px] w-[5px] shrink-0 rounded-full bg-tulivo-purple" />
                     <span>{item}</span>
                   </li>
                 ))}
@@ -629,25 +631,22 @@ export function WelcomeScreen({
       {/* Closing */}
       <section className="mt-24 sm:mt-28">
         <Reveal>
-          <Card className="p-8 text-center sm:p-12">
-            <h2 className="mx-auto max-w-[26ch] text-[26px] font-semibold leading-[1.15] tracking-[-0.025em] text-tulivo-ink sm:text-[34px]">
+          <div className="tulivo-gradient rounded-[4px] p-8 text-center sm:p-14">
+            <h2 className="mx-auto max-w-[26ch] font-display text-[30px] font-normal leading-[1.18] text-tulivo-on-navy sm:text-[42px]">
               The cheapest clients you will ever win are already in your inbox
             </h2>
-            <p className="mx-auto mt-5 max-w-[52ch] text-[17px] leading-[1.65] text-tulivo-muted">
-              Every week these gaps stay open, you pay for them twice. Once to
-              get the enquiry. Again when that person quietly books somewhere
-              else.
+            <p className="mx-auto mt-6 max-w-[54ch] text-[17px] leading-[1.7] text-tulivo-on-navy/80">
+              Every week these gaps stay open you pay for them twice, once to
+              get the enquiry and again when that person quietly books somewhere
+              else. Fifteen minutes will tell you exactly where it is happening.
             </p>
-            <p className="mx-auto mt-3 max-w-[52ch] text-[17px] leading-[1.65] text-tulivo-ink">
-              Fifteen minutes will tell you exactly where.
-            </p>
-            <Button className="mt-8" onClick={toForm}>
+            <Button className="mt-9" variant="onDark" onClick={toForm}>
               Start your diagnostic
             </Button>
-            <p className="mt-4 text-[13px] text-tulivo-faint">
+            <p className="mt-4 text-[13px] text-tulivo-muted-navy">
               Your score and your cost estimate are free.
             </p>
-          </Card>
+          </div>
         </Reveal>
       </section>
     </div>
