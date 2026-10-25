@@ -11,6 +11,7 @@ import {
 } from "@/lib/diagnostic/currency";
 import type { Profile } from "@/lib/diagnostic/types";
 import { Button, Card, Eyebrow, Field, Wordmark, inputClass } from "./ui";
+import { JourneyFunnel } from "../journey/JourneyFunnel";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -469,6 +470,45 @@ export function WelcomeScreen({
               </div>
             </div>
           </Card>
+        </Reveal>
+      </section>
+
+      {/* Watch it happen */}
+      <section className="mt-24 sm:mt-28">
+        <Reveal>
+          <Eyebrow>What it looks like</Eyebrow>
+          <h2 className="mt-6 max-w-[22ch] font-display text-[30px] font-normal leading-[1.18] text-tulivo-ink sm:text-[42px]">
+            Twenty-four people, and where they go
+          </h2>
+          <p className="mt-5 max-w-[60ch] text-[17px] leading-[1.65] text-tulivo-muted">
+            Nobody storms off. They just quietly stop, one stage at a time, and
+            you never find out which stage it was. Here is the same twenty-four
+            people walking the journey twice, once with the gaps open and once
+            with them closed.
+          </p>
+        </Reveal>
+
+        <Reveal delay={0.08}>
+          <div className="mt-10 grid gap-5 lg:grid-cols-2">
+            <div className="overflow-hidden rounded-[4px] border border-tulivo-line">
+              <div className="aspect-[4/5]">
+                <JourneyFunnel variant="leaking" theme="light" layout="tall" />
+              </div>
+            </div>
+            <div className="overflow-hidden rounded-[4px]">
+              <div className="aspect-[4/5]">
+                <JourneyFunnel variant="fixed" theme="navy" layout="tall" />
+              </div>
+            </div>
+          </div>
+        </Reveal>
+
+        <Reveal delay={0.1}>
+          <p className="mt-5 max-w-[66ch] text-[14px] leading-relaxed text-tulivo-faint">
+            Illustrative numbers, not a benchmark. The point is the shape: eight
+            small losses, none of them alarming on their own, and only a
+            handful of people left at the end.
+          </p>
         </Reveal>
       </section>
 

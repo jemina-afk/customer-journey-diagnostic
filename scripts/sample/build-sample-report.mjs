@@ -45,6 +45,7 @@ const answers = {
   // 4. Booking Process - the strongest stage.
   "booking.method": "online",
   "booking.steps": "3-4",
+  "booking.quotes": "2-3-days",
   "booking.247": "partial",
   "booking.deposit": "sometimes",
   "booking.prices": "from",

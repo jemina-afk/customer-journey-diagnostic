@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "methodology": "node scripts/build-methodology.mjs public/customer-journey-diagnostic-methodology.pdf"
+    "methodology": "node scripts/build-methodology.mjs public/customer-journey-diagnostic-methodology.pdf",
+    "animation": "node scripts/record-animation.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",

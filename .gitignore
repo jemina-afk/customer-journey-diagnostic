@@ -12,6 +12,7 @@
 .DS_Store
 .env
 .env*.local
+.frames-*/
 .pnp.js
 .sample-build/
 .vercel

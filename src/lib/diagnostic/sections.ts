@@ -89,7 +89,7 @@ export const SECTIONS: Section[] = [
     tools: [
       "Google Business Profile (free - the highest-return hour you'll spend)",
       "A booking-first website page for each core service",
-      "Local directory listings for your area and treatment type",
+      "Local directory listings for your area and the work you do",
     ],
     purpose: "Be findable where clients are already looking",
     kpi: {
@@ -176,7 +176,7 @@ export const SECTIONS: Section[] = [
               action:
                 "Complete every field on your profile: services with prices, 10+ recent photos, opening hours, a booking link, and the Q&A section answering your five most common questions.",
               impact:
-                "A complete profile typically doubles profile views and puts you in the local map pack for your main treatments.",
+                "A complete profile typically doubles profile views and puts you in the local map pack for the services you want most.",
               effort: "quick",
             },
           },
@@ -323,7 +323,7 @@ export const SECTIONS: Section[] = [
                 gap: "You don't reliably appear when local people search for what you offer, so ready-to-book demand goes elsewhere.",
                 fix: {
                   action:
-                    "Search your main treatment plus your town in a private browser window. Note who ranks above you, then match them on reviews, photos and service detail in your profile.",
+                    "Search your main service plus your town in a private browser window. Note who ranks above you, then match them on reviews, photos and service detail in your profile.",
                   impact: "Puts you in front of people already looking to book, at zero cost per enquiry.",
                   effort: "quick",
                 },
@@ -474,7 +474,7 @@ export const SECTIONS: Section[] = [
             gap: "Enquiries that land while you're with a client sit untouched - and that's most of your working day.",
             fix: {
               action:
-                "Cover your in-clinic hours with an automated first response so nobody waits for a chair to empty.",
+                "Cover your working hours with an automated first response, so nobody waits for you to be free.",
               impact:
                 "Recovers the enquiries that arrive during your busiest, most profitable hours.",
               effort: "quick",
@@ -497,11 +497,11 @@ export const SECTIONS: Section[] = [
             value: "between",
             label: "I check between clients",
             score: 0.45,
-            gap: "Checking between clients means replies land in unpredictable bursts, and anything arriving during a long treatment goes cold.",
+            gap: "Checking between clients means replies land in unpredictable bursts, and anything arriving while you're on a long job goes cold.",
             fix: {
               action:
                 "Add an instant auto-response so the gap between clients isn't the thing your enquiries depend on.",
-              impact: "Consistent response times without checking your phone mid-treatment.",
+              impact: "Consistent response times without checking your phone mid-job.",
               effort: "quick",
             },
           },
@@ -633,7 +633,7 @@ export const SECTIONS: Section[] = [
       {
         id: "followup",
         kind: "choice",
-        prompt: "If someone enquires but doesn't book right away, what happens?",
+        prompt: "If someone enquires or gets a quote from you but doesn't book, what happens?",
         weight: 1.4,
         options: [
           {
@@ -659,7 +659,7 @@ export const SECTIONS: Section[] = [
             value: "nothing",
             label: "Nothing - I wait for them",
             score: 0,
-            gap: "Enquiries that don't book immediately are never contacted again, so interest you already generated expires silently.",
+            gap: "Enquiries and quotes that don't convert immediately are never chased, so interest you already paid for expires silently.",
             fix: {
               action:
                 "Build a three-message follow-up: next day (helpful answer), day three (reassurance plus a review), day seven (a reason to book now).",
@@ -743,7 +743,7 @@ export const SECTIONS: Section[] = [
             gap: "Your nurture is partly built, so some enquiries get looked after and others don't.",
             fix: {
               action:
-                "Finish the sequence: five emails over two weeks covering what to expect, results, reviews, common worries and an invitation to book.",
+                "Finish the sequence: five emails over two weeks covering what to expect, the result they're after, reviews, common worries and an invitation to book.",
               impact: "Converts the undecided without another conversation from you.",
               effort: "project",
             },
@@ -781,7 +781,7 @@ export const SECTIONS: Section[] = [
             gap: "Your offer changes depending on the conversation, so there's no consistent reason to book today rather than someday.",
             fix: {
               action:
-                "Choose one standing first-visit offer - a consultation credit, an add-on, or a small saving on the first booking - and use it in every follow-up.",
+                "Choose one standing first-visit offer - a credit against the first invoice, an add-on, or a small saving on the first booking - and use it in every follow-up.",
               impact: "Gives undecided enquiries a deadline, which is usually what converts them.",
               effort: "quick",
             },
@@ -821,7 +821,7 @@ export const SECTIONS: Section[] = [
             gap: "Visitors have to compose a message themselves, which is enough friction that most simply leave.",
             fix: {
               action:
-                "Add a short enquiry form - name, contact, treatment they're interested in - to your main service pages, and reply to it with your standard first response.",
+                "Add a short enquiry form - name, contact and what they need - to your main service pages, and reply to it with your standard first response.",
               impact: "Captures the people who are interested but not ready, instead of losing them silently.",
               effort: "quick",
             },
@@ -965,9 +965,9 @@ export const SECTIONS: Section[] = [
             value: "phone",
             label: "By phone",
             score: 0.3,
-            gap: "Phone-only booking excludes anyone who won't ring - which is most people under 40 enquiring about an appointment.",
+            gap: "Phone-only booking excludes anyone who won't ring, which is most people under 40 making a first enquiry.",
             fix: {
-              action: "Add online booking alongside the phone, and keep the phone for complex or first-time consultations.",
+              action: "Give people an online way to start: a booking link for set services, or a short form that books a call or a site visit. Keep the phone for the complex jobs.",
               impact: "Opens up bookings from people who'd never have called.",
               effort: "project",
             },
@@ -1025,6 +1025,73 @@ export const SECTIONS: Section[] = [
               impact: "You'll usually find one obvious blocker worth fixing in an afternoon.",
               effort: "quick",
             },
+          },
+        ],
+      },
+      {
+        /*
+          Half the businesses this is built for do not sell a slot, they sell a
+          job, and the step before booking is a quote. Without this the
+          diagnostic had nothing to say to a builder, a photographer or an
+          accountant. Businesses that book directly pick the last option and
+          score full marks, so nobody is penalised for a step they don't have.
+        */
+        id: "quotes",
+        kind: "choice",
+        prompt: "If you quote or price up work before it's agreed, how quickly does the quote go out?",
+        hint: "Choose the last option if people book you directly without a quote.",
+        weight: 1.1,
+        options: [
+          {
+            value: "same-day",
+            label: "Same day",
+            score: 1,
+            strength:
+              "Quotes go out the same day, while the job is still the thing they're thinking about.",
+          },
+          {
+            value: "2-3-days",
+            label: "Within two or three days",
+            score: 0.55,
+            gap: "Quotes take a couple of days, by which point people have usually heard back from someone quicker.",
+            fix: {
+              action:
+                "Build one quote template with your standard pricing and inclusions, so a quote is an hour's work rather than an evening's.",
+              impact:
+                "Same-day quotes, which is often the whole reason one business wins a job over another.",
+              effort: "quick",
+            },
+          },
+          {
+            value: "week",
+            label: "A week or more",
+            score: 0.15,
+            gap: "Quotes take a week or more to go out, and most people will have accepted another one by then.",
+            fix: {
+              action:
+                "Set yourself a 24-hour quote rule, and send a holding message the same day telling them when the full quote will arrive.",
+              impact:
+                "You stay in the running instead of being the quote that turned up after the decision.",
+              effort: "quick",
+            },
+          },
+          {
+            value: "varies",
+            label: "It varies - whenever I get to it",
+            score: 0.25,
+            gap: "Quotes go out whenever there's a gap, so the busiest weeks - when the best enquiries arrive - are the slowest to answer.",
+            fix: {
+              action:
+                "Block half an hour at the same time each day for quotes, and send a same-day holding message so nobody is left wondering.",
+              impact:
+                "Quote speed stops depending on how your week went.",
+              effort: "quick",
+            },
+          },
+          {
+            value: "no-quotes",
+            label: "I don't quote - people book directly",
+            score: 1,
           },
         ],
       },
@@ -1095,7 +1162,7 @@ export const SECTIONS: Section[] = [
             gap: "With no deposit or card on file, a missed appointment costs you the full slot with no recovery.",
             fix: {
               action:
-                "Introduce a modest deposit that comes off the treatment price, framed as securing their slot rather than as a penalty.",
+                "Introduce a modest deposit that comes off the final price, framed as securing their slot rather than as a penalty.",
               impact: "Businesses introducing deposits typically see no-shows fall by half or more.",
               effort: "quick",
             },
@@ -1129,7 +1196,7 @@ export const SECTIONS: Section[] = [
             gap: "Prices only appear on request, so everyone has to start a conversation - and most people won't.",
             fix: {
               action:
-                "Publish a price or a 'from' price for every core treatment. If prices vary, publish the range and say what moves it.",
+                "Publish a price or a 'from' price for every core service. If prices vary, publish the range and say what moves it.",
               impact:
                 "Fewer time-wasting enquiries, more people arriving ready to book, and far less back-and-forth for you.",
               effort: "quick",
@@ -1141,7 +1208,7 @@ export const SECTIONS: Section[] = [
             score: 0.15,
             gap: "Nobody can find out what you charge without contacting you, which quietly filters out people who'd have booked.",
             fix: {
-              action: "Publish 'from' prices for your main treatments this week - start with your three most-booked.",
+              action: "Publish 'from' prices for your main services this week - start with the three you sell most.",
               impact:
                 "Removes the single most common reason people leave a service website without enquiring.",
               effort: "quick",
@@ -1209,7 +1276,7 @@ export const SECTIONS: Section[] = [
     tools: [
       "Automated confirmation by email and SMS at the moment of booking",
       "A 'what to expect' message sent 48 hours before",
-      "Digital consultation and consent forms completed before arrival",
+      "Any forms or details you need, collected before arrival",
     ],
     purpose: "Prepare every client before they arrive",
     kpi: {
@@ -1314,7 +1381,7 @@ export const SECTIONS: Section[] = [
             gap: "Clients arrive without knowing how to prepare or what will happen, which creates nerves, late arrivals and avoidable cancellations.",
             fix: {
               action:
-                "Write one 'what to expect' message - parking, arrival time, how long it takes, what to avoid beforehand, how they'll feel afterwards - and automate it 48 hours ahead.",
+                "Write one 'what to expect' message - parking, arrival time, how long it takes, anything they need to do beforehand, and what happens afterwards - and automate it 48 hours ahead.",
               impact: "Fewer no-shows, calmer first visits, and a noticeably more premium impression.",
               effort: "quick",
             },
@@ -1337,9 +1404,9 @@ export const SECTIONS: Section[] = [
             value: "on-arrival",
             label: "Yes - on arrival",
             score: 0.5,
-            gap: "Paperwork on arrival eats into treatment time and starts the visit with admin rather than care.",
+            gap: "Paperwork on arrival eats into the time they are paying for, and starts the visit with admin.",
             fix: {
-              action: "Move consultation and consent forms online, linked from the confirmation, and make completion a condition of the appointment.",
+              action: "Move your forms online, linked from the confirmation, and make completing them a condition of the appointment.",
               impact: "Gives you back several minutes per client and a cleaner, more professional first impression.",
               effort: "project",
             },
@@ -1348,9 +1415,9 @@ export const SECTIONS: Section[] = [
             value: "no",
             label: "No",
             score: 0.2,
-            gap: "Without forms before arrival, you're gathering essential information in the room - or not at all.",
+            gap: "Without forms before arrival, you're gathering essential information on the day - or not at all.",
             fix: {
-              action: "Set up digital consultation and consent forms sent automatically after booking.",
+              action: "Send whatever forms or details you need automatically after booking, so they come back completed.",
               impact: "Protects you professionally and makes appointments run to time.",
               effort: "project",
             },
@@ -1375,7 +1442,7 @@ export const SECTIONS: Section[] = [
             score: 0.5,
             gap: "Expectations are set inconsistently, so some clients arrive confident and others arrive unsure.",
             fix: {
-              action: "Standardise one short pre-appointment message covering timing, what happens in the room, and aftercare.",
+              action: "Standardise one short pre-appointment message covering timing, what happens on the day, and what comes afterwards.",
               impact: "Fewer surprises, better reviews, and a stronger case for rebooking.",
               effort: "quick",
             },
@@ -1402,7 +1469,7 @@ export const SECTIONS: Section[] = [
         highLabel: "Completely",
         review: (v) =>
           v >= 4
-            ? { strength: "Clients arrive confident, which is exactly the state you want them in before a first treatment." }
+            ? { strength: "Clients arrive confident, which is exactly the state you want them in before a first appointment." }
             : {
                 gap: "Clients aren't fully confident about what's coming, and uncertainty is a common reason first appointments get cancelled.",
                 fix: {
@@ -1859,7 +1926,7 @@ export const SECTIONS: Section[] = [
             score: 0.35,
             gap: "Most reviews go unanswered, which makes an otherwise glowing profile look neglected.",
             fix: {
-              action: "Reply to every review - two warm sentences is plenty, and mention the treatment by name.",
+              action: "Reply to every review - two warm sentences is plenty, and mention the service by name.",
               impact: "Improves how your profile reads to new clients and supports local search visibility.",
               effort: "quick",
             },
@@ -1912,7 +1979,7 @@ export const SECTIONS: Section[] = [
             score: 0.35,
             gap: "You don't know where you stand locally, so you can't tell whether reputation is helping or costing you.",
             fix: {
-              action: "Search your main treatment plus your town, and note the review counts of the top three results.",
+              action: "Search your main service plus your town, and note the review counts of the top three results.",
               impact: "Gives you a concrete target instead of a vague intention.",
               effort: "quick",
             },
@@ -1947,7 +2014,7 @@ export const SECTIONS: Section[] = [
         "You're refilling your diary from scratch every month. Fixing retention is usually the fastest route to higher income without more marketing, more hours or more enquiries.",
     },
     tools: [
-      "Rebooking prompted before the client leaves the room",
+      "The next booking asked for before the client leaves",
       "An automated 'we've missed you' sequence at 8-12 weeks",
       "A simple referral reward for existing clients",
     ],
@@ -2022,7 +2089,7 @@ export const SECTIONS: Section[] = [
             score: 0.7,
             strength: "You follow up after appointments, which keeps the relationship warm.",
             fix: {
-              action: "Add a rebooking prompt in the room, before they leave, as well as the follow-up.",
+              action: "Ask for the next booking before they leave, as well as sending the follow-up.",
               impact: "In-room rebooking typically converts several times better than any message sent later.",
               effort: "quick",
             },
@@ -2033,7 +2100,7 @@ export const SECTIONS: Section[] = [
             score: 0.85,
             strength: "An automated sequence keeps you present between appointments.",
             fix: {
-              action: "Pair the sequence with an in-room rebooking prompt so the easiest conversion happens first.",
+              action: "Pair the sequence with asking before they leave, so the easiest booking happens first.",
               impact: "Fills more of your diary in advance and smooths out quiet weeks.",
               effort: "quick",
             },
@@ -2163,7 +2230,7 @@ export const SECTIONS: Section[] = [
             : {
                 gap: "You know retention isn't where it should be - which means you're paying to replace clients you could have kept.",
                 fix: {
-                  action: "Start with rebooking in the room, then add a 10-week re-engagement message for anyone who slips through.",
+                  action: "Start by asking for the next booking before they leave, then add a 10-week re-engagement message for anyone who slips through.",
                   impact: "Retention gains flow almost straight to profit.",
                   effort: "quick",
                 },
@@ -2184,7 +2251,7 @@ export const NUMBERS_QUESTIONS: Question[] = [
   {
     id: "appointments",
     kind: "slider",
-    prompt: "Roughly how many client appointments do you have in a typical week?",
+    prompt: "Roughly how many client appointments or jobs do you have in a typical week?",
     weight: 0,
     min: 0,
     max: 100,

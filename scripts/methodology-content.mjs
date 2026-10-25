@@ -28,7 +28,7 @@ export const INTRO = {
   ],
   facts: [
     { k: "8", v: "stages assessed" },
-    { k: "41", v: "scored questions" },
+    { k: "42", v: "scored questions" },
     { k: "3", v: "priced leaks" },
     { k: "0", v: "figures invented" },
   ],
@@ -45,7 +45,7 @@ export const STRUCTURE = {
     { stage: "Lead Sources & Discovery", weight: "1.0", questions: 6, note: "Important, but slow to move and partly outside your control" },
     { stage: "Lead Response", weight: "1.3", questions: 5, note: "Fastest to fix, largest recoverable loss, costs nothing but a system" },
     { stage: "Lead Nurture & Follow-Up", weight: "1.0", questions: 6, note: "High return, but needs sustained effort, not one change" },
-    { stage: "Booking Process", weight: "1.0", questions: 6, note: "Usually a one-off fix with a lasting effect" },
+    { stage: "Booking Process", weight: "1.0", questions: 7, note: "Usually a one-off fix with a lasting effect" },
     { stage: "Confirmation & Pre-Appointment", weight: "1.0", questions: 5, note: "Quietly decides attendance and first impressions" },
     { stage: "Reminders & No-Show Prevention", weight: "1.25", questions: 5, note: "The cheapest revenue protection available, and widely under-used" },
     { stage: "Reviews & Reputation", weight: "1.0", questions: 5, note: "Compounding, free, but takes months to build" },
@@ -58,12 +58,12 @@ export const QUESTION_SCORING = {
   eyebrow: "How an answer becomes a number",
   title: ["Every answer maps", "to a value from 0 to 1"],
   body: [
-    "A question is worth points only if it has a weight above zero and is not free text. Free-text answers are read for context and never scored.",
+    "A question is worth points only if it has a weight above zero and is not free text. Free-text answers are read for context and never scored. Where a question does not apply to how someone works - quoting, for example - the \"not applicable\" answer scores full marks, so nobody is marked down for a step they do not have.",
   ],
   kinds: [
     {
       kind: "Single choice",
-      count: "32 questions",
+      count: "33 questions",
       how: "Each option carries a fixed score set in advance. 1.0 is best practice, 0 is the answer that costs the most. Nothing is scored on a curve against other businesses.",
     },
     {
