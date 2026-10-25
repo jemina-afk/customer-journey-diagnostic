@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Figure } from "./Figure";
-import { BEATS, DURATION, START, frameAt, remainingAfter, type Variant } from "./model";
+import { BEATS, DURATION, START, frameAt, lineFor, remainingAfter, type Variant } from "./model";
 
 /*
   The drop-off animation.
@@ -11,6 +11,11 @@ import { BEATS, DURATION, START, frameAt, remainingAfter, type Variant } from ".
   live on the page or stepped frame by frame by the recorder and produce
   identical pictures. No CSS transitions and no internal animation state: if it
   moves, it is because `t` moved.
+
+  There are three things on screen and only one of them changes at a time: a
+  sentence, the crowd, and a single number. The count deliberately lags the
+  people, so you watch someone go and then read what it cost, rather than
+  trying to do both at once.
 */
 
 export interface JourneyFunnelProps {
@@ -18,7 +23,6 @@ export interface JourneyFunnelProps {
   /** Fixed time in seconds. Leave unset to play. */
   time?: number;
   theme?: "light" | "navy";
-  /** Taller layouts stack the caption under the crowd. */
   layout?: "auto" | "tall" | "wide";
   loop?: boolean;
   className?: string;
@@ -27,21 +31,17 @@ export interface JourneyFunnelProps {
 const COLOURS = {
   light: {
     bg: "rgb(var(--t-canvas))",
-    alive: "rgb(var(--t-purple))",
-    lost: "rgb(var(--t-purple))",
+    figure: "rgb(var(--t-purple))",
     ink: "rgb(var(--t-ink))",
     muted: "rgb(var(--t-muted))",
     faint: "rgb(var(--t-faint))",
-    rule: "rgb(var(--t-line))",
   },
   navy: {
     bg: "rgb(var(--t-navy))",
-    alive: "rgb(var(--t-lilac))",
-    lost: "rgb(var(--t-lilac))",
+    figure: "rgb(var(--t-lilac))",
     ink: "rgb(var(--t-on-navy))",
     muted: "rgb(var(--t-muted-navy))",
     faint: "rgb(var(--t-muted-navy))",
-    rule: "rgba(255,255,255,0.14)",
   },
 };
 
@@ -75,103 +75,113 @@ export function JourneyFunnel({
   const frame = frameAt(t, variant);
   const c = COLOURS[theme];
   const beat = frame.beat >= 0 && frame.beat < BEATS.length ? BEATS[frame.beat] : null;
-
-  // Whole people are solid; the one currently leaving fades as they go.
-  const whole = Math.floor(frame.remaining + 1e-6);
-  const partial = frame.remaining - whole;
-
-  // How many left at this stage, rather than how many have gone in total.
-  const lostHere =
-    frame.beat >= 0 && frame.beat < BEATS.length
-      ? Math.max(remainingAfter(frame.beat - 1, variant) - whole, 0)
-      : 0;
+  const line = lineFor(frame, variant);
 
   const finalLeaking = remainingAfter(BEATS.length - 1, "leaking");
   const finalFixed = remainingAfter(BEATS.length - 1, "fixed");
+  const final = variant === "fixed" ? finalFixed : finalLeaking;
 
-  const introIn = Math.min(frame.phase === "intro" ? frame.progress * 2.4 : 1, 1);
-  const outro = frame.phase === "outro" ? Math.min(frame.progress * 2.6, 1) : 0;
+  // The sentence arrives on its own, and does not move once it has.
+  const lineIn = frame.phase === "read" ? Math.min(frame.progress * 4, 1) : 1;
+  const introIn = frame.phase === "intro" ? Math.min(frame.progress * 3, 1) : 1;
+  const outroIn = frame.phase === "outro" ? Math.min(frame.progress * 2.4, 1) : 0;
+  const ctaIn = frame.phase === "cta" ? Math.min(frame.progress * 3, 1) : 0;
+
+  const isLastBeat = frame.beat === BEATS.length - 1;
+
+  const heading =
+    frame.phase === "intro"
+      ? variant === "fixed"
+        ? "Same 24 people. Gaps closed."
+        : "24 people looked for what you do"
+      : frame.phase === "outro"
+        ? // The number is already below, so the hold carries the line that
+          // follows it in the voice-over rather than repeating the count.
+          variant === "fixed"
+          ? `From the same ${START} people.`
+          : "None of them told you why."
+        : frame.phase === "cta"
+          ? variant === "fixed"
+            ? "Find your gaps."
+            : "Want to know where yours are going?"
+          : line;
 
   return (
     <div
       className={`jf ${layout === "tall" ? "jf-tall" : layout === "wide" ? "jf-wide" : ""} ${className ?? ""}`}
       style={{ background: c.bg, color: c.ink }}
-      data-theme={theme}
     >
       <div className="jf-inner">
-        {/* Which stage we are at, and the stage track. */}
-        <div className="jf-head" style={{ opacity: introIn }}>
-          <p className="jf-kicker" style={{ color: c.muted }}>
-            {variant === "fixed" ? "The same journey, with the gaps closed" : "Out of 24 people who wanted what you do"}
+        <div className="jf-head">
+          <p className="jf-stage" style={{ color: c.muted, opacity: beat ? 1 : 0 }}>
+            {beat ? `${frame.beat + 1} of ${BEATS.length} · ${beat.stage}` : " "}
           </p>
-          <p className="jf-stage" style={{ color: c.ink }}>
-            {beat ? beat.stage : frame.phase === "outro" ? "After one year" : "Looking for what you do"}
+          {/* The one sentence. Nothing else moves while it is being read. */}
+          <p
+            className="jf-line"
+            style={{
+              color: c.ink,
+              opacity:
+                frame.phase === "outro"
+                  ? outroIn
+                  : frame.phase === "cta"
+                    ? ctaIn
+                    : frame.phase === "intro"
+                      ? introIn
+                      : lineIn,
+            }}
+          >
+            {heading}
           </p>
-          <div className="jf-track">
-            {BEATS.map((b, i) => (
-              <span
-                key={b.stage}
-                className="jf-tick"
-                style={{
-                  background: c.alive,
-                  opacity: frame.beat > i ? 1 : frame.beat === i ? 1 : 0.2,
-                  height: frame.beat === i ? 7 : 4,
-                }}
-              />
-            ))}
-          </div>
         </div>
 
-        {/* The crowd. Nobody moves: the survivors are simply the ones still
-            drawn in full, which is what makes the loss readable at a glance. */}
         <div className="jf-crowd" style={{ opacity: introIn }}>
           {Array.from({ length: START }, (_, i) => {
-            const alive = i < whole;
-            const leaving = i === whole && partial > 0;
-            const fade = alive ? 0 : leaving ? 1 - partial : 1;
-            const opacity = alive ? 1 : leaving ? 0.14 + partial * 0.86 : 0.14;
+            const standing = i < frame.standing;
+            // Only the people leaving at this stage are mid-fade; everyone
+            // already gone is simply faint, and nobody else changes.
+            const goneBefore = !standing && i >= frame.standing && frame.phase === "read";
+            const fading =
+              !standing && frame.phase === "leave" && i < remainingAfter(frame.beat - 1, variant);
+            const fade = standing ? 0 : fading ? frame.leaving : 1;
+            const opacity = standing ? 1 : fading ? 1 - frame.leaving * 0.86 : goneBefore ? 0.14 : 0.14;
             return (
               <div className="jf-fig" key={i}>
-                <Figure seed={i} colour={alive || leaving ? c.alive : c.lost} opacity={opacity} fade={fade} />
+                <Figure seed={i} colour={c.figure} opacity={opacity} fade={fade} />
               </div>
             );
           })}
         </div>
 
-        {/* The count, and why the others went. */}
+        {/* One number. It holds while people leave, then lands. On the last
+            card it gives way to the call to action. */}
         <div className="jf-foot">
-          {frame.phase === "outro" ? (
-            <div className="jf-compare" style={{ opacity: outro }}>
-              <div>
-                <p className="jf-big" style={{ color: c.ink }}>
-                  {variant === "fixed" ? finalFixed : finalLeaking}
-                </p>
-                <p className="jf-caption" style={{ color: c.muted }}>
-                  {variant === "fixed"
-                    ? "regulars, from the same 24 people"
-                    : "regulars, from the same 24 people"}
-                </p>
-              </div>
-              {variant === "fixed" && (
-                <p className="jf-versus" style={{ color: c.muted }}>
-                  Before the fixes it was {finalLeaking}.
-                </p>
-              )}
+          {frame.phase === "cta" ? (
+            <div className="jf-cta" style={{ opacity: ctaIn }}>
+              <p className="jf-shout" style={{ color: c.ink }}>
+                Comment DIAGNOSTIC
+              </p>
+              <p className="jf-small" style={{ color: c.muted }}>
+                Illustrative figures
+              </p>
             </div>
           ) : (
             <>
-              <p className="jf-big" style={{ color: c.ink }}>
-                {whole}
-                <span className="jf-of" style={{ color: c.muted }}>
-                  {" "}
-                  still with you
-                </span>
+              <p
+                className="jf-count"
+                style={{
+                  color: c.ink,
+                  transform: `scale(${1 + frame.pulse * 0.06})`,
+                }}
+              >
+                {frame.count}
               </p>
-              <p className="jf-caption" style={{ color: c.muted, opacity: beat ? 1 : 0 }}>
-                {beat ? `${lostHere === 0 ? "Nobody" : `${lostHere} of them`} ${beat.lost}` : " "}
-              </p>
-              <p className="jf-cause" style={{ color: c.faint, opacity: beat ? 1 : 0 }}>
-                {beat ? (variant === "fixed" ? beat.fixedCause : beat.cause) : " "}
+              <p className="jf-unit" style={{ color: c.muted }}>
+                {frame.phase === "intro"
+                  ? "people"
+                  : frame.phase === "outro" || isLastBeat
+                    ? "regulars"
+                    : "still with you"}
               </p>
             </>
           )}
@@ -191,33 +201,28 @@ export function JourneyFunnel({
           width: 100%;
           height: 100%;
           max-width: 980px;
-          padding: 6% 7%;
+          padding: 7%;
           display: flex;
           flex-direction: column;
-          justify-content: center;
+          justify-content: space-between;
           gap: 4%;
         }
-        .jf-kicker {
-          margin: 0;
-          font-size: clamp(11px, 2.4cqw, 17px);
-          line-height: 1.3;
+        /* A fixed height, so the crowd does not jump when a sentence runs to
+           one line instead of two. */
+        .jf-head {
+          min-height: 20%;
         }
         .jf-stage {
-          margin: 0.35em 0 0;
+          margin: 0 0 0.7em;
+          font-size: clamp(11px, 2.5cqw, 18px);
+          line-height: 1.3;
+        }
+        .jf-line {
+          margin: 0;
           font-family: var(--font-italiana), Georgia, serif;
-          font-size: clamp(26px, 7.2cqw, 58px);
-          line-height: 1.05;
-        }
-        .jf-track {
-          display: flex;
-          gap: clamp(4px, 1cqw, 9px);
-          align-items: flex-end;
-          margin-top: 1em;
-          height: 7px;
-        }
-        .jf-tick {
-          flex: 1;
-          border-radius: 1px;
+          font-size: clamp(24px, 6.4cqw, 52px);
+          line-height: 1.12;
+          text-wrap: balance;
         }
         .jf-crowd {
           display: grid;
@@ -225,63 +230,69 @@ export function JourneyFunnel({
           gap: clamp(2px, 0.8cqw, 10px);
         }
         .jf-fig {
-          aspect-ratio: 1;
+          aspect-ratio: 36 / 60;
         }
-        .jf-big {
+        .jf-foot {
+          display: flex;
+          align-items: baseline;
+          gap: clamp(10px, 2.4cqw, 26px);
+          flex-wrap: wrap;
+        }
+        .jf-count {
           margin: 0;
           font-family: var(--font-italiana), Georgia, serif;
-          font-size: clamp(40px, 11cqw, 96px);
+          font-size: clamp(48px, 13cqw, 110px);
           line-height: 1;
+          transform-origin: left bottom;
         }
-        .jf-of {
-          font-family: var(--font-inter), system-ui, sans-serif;
-          font-size: clamp(12px, 2.6cqw, 20px);
+        .jf-unit {
+          margin: 0;
+          font-size: clamp(13px, 3cqw, 24px);
+          line-height: 1.3;
         }
-        .jf-caption {
-          margin: 0.4em 0 0;
-          font-size: clamp(13px, 2.9cqw, 22px);
-          line-height: 1.35;
+        .jf-cta {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5em;
         }
-        .jf-cause {
-          margin: 0.25em 0 0;
-          font-size: clamp(11px, 2.3cqw, 17px);
-          line-height: 1.35;
+        .jf-shout {
+          margin: 0;
+          font-weight: 500;
+          letter-spacing: 0.04em;
+          font-size: clamp(18px, 4.4cqw, 36px);
+          line-height: 1.2;
         }
-        .jf-versus {
-          margin: 0.6em 0 0;
-          font-size: clamp(13px, 2.9cqw, 22px);
+        .jf-small {
+          margin: 0;
+          font-size: clamp(11px, 2.2cqw, 17px);
         }
-        .jf-compare {
-          min-height: 1px;
-        }
-        /* Tall layouts have room to breathe, and need bigger type for a phone. */
+
+        /* Tall layouts are read on a phone, so everything grows. */
         .jf-tall .jf-inner {
           max-width: none;
-          padding: 8% 9%;
-          gap: 5%;
+          padding: 9%;
         }
         .jf-tall .jf-crowd {
           grid-template-columns: repeat(6, 1fr);
           gap: clamp(4px, 1.6cqw, 14px);
         }
         .jf-tall .jf-stage {
-          font-size: clamp(34px, 9.5cqw, 92px);
+          font-size: clamp(13px, 3.2cqw, 28px);
         }
-        .jf-tall .jf-big {
-          font-size: clamp(56px, 16cqw, 150px);
+        .jf-tall .jf-line {
+          font-size: clamp(30px, 8.4cqw, 78px);
         }
-        .jf-tall .jf-kicker {
-          font-size: clamp(13px, 3.4cqw, 30px);
+        .jf-tall .jf-count {
+          font-size: clamp(64px, 19cqw, 180px);
         }
-        .jf-tall .jf-caption {
-          font-size: clamp(15px, 4cqw, 36px);
+        .jf-tall .jf-unit {
+          font-size: clamp(15px, 3.8cqw, 34px);
         }
-        .jf-tall .jf-cause,
-        .jf-tall .jf-versus {
-          font-size: clamp(12px, 3.2cqw, 28px);
+        .jf-tall .jf-shout {
+          font-size: clamp(22px, 5.6cqw, 52px);
         }
-        .jf-tall .jf-of {
-          font-size: clamp(14px, 3.6cqw, 32px);
+        .jf-tall .jf-small {
+          font-size: clamp(12px, 2.8cqw, 24px);
         }
       `}</style>
     </div>

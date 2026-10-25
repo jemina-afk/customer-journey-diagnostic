@@ -492,12 +492,12 @@ export function WelcomeScreen({
           <div className="mt-10 grid gap-5 lg:grid-cols-2">
             <div className="overflow-hidden rounded-[4px] border border-tulivo-line">
               <div className="aspect-[4/5]">
-                <JourneyFunnel variant="leaking" theme="light" layout="tall" />
+                <JourneyFunnel variant="leaking" theme="light" />
               </div>
             </div>
             <div className="overflow-hidden rounded-[4px]">
               <div className="aspect-[4/5]">
-                <JourneyFunnel variant="fixed" theme="navy" layout="tall" />
+                <JourneyFunnel variant="fixed" theme="navy" />
               </div>
             </div>
           </div>

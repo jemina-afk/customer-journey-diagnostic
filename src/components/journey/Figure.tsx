@@ -35,7 +35,9 @@ export function Figure({
 
   return (
     <svg
-      viewBox="0 0 64 64"
+      /* Cropped to the figure's own width. A square box left so much air
+         either side that the crowd read as small and sparse. */
+      viewBox="14 2 36 60"
       width="100%"
       height="100%"
       fill="none"

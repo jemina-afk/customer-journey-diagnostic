@@ -30,7 +30,7 @@ const SIZES = {
 };
 
 /** Kept in step with DURATION in src/components/journey/model.ts. */
-const DURATION = 1.6 + 8 * 1.7 + 3.6;
+const DURATION = 5.5 + 8 * (2.4 + 1.4 + 1.4) + 6.5 + 5;
 
 const CUTS = [
   { variant: "leaking", ratio: "9x16", theme: "navy", name: "leaking-reel" },
@@ -60,8 +60,10 @@ for (const cut of CUTS) {
   const total = Math.round(DURATION * FPS);
   for (let i = 0; i < total; i++) {
     await page.evaluate((t) => window.__jfSetTime(t), i / FPS);
-    const shot = await page.screenshot({ type: "png" });
-    writeFileSync(`${dir}/f${String(i).padStart(4, "0")}.png`, shot);
+    // JPEG frames encode several times faster than PNG at this size, and the
+    // difference does not survive H.264 anyway.
+    const shot = await page.screenshot({ type: "jpeg", quality: 94 });
+    writeFileSync(`${dir}/f${String(i).padStart(4, "0")}.jpg`, shot);
   }
   await page.close();
 
@@ -69,7 +71,7 @@ for (const cut of CUTS) {
   const res = spawnSync(
     FFMPEG,
     [
-      "-y", "-framerate", String(FPS), "-i", `${dir}/f%04d.png`,
+      "-y", "-framerate", String(FPS), "-i", `${dir}/f%04d.jpg`,
       "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "20",
       // Instagram and most players want even dimensions and a standard profile.
       "-profile:v", "high", "-level", "4.0", "-movflags", "+faststart",
