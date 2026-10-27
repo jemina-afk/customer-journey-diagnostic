@@ -1,20 +1,27 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Inter, Italiana } from "next/font/google";
+import { Cormorant_Garamond } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-/* The brand's three roles: display, secondary serif, body. Nothing else. */
-const inter = Inter({ subsets: ["latin"], display: "swap", variable: "--font-inter" });
-
-const italiana = Italiana({
-  subsets: ["latin"],
-  weight: "400",
+/*
+  One typeface carries the page: Switzer, self-hosted from Fontshare. Headlines
+  are weight 500 and tightly tracked, body copy is 400. Cormorant Garamond is
+  kept for one thing only, the tulivo wordmark.
+*/
+const switzer = localFont({
+  src: [
+    { path: "../fonts/switzer-400.woff2", weight: "400", style: "normal" },
+    { path: "../fonts/switzer-500.woff2", weight: "500", style: "normal" },
+    { path: "../fonts/switzer-600.woff2", weight: "600", style: "normal" },
+  ],
   display: "swap",
-  variable: "--font-italiana",
+  variable: "--font-switzer",
+  fallback: ["ui-sans-serif", "system-ui", "-apple-system", "Segoe UI", "sans-serif"],
 });
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
-  weight: ["500", "600"],
+  weight: ["500"],
   display: "swap",
   variable: "--font-cormorant",
 });
@@ -39,10 +46,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="en-GB"
-      className={`${inter.variable} ${italiana.variable} ${cormorant.variable}`}
-    >
+    <html lang="en-GB" className={`${switzer.variable} ${cormorant.variable}`}>
       <body className="min-h-screen font-sans antialiased">{children}</body>
     </html>
   );

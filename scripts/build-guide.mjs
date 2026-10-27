@@ -244,7 +244,9 @@ function stageBlock(stage, top) {
   panel(M + 8, footY, COL_W - 16, 19, NAVY);
   setText(8, MUTED_ON_NAVY);
   doc.text("The number to watch", M + 12, footY + 6);
-  setText(9.5, CREAM, { font: SERIF });
+  // Cormorant is the brand's card-title face, not a small-text one, so below
+  // its smallest set size this falls back to Inter.
+  setText(9, CREAM, { weight: "bold" });
   doc.text(stage.kpi, M + 12, footY + 11.5);
   paragraph(`Where from: ${stage.from}`, M + 12, footY + 15.5, COL_W - 24, {
     size: 7.5,
@@ -410,7 +412,7 @@ function nextPage() {
   label("Who wrote this", M, y, { size: 8 });
   y = paragraph(NEXT.about, M, y + 7, COL_W, { size: 9.5, colour: MUTED, leading: 4.6 });
   y += 5;
-  setText(10, INK, { font: SERIF });
+  setText(10, INK, { weight: "bold" });
   doc.text(`${BRAND.consultant} \u00b7 ${BRAND.company}`, M, y);
   setText(9, MUTED);
   doc.text(`${BRAND.email} \u00b7 ${BRAND.site}`, M, y + 5);

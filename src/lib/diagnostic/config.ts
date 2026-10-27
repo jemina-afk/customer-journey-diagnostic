@@ -5,7 +5,7 @@
 */
 
 export const DIAGNOSTIC = {
-  price: process.env.NEXT_PUBLIC_DIAGNOSTIC_PRICE ?? "297",
+  price: process.env.NEXT_PUBLIC_DIAGNOSTIC_PRICE ?? "97",
   currencySymbol: "£",
   /** Stan Store / external checkout, used when Stripe isn't configured. */
   checkoutUrl: process.env.NEXT_PUBLIC_CHECKOUT_URL ?? "",
@@ -38,7 +38,7 @@ export const DIAGNOSTIC = {
     {
       id: "report",
       name: "The full report",
-      price: Number(process.env.NEXT_PUBLIC_TIER_REPORT_PRICE ?? 297),
+      price: Number(process.env.NEXT_PUBLIC_TIER_REPORT_PRICE ?? 97),
       blurb: "Everything unlocked on screen, plus the PDF to keep.",
       features: [
         "Exactly what's broken in each of the eight stages",

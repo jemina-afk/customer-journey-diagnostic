@@ -217,10 +217,14 @@ export function JourneyFunnel({
           font-size: clamp(11px, 2.5cqw, 18px);
           line-height: 1.3;
         }
+        /* Switzer, like the rest of the page. Tightly tracked so a sentence
+           lands in two rows rather than three, and its lining figures mean the
+           number that opens each line reads as a number. */
         .jf-line {
           margin: 0;
-          font-family: var(--font-italiana), Georgia, serif;
-          font-size: clamp(24px, 6.4cqw, 52px);
+          font-weight: 500;
+          letter-spacing: -0.035em;
+          font-size: clamp(34px, 7.2cqw, 58px);
           line-height: 1.12;
           text-wrap: balance;
         }
@@ -240,7 +244,8 @@ export function JourneyFunnel({
         }
         .jf-count {
           margin: 0;
-          font-family: var(--font-italiana), Georgia, serif;
+          font-weight: 500;
+          letter-spacing: -0.045em;
           font-size: clamp(48px, 13cqw, 110px);
           line-height: 1;
           transform-origin: left bottom;
@@ -280,7 +285,7 @@ export function JourneyFunnel({
           font-size: clamp(13px, 3.2cqw, 28px);
         }
         .jf-tall .jf-line {
-          font-size: clamp(30px, 8.4cqw, 78px);
+          font-size: clamp(36px, 8.4cqw, 78px);
         }
         .jf-tall .jf-count {
           font-size: clamp(64px, 19cqw, 180px);

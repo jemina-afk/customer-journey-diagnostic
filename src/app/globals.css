@@ -24,10 +24,11 @@
   --t-lilac: 203 182 232;      /* lilac       #CBB6E8 */
   --t-logo-plum: 42 26 61;     /* logo-plum   #2A1A3D */
 
-  /* Text */
-  --t-ink: 27 33 56;           /* navy on light, 14.9:1 */
-  --t-muted: 90 90 102;        /* label-grey  #5A5A66 */
-  --t-faint: 123 123 136;      /* label-grey, lightened for the quietest lines */
+  /* Text. Three steps and no more: headline, body, secondary. */
+  --t-head: 14 7 32;           /* headline    #0E0720, 17.3:1 on off-white */
+  --t-ink: 43 40 51;           /* body        #2B2833, 12.7:1 */
+  --t-muted: 107 104 114;      /* secondary   #6B6872, 5.0:1 */
+  --t-faint: 134 131 142;      /* secondary, lightened for the quietest lines */
   --t-on-navy: 250 247 243;    /* cream on navy */
   --t-muted-navy: 140 147 168; /* muted-on-navy #8C93A8 */
   --t-muted-cream: 102 108 132;/* muted-on-cream #666C84 */
@@ -50,6 +51,8 @@ body {
   color: rgb(var(--t-ink));
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  /* Plain lining figures everywhere, so a number reads as a number. */
+  font-variant-numeric: lining-nums proportional-nums;
 }
 
 * {

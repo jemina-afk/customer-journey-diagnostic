@@ -1,15 +1,9 @@
 import type { Config } from "tailwindcss";
 
 /*
-  Tulivo Digital - a light-only palette for a client-facing product: warm ivory
-  paper, espresso ink, terracotta accent, muted gold detailing. Colours are rgb
-  triplets so Tailwind can compose them with alpha.
-*/
-/*
   Tulivo Digital. Colours are the brand tokens from brand/tokens.json, exposed
-  as rgb triplets so Tailwind can compose them with alpha. Fonts follow the
-  brand's three roles: Italiana for display, Cormorant Garamond for secondary
-  headings, Inter for everything else.
+  as rgb triplets so Tailwind can compose them with alpha. One typeface does
+  all the work, Switzer, with Cormorant Garamond kept for the wordmark alone.
 */
 const config: Config = {
   content: ["./src/app/**/*.{ts,tsx}", "./src/components/**/*.{ts,tsx}"],
@@ -25,6 +19,7 @@ const config: Config = {
           purple: "rgb(var(--t-purple) / <alpha-value>)",
           plum: "rgb(var(--t-plum) / <alpha-value>)",
           lilac: "rgb(var(--t-lilac) / <alpha-value>)",
+          head: "rgb(var(--t-head) / <alpha-value>)",
           ink: "rgb(var(--t-ink) / <alpha-value>)",
           muted: "rgb(var(--t-muted) / <alpha-value>)",
           faint: "rgb(var(--t-faint) / <alpha-value>)",
@@ -39,9 +34,9 @@ const config: Config = {
         },
       },
       fontFamily: {
-        display: ["var(--font-italiana)", "Georgia", "serif"],
-        serif: ["var(--font-cormorant)", "Georgia", "serif"],
-        sans: ["var(--font-inter)", "Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        sans: ["var(--font-switzer)", "ui-sans-serif", "system-ui", "sans-serif"],
+        /* The wordmark, and nothing else. */
+        wordmark: ["var(--font-cormorant)", "Georgia", "serif"],
       },
       borderRadius: {
         pill: "999px",

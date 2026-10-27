@@ -47,7 +47,7 @@ export function Eyebrow({
       />
       <p
         className={cn(
-          "text-[13px] leading-[1.3]",
+          "text-[14px] leading-[1.3]",
           tone === "light" ? "text-tulivo-muted-navy" : "text-tulivo-muted",
         )}
       >

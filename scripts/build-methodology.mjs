@@ -78,7 +78,7 @@ function formula(text, y) {
   panel(M, y, COL_W, 13, WARM_GREY);
   fill(PURPLE);
   doc.rect(M, y, 1.6, 13, "F");
-  setText(10.5, INK, { font: SERIF, weight: "bold" });
+  setText(9.5, INK, { weight: "bold" });
   doc.text(text, PAGE_W / 2, y + 8.2, { align: "center" });
   return y + 13;
 }
