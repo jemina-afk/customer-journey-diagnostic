@@ -279,63 +279,51 @@ export function ResultsScreen({
             <div className="px-6 py-8 sm:px-10 sm:py-10">
               {paymentBypassed && (
                 <p className="mb-7 rounded-[4px] border border-tulivo-purple/40 bg-tulivo-section/70 px-4 py-3.5 text-[13px] leading-relaxed text-tulivo-ink">
-                  <strong className="font-semibold">Payment isn&apos;t connected yet.</strong> Either button
-                  below unlocks the full report free, so you can test the whole flow. Add your Stripe key to
+                  <strong className="font-semibold">Payment isn&apos;t connected yet.</strong> The button below
+                  unlocks the full report free, so you can test the whole flow. Add your Stripe key to
                   start charging.
                 </p>
               )}
 
-              <div className="grid gap-5 lg:grid-cols-2">
-                {DIAGNOSTIC.tiers.map((option) => (
-                  <div
-                    key={option.id}
-                    className={cn(
-                      "relative flex flex-col rounded-[4px] border p-6 sm:p-7",
-                      option.recommended
-                        ? "border-tulivo-purple/45 bg-tulivo-section/40 shadow-[0_18px_40px_-30px_rgba(154,71,47,0.7)]"
-                        : "border-tulivo-line bg-tulivo-section/40",
-                    )}
-                  >
-                    {option.recommended && (
-                      <span className="absolute -top-3 left-6 rounded-full bg-tulivo-purple px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white">
-                        Most useful
-                      </span>
-                    )}
-
-                    <h3 className="text-[17px] font-semibold tracking-[-0.02em] text-tulivo-ink">
-                      {option.name}
-                    </h3>
-                    <div className="tabular mt-3 text-[38px] font-semibold leading-none tracking-[-0.03em] text-tulivo-ink">
-                      {DIAGNOSTIC.currencySymbol}
-                      {option.price}
-                    </div>
-                    <p className="mt-2 text-[13.5px] leading-relaxed text-tulivo-muted">{option.blurb}</p>
-
-                    <ul className="mt-5 flex-1 space-y-2.5">
-                      {option.features.map((line) => (
-                        <li key={line} className="flex gap-2.5 text-[14px] leading-relaxed text-tulivo-ink">
-                          <CheckMark />
-                          <span>{line}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    <Button
-                      className="mt-6"
-                      full
-                      variant={option.recommended ? "primary" : "ghost"}
-                      onClick={() => onUnlock(option.id)}
-                      disabled={unlocking}
-                    >
-                      {unlocking
-                        ? "Opening checkout…"
-                        : option.recommended
-                          ? "Get the report and the call"
-                          : "Get the report"}
-                    </Button>
+              {DIAGNOSTIC.tiers.map((option) => (
+                <div
+                  key={option.id}
+                  className="mx-auto flex max-w-[520px] flex-col rounded-[4px] border border-tulivo-purple/45 bg-tulivo-section/40 p-6 sm:p-8"
+                >
+                  <h3 className="text-[20px] font-medium tracking-[-0.035em] text-tulivo-head">
+                    {option.name}
+                  </h3>
+                  <div className="mt-3 text-[44px] font-medium leading-none tracking-[-0.045em] text-tulivo-head">
+                    {DIAGNOSTIC.currencySymbol}
+                    {option.price}
                   </div>
-                ))}
-              </div>
+                  <p className="mt-2 text-[14px] leading-relaxed text-tulivo-muted">{option.blurb}</p>
+
+                  <ul className="mt-6 flex-1 space-y-2.5">
+                    {option.features.map((line) => (
+                      <li key={line} className="flex gap-2.5 text-[15px] leading-relaxed text-tulivo-ink">
+                        <CheckMark />
+                        <span>{line}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Button
+                    className="mt-7"
+                    full
+                    onClick={() => onUnlock(option.id)}
+                    disabled={unlocking}
+                  >
+                    {unlocking ? "Opening checkout…" : "Get my full report"}
+                  </Button>
+
+                  <p className="mt-4 text-[14px] leading-relaxed text-tulivo-muted">
+                    If you&rsquo;d like help putting it in place, the{" "}
+                    {DIAGNOSTIC.currencySymbol}
+                    {option.price} comes off any system or partnership you book within 30 days.
+                  </p>
+                </div>
+              ))}
 
               {unlockError && (
                 <p className="mt-4 text-center text-[13px] leading-relaxed text-tulivo-red">{unlockError}</p>
@@ -345,14 +333,18 @@ export function ResultsScreen({
                 <p className="text-[13px] leading-relaxed text-tulivo-muted">
                   {impact.available ? (
                     <>
-                      Both are one-off. Set against roughly{" "}
-                      <strong className="font-semibold text-tulivo-ink">
+                      A one-off {DIAGNOSTIC.currencySymbol}
+                      {DIAGNOSTIC.tiers[0].price}, set against roughly{" "}
+                      <strong className="font-medium text-tulivo-head">
                         {formatMoney(impact.recoverable, currency)}
                       </strong>{" "}
                       a year currently leaking out of your journey.
                     </>
                   ) : (
-                    <>Both are one-off, and yours to keep.</>
+                    <>
+                      A one-off {DIAGNOSTIC.currencySymbol}
+                      {DIAGNOSTIC.tiers[0].price}, and yours to keep.
+                    </>
                   )}
                 </p>
                 <button
@@ -407,23 +399,26 @@ export function ResultsScreen({
             </Button>
           </Card>
 
-          {tier === "call" && (
-            <Card className="mt-4 flex flex-col items-start gap-5 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
-              <div>
-                <Eyebrow>Your walkthrough call</Eyebrow>
-                <h2 className="mt-2 text-[20px] font-semibold tracking-[-0.02em] text-tulivo-ink">
-                  Book your 45 minutes with {DIAGNOSTIC.consultant.split(" ")[0]}
-                </h2>
-                <p className="mt-1.5 max-w-[52ch] text-[14px] leading-relaxed text-tulivo-muted">
-                  We&apos;ll walk through your results, agree your focus KPI and decide the first two things
-                  to build. Bring your report - no preparation needed beyond that.
-                </p>
-              </div>
-              <a href={DIAGNOSTIC.bookingUrl} target="_blank" rel="noreferrer" className="w-full sm:w-auto">
-                <Button full>Book your call</Button>
-              </a>
-            </Card>
-          )}
+          <Card className="mt-4 flex flex-col items-start gap-5 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+            <div>
+              <Eyebrow>Talk it through</Eyebrow>
+              <h2 className="mt-2 text-[22px] font-medium tracking-[-0.035em] text-tulivo-head">
+                Book a free 30-minute walkthrough
+              </h2>
+              <p className="mt-2 max-w-[56ch] text-[15px] leading-relaxed text-tulivo-muted">
+                Book a free 30-minute walkthrough of your report. We&rsquo;ll agree the one thing
+                to fix first, and you&rsquo;ll leave knowing exactly what to do next.
+              </p>
+            </div>
+            <a
+              href={DIAGNOSTIC.bookingUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="w-full sm:w-auto"
+            >
+              <Button full>Book your free walkthrough</Button>
+            </a>
+          </Card>
 
           <div className="mt-10">
             <Eyebrow>This week</Eyebrow>
@@ -635,9 +630,9 @@ export function ResultsScreen({
                 <h3 className="text-[16px] font-semibold tracking-[-0.02em] text-tulivo-ink">{offer.name}</h3>
                 <p className="mt-1 text-[13px] font-medium text-tulivo-muted">{offer.price}</p>
                 <p className="mt-3 flex-1 text-[14px] leading-relaxed text-tulivo-muted">{offer.description}</p>
-                {offer.emphasis && (
-                  <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-tulivo-muted">
-                    Built with you
+                {offer.label && (
+                  <p className="mt-4 text-[11px] font-medium uppercase tracking-[0.16em] text-tulivo-muted">
+                    {offer.label}
                   </p>
                 )}
               </div>
@@ -817,7 +812,7 @@ function CheckMark() {
       <path
         d="M3 8.4l3.2 3.2L13 4.6"
         fill="none"
-        stroke="rgb(var(--t-clay))"
+        stroke="rgb(var(--t-purple))"
         strokeWidth="1.8"
         strokeLinecap="round"
         strokeLinejoin="round"

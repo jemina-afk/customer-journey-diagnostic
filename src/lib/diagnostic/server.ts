@@ -17,7 +17,6 @@ export const SERVER_CONFIG = {
   notifyEmail: process.env.DIAGNOSTIC_NOTIFY_EMAIL ?? "jemina@tulivodigital.com",
   stripeKey: process.env.STRIPE_SECRET_KEY ?? "",
   reportPence: Number(process.env.DIAGNOSTIC_REPORT_PENCE ?? 9700),
-  callPence: Number(process.env.DIAGNOSTIC_CALL_PENCE ?? 49700),
   unlockCode: process.env.DIAGNOSTIC_UNLOCK_CODE ?? "",
 };
 

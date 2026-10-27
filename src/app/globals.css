@@ -125,8 +125,8 @@ input[type="range"].t-range::-webkit-slider-runnable-track {
   border-radius: 999px;
   background: linear-gradient(
     to right,
-    rgb(var(--t-clay)) 0%,
-    rgb(var(--t-clay)) var(--fill, 0%),
+    rgb(var(--t-purple)) 0%,
+    rgb(var(--t-purple)) var(--fill, 0%),
     rgb(var(--t-line)) var(--fill, 0%),
     rgb(var(--t-line)) 100%
   );
@@ -136,8 +136,8 @@ input[type="range"].t-range::-moz-range-track {
   border-radius: 999px;
   background: linear-gradient(
     to right,
-    rgb(var(--t-clay)) 0%,
-    rgb(var(--t-clay)) var(--fill, 0%),
+    rgb(var(--t-purple)) 0%,
+    rgb(var(--t-purple)) var(--fill, 0%),
     rgb(var(--t-line)) var(--fill, 0%),
     rgb(var(--t-line)) 100%
   );
@@ -150,7 +150,7 @@ input[type="range"].t-range::-webkit-slider-thumb {
   width: 28px;
   border-radius: 50%;
   background: rgb(var(--t-card));
-  border: 2px solid rgb(var(--t-clay));
+  border: 2px solid rgb(var(--t-purple));
   box-shadow: 0 4px 14px -4px rgba(154, 71, 47, 0.6);
 }
 input[type="range"].t-range::-moz-range-thumb {
@@ -158,6 +158,6 @@ input[type="range"].t-range::-moz-range-thumb {
   width: 26px;
   border-radius: 50%;
   background: rgb(var(--t-card));
-  border: 2px solid rgb(var(--t-clay));
+  border: 2px solid rgb(var(--t-purple));
   box-shadow: 0 4px 14px -4px rgba(154, 71, 47, 0.6);
 }

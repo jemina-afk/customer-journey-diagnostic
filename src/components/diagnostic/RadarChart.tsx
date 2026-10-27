@@ -49,8 +49,8 @@ export function RadarChart({ sections }: { sections: SectionResult[] }) {
     >
       <defs>
         <radialGradient id="radar-fill" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="rgb(var(--t-clay))" stopOpacity="0.32" />
-          <stop offset="100%" stopColor="rgb(var(--t-clay))" stopOpacity="0.14" />
+          <stop offset="0%" stopColor="rgb(var(--t-purple))" stopOpacity="0.32" />
+          <stop offset="100%" stopColor="rgb(var(--t-purple))" stopOpacity="0.14" />
         </radialGradient>
       </defs>
 
@@ -72,7 +72,7 @@ export function RadarChart({ sections }: { sections: SectionResult[] }) {
       <motion.path
         d={polygon(values)}
         fill="url(#radar-fill)"
-        stroke="rgb(var(--t-clay))"
+        stroke="rgb(var(--t-purple))"
         strokeWidth="2"
         strokeLinejoin="round"
         initial={{ opacity: 0, scale: 0.72 }}

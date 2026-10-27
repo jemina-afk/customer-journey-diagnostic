@@ -44,23 +44,18 @@ export async function POST(request: Request) {
   params.set("metadata[overall]", String(body.overall ?? ""));
   params.set("line_items[0][quantity]", "1");
   params.set("line_items[0][price_data][currency]", "gbp");
-  const withCall = body.tier === "call";
-  params.set("metadata[tier]", withCall ? "call" : "report");
-  params.set(
-    "line_items[0][price_data][unit_amount]",
-    String(withCall ? SERVER_CONFIG.callPence : SERVER_CONFIG.reportPence),
-  );
+  /* One product. The walkthrough call is free afterwards, so there is no
+     second price to pass in and nothing a crafted request can ask to be
+     charged for. */
+  params.set("metadata[tier]", "report");
+  params.set("line_items[0][price_data][unit_amount]", String(SERVER_CONFIG.reportPence));
   params.set(
     "line_items[0][price_data][product_data][name]",
-    withCall
-      ? "Customer Journey Diagnostic - Report + Walkthrough Call"
-      : "Customer Journey Diagnostic - Full Report",
+    "Customer Journey Diagnostic - Full Report",
   );
   params.set(
     "line_items[0][price_data][product_data][description]",
-    withCall
-      ? `${DIAGNOSTIC.reportPages}-page report, your 90-day focus KPI and priorities, plus a 45-minute walkthrough call.`
-      : `${DIAGNOSTIC.reportPages}-page report with recommendations and your 90-day focus KPI and priorities.`,
+    `${DIAGNOSTIC.reportPages}-page report with recommendations and your 90-day focus KPI and priorities.`,
   );
 
   try {
