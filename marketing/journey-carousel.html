@@ -1,0 +1,711 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eight Stages</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ------------------------------------------------------------------ page */
+  :root {
+    --navy:      #1F2140;
+    --plum:      #2B2340;
+    --white:     #FFFFFF;
+    --body:      #A9A3C2;
+    --dim:       #837DA0;
+    --accent-a:  #7B4FB8;
+    --accent-b:  #C9B6E8;
+
+    /* The canvas is exactly 1080 x 1350. JS may scale it down for preview
+       only; recording is done at 100%. */
+    --scale: 1;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    background: #000;
+    min-height: 100%;
+  }
+
+  body {
+    font-family: "Inter Tight", ui-sans-serif, system-ui, -apple-system,
+                 "Segoe UI", sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    padding: 24px 0 40px;
+  }
+
+  /* The wrapper reserves the scaled footprint so the controls never sit on
+     top of the canvas. */
+  .frame {
+    width: calc(1080px * var(--scale));
+    height: calc(1350px * var(--scale));
+    flex: none;
+  }
+
+  /* ---------------------------------------------------------------- canvas */
+  .canvas {
+    position: relative;
+    width: 1080px;
+    height: 1350px;
+    overflow: hidden;
+    transform: scale(var(--scale));
+    transform-origin: top left;
+    background:
+      radial-gradient(58% 42% at 8% 4%, rgba(146, 92, 208, 0.40) 0%, rgba(146, 92, 208, 0) 68%),
+      radial-gradient(70% 50% at 96% 100%, rgba(92, 64, 150, 0.30) 0%, rgba(92, 64, 150, 0) 70%),
+      linear-gradient(158deg, var(--plum) 0%, #251F3C 46%, var(--navy) 100%);
+    /* Text antialiasing matters a lot once this is re-encoded to H.264. */
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    opacity: 0;
+  }
+
+  .canvas.lit { animation: fadeIn 0.85s cubic-bezier(.22,.7,.25,1) forwards; }
+
+  @keyframes fadeIn { to { opacity: 1; } }
+
+  /* Grain. An inline feTurbulence, so the file stays self-contained. */
+  .grain {
+    position: absolute;
+    inset: -40px;
+    pointer-events: none;
+    opacity: 0.085;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'>\
+<filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/>\
+<feColorMatrix type='saturate' values='0'/></filter>\
+<rect width='220' height='220' filter='url(%23n)'/></svg>");
+  }
+
+  /* ---------------------------------------------------------------- header */
+  .head-block { position: absolute; left: 74px; right: 74px; top: 66px; }
+
+  .label, .headline, .subtext {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  .label.in, .headline.in, .subtext.in {
+    animation: rise 0.72s cubic-bezier(.22,.7,.25,1) forwards;
+  }
+  @keyframes rise { to { opacity: 1; transform: translateY(0); } }
+
+  .label {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+
+  .headline {
+    margin: 22px 0 0;
+    max-width: 880px;
+    font-size: 56px;
+    font-weight: 500;
+    line-height: 1.05;
+    letter-spacing: -0.038em;
+    color: var(--white);
+  }
+
+  .subtext {
+    margin: 24px 0 0;
+    max-width: 790px;
+    font-size: 19.5px;
+    font-weight: 400;
+    line-height: 1.58;
+    color: var(--body);
+  }
+
+  /* -------------------------------------------------------------- timeline */
+  .rail {
+    position: absolute;
+    left: 538px;
+    top: 432px;
+    width: 4px;
+    height: 786px;
+    border-radius: 2px;
+    background: linear-gradient(180deg, var(--accent-a) 0%, var(--accent-b) 100%);
+    /* Revealed top-down by JS, one pixel value per frame. */
+    clip-path: inset(0 0 100% 0);
+  }
+
+  .rail-track {
+    position: absolute;
+    left: 538px;
+    top: 432px;
+    width: 4px;
+    height: 786px;
+    border-radius: 2px;
+    background: rgba(169, 163, 194, 0.11);
+  }
+
+  /* The glow pass: a soft comet that runs the rail once, at the end. */
+  /* Screen blending is what makes this read as light travelling along the
+     rail rather than a pale shape sliding over it. */
+  .comet {
+    position: absolute;
+    left: 512px;
+    width: 56px;
+    height: 250px;
+    top: 388px;
+    border-radius: 28px;
+    opacity: 0;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    background: linear-gradient(180deg,
+      rgba(150, 110, 215, 0) 0%,
+      rgba(186, 158, 236, 0.55) 34%,
+      rgba(248, 242, 255, 1) 50%,
+      rgba(186, 158, 236, 0.55) 66%,
+      rgba(150, 110, 215, 0) 100%);
+    filter: blur(9px);
+  }
+  .comet.run { animation: comet 1.3s cubic-bezier(.45,0,.4,1) forwards; }
+  @keyframes comet {
+    0%   { opacity: 0; transform: translateY(0); }
+    10%  { opacity: 1; }
+    86%  { opacity: 1; }
+    100% { opacity: 0; transform: translateY(810px); }
+  }
+
+  .rail.glow { animation: railGlow 1.3s ease-in-out; }
+  @keyframes railGlow {
+    0%, 100% { filter: none; }
+    50%      { filter: brightness(1.7) saturate(1.15)
+                       drop-shadow(0 0 18px rgba(214, 196, 255, 0.75)); }
+  }
+
+  /* ------------------------------------------------------------------ dots */
+  .dot {
+    position: absolute;
+    left: 540px;
+    width: 13px;
+    height: 13px;
+    margin: -6.5px 0 0 -6.5px;
+    border-radius: 50%;
+    background: var(--c);
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  .dot.in { animation: dotIn 0.5s cubic-bezier(.22,.7,.25,1) forwards; }
+  @keyframes dotIn { to { opacity: 1; transform: scale(1); } }
+
+  .dot::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 1.5px solid var(--c);
+    opacity: 0;
+  }
+  .dot.in::after { animation: pulse 1.05s cubic-bezier(.2,.6,.3,1) 0.1s forwards; }
+  @keyframes pulse {
+    0%   { opacity: 0.85; transform: scale(0.75); }
+    100% { opacity: 0;    transform: scale(2.7); }
+  }
+
+  /* ---------------------------------------------------------------- stages */
+  .stage {
+    position: absolute;
+    width: 418px;
+    opacity: 0;
+  }
+  .stage.left  { right: 586px; text-align: right; transform: translate(-54px, -50%); }
+  .stage.right { left: 586px;  text-align: left;  transform: translate(54px, -50%); }
+
+  .stage.in {
+    animation: slideIn 0.58s cubic-bezier(.22,.72,.26,1) forwards;
+  }
+  @keyframes slideIn { to { opacity: 1; transform: translate(0, -50%); } }
+
+  .head-row {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+  }
+  .stage.left .head-row { flex-direction: row-reverse; }
+
+  .num {
+    font-size: 14.5px;
+    font-weight: 500;
+    letter-spacing: 0.17em;
+    color: var(--c);
+  }
+
+  .title {
+    margin: 13px 0 0;
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: -0.032em;
+    color: var(--white);
+  }
+
+  .desc {
+    margin: 8px 0 0;
+    font-size: 16.5px;
+    font-weight: 400;
+    line-height: 1.45;
+    color: var(--body);
+  }
+
+  /* ----------------------------------------------------------------- icons */
+  .icon { width: 36px; height: 36px; flex: none; overflow: visible; color: var(--c); }
+  .icon [stroke] { vector-effect: non-scaling-stroke; }
+
+  /* Every drawn part starts fully dashed out; JS fills in the real length. */
+  .dw { stroke-dashoffset: var(--len); stroke-dasharray: var(--len); }
+  .stage.in .dw { animation: draw 0.52s cubic-bezier(.3,.6,.3,1) 0.12s forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+
+  /* --- the small action each icon performs once it has drawn --- */
+  .stage.in .sweep   { animation: sweep   0.95s cubic-bezier(.4,0,.3,1) 0.72s; }
+  .stage.in .dots    { animation: dotsIn  0.2s ease-out 0.76s forwards; }
+  .stage.in .dots circle:nth-child(1) { animation: bob 0.95s cubic-bezier(.4,0,.3,1) 0.80s 2; }
+  .stage.in .dots circle:nth-child(2) { animation: bob 0.95s cubic-bezier(.4,0,.3,1) 0.92s 2; }
+  .stage.in .dots circle:nth-child(3) { animation: bob 0.95s cubic-bezier(.4,0,.3,1) 1.04s 2; }
+  .stage.in .leaf    { animation: draw 0.52s cubic-bezier(.3,.6,.3,1) 0.12s forwards,
+                                  unfurl 0.72s cubic-bezier(.22,.8,.3,1) 0.60s forwards; }
+  .stage.in .leaf-r  { animation-delay: 0.12s, 0.76s; }
+  .stage.in .tick    { animation: draw 0.5s cubic-bezier(.3,.6,.3,1) 0.78s forwards; }
+  .stage.in .flap    { animation: draw 0.52s cubic-bezier(.3,.6,.3,1) 0.12s forwards,
+                                  openFlap 0.9s cubic-bezier(.3,.7,.3,1) 0.74s forwards; }
+  .stage.in .bell    { animation: ring 0.95s cubic-bezier(.36,.07,.3,1) 0.74s; }
+  .stage.in .star-fill { animation: fillIn 0.65s cubic-bezier(.22,.7,.25,1) 0.72s forwards; }
+  .stage.in .sparkle { animation: spark 0.85s cubic-bezier(.3,.7,.3,1) 0.9s forwards; }
+  .stage.in .spin    { animation: spin 1.15s cubic-bezier(.45,.05,.3,1) 0.72s; }
+
+  @keyframes sweep {
+    0%, 100% { transform: translateX(0); }
+    30%      { transform: translateX(-3.2px); }
+    72%      { transform: translateX(3.2px); }
+  }
+  @keyframes dotsIn { to { opacity: 1; } }
+  @keyframes bob {
+    0%, 42%, 100% { transform: translateY(0); }
+    18%           { transform: translateY(-2.6px); }
+  }
+  @keyframes unfurl { to { transform: scale(1) rotate(0deg); opacity: 1; } }
+  @keyframes openFlap {
+    0%   { transform: scaleY(1); }
+    55%  { transform: scaleY(0.46); }
+    100% { transform: scaleY(0.62); }
+  }
+  @keyframes ring {
+    0%, 100%  { transform: rotate(0deg); }
+    16%       { transform: rotate(10deg); }
+    42%       { transform: rotate(-8deg); }
+    68%       { transform: rotate(5deg); }
+    86%       { transform: rotate(-2.5deg); }
+  }
+  @keyframes fillIn { to { opacity: 0.92; } }
+  @keyframes spark {
+    0%   { opacity: 0; transform: scale(0.2) rotate(-25deg); }
+    45%  { opacity: 1; transform: scale(1)   rotate(0deg); }
+    100% { opacity: 0; transform: scale(0.75) rotate(14deg); }
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Transform origins have to sit on the part that moves, or the action
+     swings the whole glyph about its corner. */
+  .leaf   { transform-origin: 12px 14px; transform: scale(0.05) rotate(-24deg); opacity: 0; }
+  .leaf-r { transform-origin: 12px 15px; transform: scale(0.05) rotate(24deg); }
+  .flap   { transform-origin: 12px 6.2px; }
+  .bell   { transform-origin: 12px 5px; }
+  .spin   { transform-origin: 12px 12px; }
+  .dots   { opacity: 0; }
+  .dots circle { transform-origin: center; }
+  .star-fill { opacity: 0; }
+  .sparkle   { opacity: 0; transform-origin: 19px 5px; }
+  .tick { stroke-dashoffset: var(--len); stroke-dasharray: var(--len); }
+
+  /* ---------------------------------------------------------------- footer */
+  .foot {
+    position: absolute;
+    left: 74px;
+    right: 74px;
+    bottom: 50px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    opacity: 0;
+  }
+  .foot.in { animation: rise 0.8s cubic-bezier(.22,.7,.25,1) forwards; }
+
+  .wordmark {
+    font-size: 30px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: rgba(255, 255, 255, 0.82);
+  }
+  .wordmark span {
+    display: block;
+    margin-top: 5px;
+    font-size: 8.5px;
+    font-weight: 500;
+    letter-spacing: 0.46em;
+    color: rgba(169, 163, 194, 0.68);
+  }
+  .url {
+    font-size: 15px;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    color: rgba(169, 163, 194, 0.68);
+  }
+
+  /* -------------------------------------------------------------- controls */
+  /* Outside the canvas, so a region recording never catches them. */
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 13px;
+    color: #6E6A82;
+  }
+  .controls button {
+    font: inherit;
+    font-weight: 500;
+    color: #D9D4EA;
+    background: #17161F;
+    border: 1px solid #312E3F;
+    border-radius: 999px;
+    padding: 9px 20px;
+    cursor: pointer;
+  }
+  .controls button:hover { background: #211F2C; border-color: #45415A; }
+  .controls kbd {
+    font: inherit;
+    border: 1px solid #312E3F;
+    border-radius: 4px;
+    padding: 1px 5px;
+  }
+</style>
+</head>
+<body>
+
+<div class="frame" id="frame">
+  <div class="canvas" id="canvas">
+    <div class="grain"></div>
+
+    <div class="head-block">
+      <p class="label" id="label">The customer journey</p>
+      <h1 class="headline" id="headline">Eight stages, from the first search to the second booking</h1>
+      <p class="subtext" id="subtext">Every client you have ever had walked these eight steps. Each one
+        holds or leaks on its own, and the diagnostic scores them one at a time.</p>
+    </div>
+
+    <div class="rail-track"></div>
+    <div class="rail" id="rail"></div>
+    <div class="comet" id="comet"></div>
+
+    <div id="stages"></div>
+
+    <div class="foot" id="foot">
+      <div class="wordmark">tulivo<span>DIGITAL</span></div>
+      <div class="url">tulivodigital.com</div>
+    </div>
+  </div>
+</div>
+
+<div class="controls">
+  <button id="replay" type="button">Replay</button>
+  <button id="zoom" type="button">Fit to window</button>
+  <span id="hint">Canvas is exactly 1080 &times; 1350. Record this region. <kbd>R</kbd> replays.</span>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  /* ---------------------------------------------------------------- data */
+
+  const STAGES = [
+    { n: "01", title: "Lead sources and discovery",
+      desc: "Where new clients first hear about you, and how many places that is.",
+      icon: "search" },
+    { n: "02", title: "Lead response",
+      desc: "How quickly an enquiry hears back, while they’re still deciding.",
+      icon: "chat" },
+    { n: "03", title: "Lead nurture and follow-up",
+      desc: "What happens when someone isn’t ready to book straight away.",
+      icon: "sprout" },
+    { n: "04", title: "Booking process",
+      desc: "How many steps sit between “I want this” and “it’s in the diary”.",
+      icon: "calendar" },
+    { n: "05", title: "Confirmation and pre-appointment",
+      desc: "What people receive between booking and arriving.",
+      icon: "envelope" },
+    { n: "06", title: "Reminders and no-show prevention",
+      desc: "How you make sure booked clients actually turn up.",
+      icon: "bell" },
+    { n: "07", title: "Reviews and reputation",
+      desc: "How happy clients tell the next person who’s looking.",
+      icon: "star" },
+    { n: "08", title: "Retention and re-engagement",
+      desc: "How past clients are invited back, and how often they return.",
+      icon: "refresh" },
+  ];
+
+  /* Lucide-shaped line icons, 1.5px stroke, drawn then acted on. The classes
+     are what the stylesheet animates: .dw draws, the rest perform. */
+  const ICONS = {
+    search: `<g class="sweep">
+        <circle class="dw" cx="11" cy="11" r="7"/>
+        <path class="dw" d="M16.3 16.3 L21 21"/>
+      </g>`,
+
+    chat: `<path class="dw" d="M20.5 15.2a2.2 2.2 0 0 1-2.2 2.2H8.2L3.5 21.5V5.7a2.2 2.2 0 0 1 2.2-2.2h12.6a2.2 2.2 0 0 1 2.2 2.2z"/>
+      <g class="dots" fill="currentColor" stroke="none">
+        <circle cx="8.4" cy="10.4" r="1.15"/>
+        <circle cx="12" cy="10.4" r="1.15"/>
+        <circle cx="15.6" cy="10.4" r="1.15"/>
+      </g>`,
+
+    sprout: `<path class="dw" d="M12 21.2 V 12.4"/>
+      <path class="dw leaf" d="M12 13.4c-1.1-3.3-3.4-4.8-6.3-4.8 0 3.2 2 5.5 6.3 4.8z"/>
+      <path class="dw leaf leaf-r" d="M12 15.6c.9-3.7 3-5.4 6.2-5.6 0 3.5-2.2 6.1-6.2 5.6z"/>
+      <path class="dw" d="M7.6 21.2h8.8"/>`,
+
+    calendar: `<rect class="dw" x="3" y="4.8" width="18" height="16.6" rx="2.5"/>
+      <path class="dw" d="M3 9.8h18"/>
+      <path class="dw" d="M8 2.6v4.2"/>
+      <path class="dw" d="M16 2.6v4.2"/>
+      <path class="tick" d="M9.1 15.4l2.3 2.3 4.3-4.3"/>`,
+
+    envelope: `<rect class="dw" x="2.6" y="5.2" width="18.8" height="13.8" rx="2.4"/>
+      <path class="dw flap" d="M3.2 6.4 L12 12.9 L20.8 6.4"/>`,
+
+    bell: `<g class="bell">
+        <path class="dw" d="M6.1 9.7a5.9 5.9 0 0 1 11.8 0c0 5.4 2.2 7 2.2 7H3.9s2.2-1.6 2.2-7z"/>
+      </g>
+      <path class="dw" d="M10.2 19.6a2.1 2.1 0 0 0 3.6 0"/>`,
+
+    star: `<path class="dw" d="M12 2.9l2.9 5.9 6.5.95-4.7 4.6 1.1 6.5L12 17.8l-5.8 3.05 1.1-6.5-4.7-4.6 6.5-.95z"/>
+      <path class="star-fill" d="M12 2.9l2.9 5.9 6.5.95-4.7 4.6 1.1 6.5L12 17.8l-5.8 3.05 1.1-6.5-4.7-4.6 6.5-.95z"
+            fill="currentColor" stroke="none" opacity="0.9"/>
+      <g class="sparkle" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round">
+        <path d="M19 2.4v4.2"/><path d="M16.9 4.5h4.2"/>
+      </g>`,
+
+    refresh: `<g class="spin">
+        <path class="dw" d="M20.6 12a8.6 8.6 0 0 1-8.6 8.6 8.6 8.6 0 0 1-6.5-3"/>
+        <path class="dw" d="M3.4 12A8.6 8.6 0 0 1 12 3.4a8.6 8.6 0 0 1 6.5 3"/>
+        <path class="dw" d="M18.8 2.7v4h-4"/>
+        <path class="dw" d="M5.2 21.3v-4h4"/>
+      </g>`,
+  };
+
+  /* --------------------------------------------------------------- layout */
+
+  const RAIL_TOP = 432;
+  const RAIL_BOTTOM = 1218;
+  const DOT_FIRST = 478;
+  const DOT_LAST = 1172;
+  const GAP = (DOT_LAST - DOT_FIRST) / (STAGES.length - 1);
+
+  const dotY = (i) => DOT_FIRST + i * GAP;
+
+  /* Deep purple at the top to pale lilac at the bottom, one step per stage. */
+  const A = [123, 79, 184];
+  const B = [201, 182, 232];
+  const colourAt = (i) => {
+    const k = i / (STAGES.length - 1);
+    const c = A.map((v, j) => Math.round(v + (B[j] - v) * k));
+    return `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
+  };
+
+  const stagesEl = document.getElementById("stages");
+  const els = [];
+
+  STAGES.forEach((s, i) => {
+    const y = dotY(i);
+    const colour = colourAt(i);
+    const side = i % 2 === 0 ? "left" : "right";
+
+    const dot = document.createElement("div");
+    dot.className = "dot";
+    dot.style.top = `${y}px`;
+    dot.style.setProperty("--c", colour);
+
+    const stage = document.createElement("div");
+    stage.className = `stage ${side}`;
+    stage.style.top = `${y}px`;
+    stage.style.setProperty("--c", colour);
+    stage.innerHTML =
+      `<div class="head-row">
+         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="${colour}"
+              stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+              aria-hidden="true">${ICONS[s.icon]}</svg>
+         <span class="num">${s.n}</span>
+       </div>
+       <p class="title">${s.title}</p>
+       <p class="desc">${s.desc}</p>`;
+
+    stagesEl.append(dot, stage);
+    els.push({ dot, stage, y });
+  });
+
+  /* A stroke-draw needs the real path length, and getTotalLength is the only
+     thing that knows it. Measured once, written to a custom property. */
+  function measure() {
+    document.querySelectorAll(".dw, .tick").forEach((p) => {
+      let len = 200;
+      try { len = p.getTotalLength(); } catch { /* keep the fallback */ }
+      p.style.setProperty("--len", `${Math.ceil(len) + 1}`);
+    });
+  }
+
+  /* ------------------------------------------------------------- timeline */
+
+  const T = {
+    canvas:   0.00,
+    label:    0.55,
+    headline: 0.88,
+    subtext:  1.20,
+    railFrom: 1.50,
+    first:    1.85,   // when stage 01 lands
+    gap:      1.20,   // between stages
+    glow:     0,      // filled in below
+    foot:     0,
+    end:      0,
+  };
+  const lastStage = T.first + T.gap * (STAGES.length - 1);
+  T.glow = lastStage + 1.45;   // after icon 08 has finished its turn
+  T.foot = T.glow + 0.35;
+  T.end  = T.glow + 1.3 + 2.0; // the glow pass, then two seconds held
+
+  /* The rail has to reach each dot at the moment its stage lands, so its
+     progress is a piecewise line through those exact points rather than a
+     single easing curve. */
+  const RAIL_KEYS = [[T.railFrom, RAIL_TOP]]
+    .concat(els.map((e, i) => [T.first + i * T.gap, e.y]))
+    .concat([[lastStage + 0.3, RAIL_BOTTOM]]);
+
+  function railAt(t) {
+    if (t <= RAIL_KEYS[0][0]) return RAIL_TOP;
+    for (let i = 1; i < RAIL_KEYS.length; i++) {
+      const [t0, y0] = RAIL_KEYS[i - 1];
+      const [t1, y1] = RAIL_KEYS[i];
+      if (t <= t1) return y0 + ((t - t0) / (t1 - t0)) * (y1 - y0);
+    }
+    return RAIL_BOTTOM;
+  }
+
+  const canvas = document.getElementById("canvas");
+  const rail = document.getElementById("rail");
+  const comet = document.getElementById("comet");
+  const foot = document.getElementById("foot");
+  const marks = [
+    { at: T.canvas,   el: canvas, cls: "lit" },
+    { at: T.label,    el: document.getElementById("label"), cls: "in" },
+    { at: T.headline, el: document.getElementById("headline"), cls: "in" },
+    { at: T.subtext,  el: document.getElementById("subtext"), cls: "in" },
+  ]
+    .concat(els.flatMap((e, i) => [
+      { at: T.first + i * T.gap, el: e.dot, cls: "in" },
+      { at: T.first + i * T.gap, el: e.stage, cls: "in" },
+    ]))
+    .concat([
+      { at: T.glow, el: comet, cls: "run" },
+      { at: T.glow, el: rail, cls: "glow" },
+      { at: T.foot, el: foot, cls: "in" },
+    ]);
+
+  let start = 0;
+  let raf = 0;
+
+  function frame(now) {
+    const t = (now - start) / 1000;
+
+    for (const m of marks) {
+      if (!m.done && t >= m.at) {
+        m.el.classList.add(m.cls);
+        m.done = true;
+      }
+    }
+
+    const hidden = RAIL_BOTTOM - railAt(t);
+    rail.style.clipPath = `inset(0 0 ${hidden.toFixed(2)}px 0)`;
+
+    if (t < T.end) raf = requestAnimationFrame(frame);
+  }
+
+  function play() {
+    cancelAnimationFrame(raf);
+
+    /* Rewind: drop every class, force one reflow so the browser forgets the
+       finished animations, then start the clock again. */
+    for (const m of marks) {
+      m.el.classList.remove(m.cls);
+      m.done = false;
+    }
+    rail.style.clipPath = `inset(0 0 ${RAIL_BOTTOM - RAIL_TOP}px 0)`;
+    void canvas.offsetWidth;
+
+    start = performance.now();
+    raf = requestAnimationFrame(frame);
+  }
+
+  /* --------------------------------------------------------------- chrome */
+
+  const frameEl = document.getElementById("frame");
+  const zoom = document.getElementById("zoom");
+  const hint = document.getElementById("hint");
+  let fitted = false;
+
+  function setScale(s) {
+    document.documentElement.style.setProperty("--scale", String(s));
+  }
+
+  function fit() {
+    const s = Math.min(
+      (window.innerWidth - 60) / 1080,
+      (window.innerHeight - 140) / 1350,
+      1,
+    );
+    setScale(s);
+    zoom.textContent = "Actual size";
+    hint.innerHTML = `Preview at ${Math.round(s * 100)}%. Switch to actual size to record.`;
+    fitted = true;
+  }
+
+  function actual() {
+    setScale(1);
+    zoom.textContent = "Fit to window";
+    hint.innerHTML = "Canvas is exactly 1080 &times; 1350. Record this region. <kbd>R</kbd> replays.";
+    fitted = false;
+  }
+
+  zoom.addEventListener("click", () => (fitted ? actual() : fit()));
+  document.getElementById("replay").addEventListener("click", play);
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "r" || e.key === "R") play();
+  });
+  window.addEventListener("resize", () => { if (fitted) fit(); });
+
+  /* Waiting on the webfont keeps the headline from reflowing mid-animation,
+     which is the one thing a screen recording cannot be rescued from. */
+  const go = () => { measure(); play(); };
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(go);
+    /* ...but never wait forever on a font that will not arrive. */
+    setTimeout(() => { if (!start) go(); }, 2500);
+  } else {
+    go();
+  }
+
+  window.__journey = { play, T };
+})();
+</script>
+</body>
+</html>
