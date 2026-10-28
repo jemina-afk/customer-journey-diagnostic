@@ -115,22 +115,64 @@ export const TEST_PROFILES: TestProfile[] = [
     expect: { min: 70, max: 95 },
   },
   {
+    /*
+      High value, low volume. Weak at the front of the journey and strong once
+      a client is through the door - the shape a business has when word of
+      mouth carries it and nothing else does.
+    */
     id: "high-value",
     name: "High value, low volume",
-    intent: "Few appointments at £1,200 each. The cost must stay believable against revenue.",
-    quality: { base: 0.35 },
+    intent:
+      "Few appointments at £1,200. Weak on being found and replying, strong on delivery. The cost must stay believable against revenue.",
+    quality: {
+      base: 0.75,
+      "lead-sources": 0.15,
+      "lead-response": 0.2,
+      "lead-nurture": 0.25,
+      reviews: 0.3,
+    },
     appointmentsPerWeek: 6,
     valuePerClient: 1200,
-    expect: { min: 20, max: 65 },
+    expect: { min: 30, max: 70 },
   },
   {
+    /*
+      The mirror image: good at being found and booked, and losing people at
+      the back end, which is what high-volume businesses usually do.
+    */
     id: "high-volume",
     name: "Low value, high volume",
-    intent: "Sixty-five appointments a week at £40. Caps must hold at the other end of the range.",
-    quality: { base: 0.35 },
+    intent:
+      "Sixty-five appointments a week at £40. Strong at the front, leaking at reminders and retention. Caps must hold at the other end of the range.",
+    quality: {
+      base: 0.7,
+      reminders: 0.15,
+      retention: 0.2,
+      confirmation: 0.3,
+      "lead-nurture": 0.35,
+    },
     appointmentsPerWeek: 65,
     valuePerClient: 40,
-    expect: { min: 20, max: 65 },
+    expect: { min: 30, max: 70 },
+  },
+  {
+    /*
+      The one most likely to walk through the door: nothing broken, nothing
+      finished, and real numbers behind it.
+    */
+    id: "typical",
+    name: "Typical business",
+    intent:
+      "A mid-scoring business with realistic numbers. The most likely real customer, and the one the report has to read well for.",
+    quality: {
+      base: 0.6,
+      "lead-response": 0.4,
+      retention: 0.4,
+      reviews: 0.5,
+    },
+    appointmentsPerWeek: 22,
+    valuePerClient: 85,
+    expect: { min: 45, max: 78 },
   },
   {
     id: "dont-know",

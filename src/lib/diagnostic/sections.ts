@@ -374,7 +374,7 @@ export const SECTIONS: Section[] = [
         "Replying in minutes instead of hours wins back work you had already done the hard part for. It costs nothing once the system is in place, it runs while you are with a client, and people read a fast reply as a business that has its act together.",
       supports: ["lead-response", "lead-nurture", "booking"],
       current: (answers) => label(answers, "lead-response", "speed"),
-      target: () => "Under five minutes, every time, including when you're with a client",
+      target: () => "Under 15 minutes in working hours",
       measure: {
         what:
           "How many minutes pass between an enquiry arriving and a reply going out that actually answers the person.",
@@ -1565,8 +1565,10 @@ export const SECTIONS: Section[] = [
       },
       target: (answers) => {
         const value = answer(answers, "reminders.noshow-rate");
-        if (typeof value !== "number") return "Measured weekly, then under 5%";
-        return value <= 5 ? "Held under 5%" : `Under ${Math.max(5, Math.round(value / 2))}%`;
+        if (typeof value !== "number") return "Measured weekly, then halved";
+        if (value <= 5) return "Held under 5%";
+        // Halving it is the most a quarter of reminder work can claim.
+        return `Under ${Math.ceil(value / 2)}%`;
       },
       measure: {
         what:
@@ -2096,8 +2098,10 @@ export const SECTIONS: Section[] = [
       },
       target: (answers) => {
         const value = num(answers, "retention.repeat-rate");
-        if (value === null) return "Measured first, then 60%+";
-        return `${Math.min(Math.max(value + 20, 60), 85)}% repeat`;
+        if (value === null) return "Measured first, then up 10 points in a quarter";
+        // Ten points is a stretch already. Twenty, or a flat 60% floor, handed
+        // a business on 20% a forty-point jump nobody would believe.
+        return `${Math.min(value + 10, 85)}% repeat`;
       },
       measure: {
         what:

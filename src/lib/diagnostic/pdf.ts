@@ -424,7 +424,9 @@ function executiveSummary(doc: Doc, result: DiagnosticResult, profile: Profile, 
   );
   y = paragraph(
     doc,
-    `Your strongest stage is ${strongest(result).title} at ${strongest(result).score}/100. The stage costing you most right now is ${result.priorities[0].title} at ${result.priorities[0].score}/100 - which is where this report starts.`,
+    result.priorities[0]
+      ? `Your strongest stage is ${strongest(result).title} at ${strongest(result).score}/100. The stage costing you most right now is ${result.priorities[0].title} at ${result.priorities[0].score}/100 - which is where this report starts.`
+      : `Your strongest stage is ${strongest(result).title} at ${strongest(result).score}/100, and nothing scored low enough to be worth a quarter of your time. This report is about holding that and taking one stage further.`,
     textX,
     y + 5,
     textW,
@@ -433,7 +435,7 @@ function executiveSummary(doc: Doc, result: DiagnosticResult, profile: Profile, 
   // With a money estimate to show, this paragraph is the one to lose - the
   // figures below make the same point harder.
   const currency = currencyFor(profile.currency);
-  if (!estimateImpact(answers, currency, result.overall).available) {
+  if (!estimateImpact(answers, currency, result.overall, result.sections).available) {
     y = paragraph(
       doc,
       "Every finding is drawn from what you told us. Nothing here is generic: the gaps are the ones your answers revealed, and the recommendations are ordered by what a fix is worth to you.",
@@ -458,9 +460,12 @@ function executiveSummary(doc: Doc, result: DiagnosticResult, profile: Profile, 
   // What it's costing, before the priorities - it's the line that makes the
   // rest of the page feel urgent rather than interesting.
   y = Math.max(y, 104) + 8;
-  const impact = estimateImpact(answers, currency, result.overall);
+  const impact = estimateImpact(answers, currency, result.overall, result.sections);
   if (impact.available) {
-    const boxH = 15 + impact.leaks.length * 5;
+    const SHOWN = 4;
+    const shown = impact.leaks.slice(0, SHOWN);
+    const hidden = impact.leaks.length - shown.length;
+    const boxH = 15 + shown.length * 5 + (hidden > 0 ? 5 : 0);
     doc.setFillColor(WARM_GREY[0], WARM_GREY[1], WARM_GREY[2]);
     doc.rect(M, y, COL_W, boxH, "F");
     setText(doc, 7.5, INK, "bold");
@@ -470,20 +475,75 @@ function executiveSummary(doc: Doc, result: DiagnosticResult, profile: Profile, 
       align: "right",
     });
     let ly = y + 14.5;
-    impact.leaks.forEach((leak) => {
+    shown.forEach((leak) => {
       setText(doc, 8.5, MUTED, "normal");
       doc.text(leak.label, M + 6, ly);
       setText(doc, 8.5, INK, "bold");
       doc.text(formatMoney(leak.annual, currency), PAGE_W - M - 6, ly, { align: "right" });
       ly += 5;
     });
+    if (hidden > 0) {
+      const rest = impact.leaks.slice(SHOWN).reduce((sum, leak) => sum + leak.annual, 0);
+      setText(doc, 8.5, FAINT, "normal");
+      doc.text(`${hidden} smaller gap${hidden === 1 ? "" : "s"} across the other stages`, M + 6, ly);
+      setText(doc, 8.5, FAINT, "bold");
+      doc.text(formatMoney(rest, currency), PAGE_W - M - 6, ly, { align: "right" });
+    }
+    y += boxH + 4;
+
+    // The cap is a share of revenue, so the revenue it is a share of is named.
+    y = paragraph(
+      doc,
+      `Based on ${impact.appointmentsPerWeek} appointment${impact.appointmentsPerWeek === 1 ? "" : "s"} a week at ${formatMoney(impact.averageValue, currency)} over 50 working weeks, an estimated ${formatMoney(impact.annualRevenue, currency)} a year. The total above is held to 15% of that.`,
+      M,
+      y,
+      COL_W,
+      { size: 7.5, colour: FAINT, leading: 3.6 },
+    );
+    y += 6;
+  } else {
+    /* No numbers, so no figure - and the report says how to get one rather
+       than leaving a hole where the money should be. */
+    const boxH = 24;
+    doc.setFillColor(WARM_GREY[0], WARM_GREY[1], WARM_GREY[2]);
+    doc.rect(M, y, COL_W, boxH, "F");
+    setText(doc, 7.5, INK, "bold");
+    doc.text("What the gaps are costing you", M + 6, y + 8);
+    setText(doc, 9.5, INK, "normal");
+    doc.text("Add your appointment numbers to see what these gaps cost.", M + 6, y + 15);
+    setText(doc, 7.5, MUTED, "normal");
+    doc.text(
+      "How many appointments you do in a normal week, and what one is worth on average.",
+      M + 6,
+      y + 20.5,
+    );
     y += boxH + 8;
   }
 
   rule(doc, y);
   y += 10;
-  eyebrow(doc, "Your top three priorities", M, y);
+  eyebrow(
+    doc,
+    result.priorities.length === 0
+      ? "Nothing here needs fixing"
+      : result.priorities.length === 1
+        ? "Your one priority"
+        : `Your top ${result.priorities.length === 2 ? "two" : "three"} priorities`,
+    M,
+    y,
+  );
   y += 8;
+
+  if (result.priorities.length === 0) {
+    y = paragraph(
+      doc,
+      `Every stage is working. There is no gap worth a quarter of your time, so the plan in this report is an upgrade rather than a repair: ${result.cycle.priorities[0]?.stage ?? "your strongest stage"}, taken a level further.`,
+      M,
+      y,
+      COL_W,
+      { size: 10, colour: INK, leading: 4.9 },
+    );
+  }
 
   result.priorities.forEach((section, i) => {
     const colour = statusColour(section.status);
@@ -718,7 +778,13 @@ function roadmapPage(
   rule(doc, y - 6);
   eyebrow(doc, "What to do", M, y, PURPLE);
   y += 8;
-  section.fixes.slice(0, 3).forEach((fix) => {
+  /*
+    How many recommendations fit depends on how much the stage above had to
+    say. Two is not a loss: the week-by-week plan carries every one of them,
+    and a page that runs past its own footer costs more than a third bullet.
+  */
+  const fixCount = PAGE_H - 28 - y > 150 ? 3 : 2;
+  section.fixes.slice(0, fixCount).forEach((fix) => {
     setText(doc, 7, fix.effort === "quick" ? GREEN : PURPLE, { weight: "bold", charSpace: 0.5 });
     doc.text(fix.effort === "quick" ? "QUICK WIN" : "PROJECT", M, y);
     y = paragraph(doc, fix.action, M + 24, y, COL_W - 24, {
@@ -761,7 +827,9 @@ function roadmapPage(
   setText(doc, 8.5, INK, "bold");
   doc.text("Tools on the market", M + tierW + 12, y);
   let my = y + 5.5;
-  tools.market.slice(0, 3).forEach((tool) => {
+  // Whatever room the recommendations and the next-level panel have left.
+  const roomForTools = PAGE_H - 28 - y;
+  tools.market.slice(0, roomForTools < 46 ? 2 : 3).forEach((tool) => {
     setText(doc, 8.5, INK, "bold");
     doc.text(tool.name, M + tierW + 12, my);
     my = paragraph(doc, tool.what, M + tierW + 12, my + 4, tierW, {

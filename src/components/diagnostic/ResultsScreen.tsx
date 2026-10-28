@@ -50,8 +50,8 @@ export function ResultsScreen({
   const [showCode, setShowCode] = useState(false);
   const currency = useMemo(() => currencyFor(profile.currency), [profile.currency]);
   const impact = useMemo(
-    () => estimateImpact(answers, currency, result.overall),
-    [answers, currency, result.overall],
+    () => estimateImpact(answers, currency, result.overall, result.sections),
+    [answers, currency, result.overall, result.sections],
   );
 
   /*
@@ -113,6 +113,22 @@ export function ResultsScreen({
       </motion.section>
 
       {/* ---------- What it's costing ---------- */}
+      {!impact.available && (
+        <section className="mt-12">
+          <Card className="p-6 sm:p-8">
+            <Eyebrow>What the gaps are costing</Eyebrow>
+            <p className="mt-4 max-w-[62ch] text-[17px] leading-[1.65] text-tulivo-ink">
+              Add your appointment numbers to see what these gaps cost.
+            </p>
+            <p className="mt-3 max-w-[62ch] text-[15px] leading-relaxed text-tulivo-muted">
+              Two answers are all it takes: how many appointments you do in a normal week, and
+              what one is worth on average. Without them the scores still stand, but there is no
+              honest way to put a figure on them.
+            </p>
+          </Card>
+        </section>
+      )}
+
       {impact.available && (
         <motion.section
           initial={{ opacity: 0, y: 16 }}
@@ -149,8 +165,9 @@ export function ResultsScreen({
                   ))}
                 </ul>
                 <p className="mt-5 text-[12px] leading-relaxed text-tulivo-faint">
-                  {impact.assumptions.join(" ")} Figures are estimates, rounded, and capped so no single
-                  answer can overstate them.
+                  {impact.assumptions.join(" ")} That is an estimated{" "}
+                  {formatMoney(impact.annualRevenue, currency)} a year, and the total above is held
+                  to 15% of it. Figures are estimates and rounded.
                 </p>
               </div>
             </div>
@@ -208,13 +225,30 @@ export function ResultsScreen({
 
       {/* ---------- Priorities ---------- */}
       <section className="mt-14">
-        <Eyebrow>What to fix first</Eyebrow>
-        <h2 className="mt-3 text-[26px] font-semibold tracking-[-0.025em] text-tulivo-ink sm:text-[30px]">
-          Your three priority areas
+        <Eyebrow>{result.priorities.length === 0 ? "Nothing here needs fixing" : "What to fix first"}</Eyebrow>
+        <h2 className="mt-3 text-[30px] font-medium tracking-[-0.038em] text-tulivo-head">
+          {result.priorities.length === 0
+            ? "Refine and protect"
+            : result.priorities.length === 1
+              ? "Your one priority area"
+              : `Your ${result.priorities.length === 2 ? "two" : "three"} priority areas`}
         </h2>
-        <p className="mt-3 max-w-[62ch] text-[15px] leading-relaxed text-tulivo-muted">
-          Ranked by how much each one is costing you - not simply by score. These are where your next
-          hour of work buys the most.
+        <p className="mt-4 max-w-[66ch] text-[16px] leading-[1.65] text-tulivo-muted">
+          {result.priorities.length === 0 ? (
+            <>
+              Every stage is working. There is no gap here worth a quarter of your time, so the
+              plan below is an upgrade rather than a repair:{" "}
+              <strong className="font-medium text-tulivo-head">
+                {result.cycle.priorities[0]?.stage ?? "your strongest stage"}
+              </strong>
+              , taken a level further.
+            </>
+          ) : (
+            <>
+              Ranked by what each one is costing you, not simply by score. A stage that is already
+              working is left alone, however tempting it is to list it.
+            </>
+          )}
         </p>
 
         <div className="mt-7 grid gap-5 md:grid-cols-3">

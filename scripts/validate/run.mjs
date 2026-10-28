@@ -18,6 +18,7 @@ import { join } from "node:path";
 import { scoreDiagnostic } from "./lib/scoring.js";
 import { estimateImpact, formatMoney } from "./lib/impact.js";
 import { checkReport } from "./lib/validate.js";
+import { frictionCeiling } from "./lib/scoring.js";
 import { TEST_PROFILES, answersFor } from "./lib/fixtures.js";
 import { currencyFor } from "./lib/currency.js";
 import { buildReport } from "./lib/pdf.js";
@@ -129,7 +130,7 @@ let failed = 0;
 for (const profile of TEST_PROFILES) {
   const answers = answersFor(profile);
   const result = scoreDiagnostic(answers, currency);
-  const impact = estimateImpact(answers, currency, result.overall);
+  const impact = estimateImpact(answers, currency, result.overall, result.sections);
 
   const failures = checkReport(result, answers, currency);
   failures.push(...checkAgreement(result).map((detail) => ({ area: "agreement", detail })));
@@ -175,20 +176,60 @@ for (const profile of TEST_PROFILES) {
 /* ------------------------------------------------------------------ report */
 
 const money = (n) => (n > 0 ? formatMoney(n, currency) : "-");
-const pad = (s, n) => String(s).padEnd(n);
 
 console.log("");
-console.log(pad("Profile", 24) + pad("Score", 7) + pad("Top three priorities", 58) + pad("A year", 10) + "Checks");
-console.log("-".repeat(108));
 for (const row of rows) {
-  const top = row.result.priorities.map((p) => p.shortTitle).join(", ");
-  console.log(
-    pad(row.profile.name, 24) +
-      pad(`${row.result.overall}/100`, 7) +
-      pad(top.slice(0, 56), 58) +
-      pad(money(row.impact.available ? row.impact.recoverable : 0), 10) +
-      (row.failures.length === 0 ? "pass" : `${row.failures.length} FAILED`),
-  );
+  const { profile, result, impact, failures } = row;
+  const cost = impact.available
+    ? `${money(impact.recoverable)} a year, on an estimated ${money(impact.annualRevenue)} revenue ` +
+      `(${(impact.recoverable / impact.annualRevenue * 100).toFixed(1)}% of it)`
+    : "no figure - appointment numbers not given";
+
+  const priorities =
+    result.priorities.length === 0
+      ? "none qualify - Refine and protect"
+      : result.priorities.map((p) => `${p.title} (${p.score}/100)`).join(", ");
+
+  console.log(`${profile.name}  -  ${result.overall}/100  (${result.bandLabel})`);
+  console.log(`   cost       ${cost}`);
+  console.log(`   priorities ${priorities}`);
+  console.log(`   focus      ${result.cycle.kpi}: ${result.cycle.current ?? "not measured"} -> ${result.cycle.target}`);
+  console.log(`   next cycle ${result.cycle.next ? result.cycle.next.stage : "none named - re-run in 90 days to confirm your gains hold"}`);
+  console.log(`   checks     ${failures.length === 0 ? "all passed" : `${failures.length} FAILED`}`);
+  console.log("");
+}
+
+console.log("Rule-by-rule, across all profiles:");
+const RULES = [
+  ["no priority scores 80+", (r) => r.result.priorities.every((p) => p.score < 80)],
+  ["every priority has a cost or scores under 75", (r) =>
+    r.result.priorities.every((p) =>
+      p.score < 75 ||
+      (r.impact.available && (r.impact.leaks.find((l) => l.stageId === p.id)?.annual ?? 0) > 0))],
+  ["next cycle is never one of this cycle's priorities", (r) =>
+    !r.result.cycle.next ||
+    !r.result.priorities.map((p) => p.title).includes(r.result.cycle.next.stage)],
+  ["every stage under 50 carries a cost when numbers were given", (r) =>
+    !r.impact.available ||
+    r.result.sections
+      .filter((s) => s.score < 50)
+      .every((s) => (r.impact.leaks.find((l) => l.stageId === s.id)?.annual ?? 0) > 0)],
+  ["the total stays under 15% of revenue", (r) =>
+    !r.impact.available || r.impact.recoverable <= r.impact.annualRevenue * 0.15 + 1],
+  ["the parts add up to the total", (r) =>
+    !r.impact.available ||
+    Math.abs(r.impact.leaks.reduce((t, l) => t + l.annual, 0) - r.impact.recoverable) <= 1],
+  ["no stage scores above what its named problems allow", (r) =>
+    r.result.sections.every((s) => s.score <= frictionCeiling(s.gaps.length))],
+  ["the focus target carries a unit", (r) =>
+    /[%£$€]|minute|hour|day|week|month|review|client|enquir|\d/i.test(r.result.cycle.target)],
+  ["nothing is drawn outside its margins", (r) =>
+    !r.failures.some((f) => f.area === "layout")],
+];
+for (const [name, holds] of RULES) {
+  const broken = rows.filter((r) => !holds(r)).map((r) => r.profile.name);
+  console.log(`   ${broken.length === 0 ? "pass" : "FAIL"}  ${name}` +
+    (broken.length ? `  (${broken.join(", ")})` : ""));
 }
 console.log("");
 

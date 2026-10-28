@@ -1,5 +1,12 @@
 import { SECTIONS } from "./sections";
-import { LEAK_FOR_STAGE, bandWithWeakestStage, levelFor, statusFor } from "./scoring";
+import {
+  PRIORITY_CEILING,
+  PRIORITY_SCORE,
+  bandWithWeakestStage,
+  frictionCeiling,
+  levelFor,
+  statusFor,
+} from "./scoring";
 import { estimateImpact } from "./impact";
 import { DEFAULT_CURRENCY } from "./currency";
 import type { Currency } from "./currency";
@@ -25,8 +32,7 @@ export interface Failure {
 
 /* The caps the estimate promises. Kept here as well as in impact.ts on
    purpose: a check that reads the value it is checking proves nothing. */
-const PER_LEAK_CAP = 0.18;
-const TOTAL_CAP = 0.35;
+const TOTAL_CAP = 0.15;
 const WORKING_WEEKS = 50;
 
 const PLACEHOLDERS = [
@@ -53,6 +59,12 @@ export function checkReport(
   result.sections.forEach((section) => {
     if (!Number.isFinite(section.score) || section.score < 0 || section.score > 100) {
       add("scores", `${section.title} scored ${section.score}, which is outside 0-100`);
+    }
+    if (section.score > frictionCeiling(section.gaps.length)) {
+      add(
+        "scores",
+        `${section.title} scored ${section.score} with ${section.gaps.length} problems named, over its ceiling of ${frictionCeiling(section.gaps.length)}`,
+      );
     }
     if (section.status !== statusFor(section.score)) {
       add("scores", `${section.title} is ${section.status} but ${section.score} is ${statusFor(section.score)}`);
@@ -92,7 +104,7 @@ export function checkReport(
 
   /* -------------------------------------------------------------- costs */
 
-  const impact = estimateImpact(answers, currency, result.overall);
+  const impact = estimateImpact(answers, currency, result.overall, result.sections);
   if (impact.available) {
     const revenue = impact.appointmentsPerWeek * impact.averageValue * WORKING_WEEKS;
     if (Math.abs(revenue - impact.annualRevenue) > 2) {
@@ -101,13 +113,20 @@ export function checkReport(
     impact.leaks.forEach((leak) => {
       if (leak.annual < 0) add("costs", `${leak.label} is negative (${leak.annual})`);
       if (!Number.isFinite(leak.annual)) add("costs", `${leak.label} is not a number`);
-      if (revenue > 0 && leak.annual > revenue * PER_LEAK_CAP + 1) {
-        add(
-          "costs",
-          `${leak.label} is ${leak.annual}, over the ${PER_LEAK_CAP * 100}% cap of ${Math.round(revenue * PER_LEAK_CAP)}`,
-        );
-      }
     });
+
+    /*
+      A stage the owner can see is broken, with no figure beside it, is the
+      report failing at the one job it was bought for.
+    */
+    result.sections
+      .filter((section) => section.score < 50)
+      .forEach((section) => {
+        const priced = impact.leaks.find((leak) => leak.stageId === section.id);
+        if (!priced || priced.annual <= 0) {
+          add("costs", `${section.title} scored ${section.score} but carries no cost`);
+        }
+      });
     const sum = impact.leaks.reduce((total, leak) => total + leak.annual, 0);
     if (Math.abs(sum - impact.recoverable) > 1) {
       add("costs", `the total is ${impact.recoverable} but the parts add up to ${sum}`);
@@ -122,11 +141,8 @@ export function checkReport(
 
   /* --------------------------------------------------------- priorities */
 
-  const costOf = (id: string) => {
-    const leak = LEAK_FOR_STAGE[id];
-    if (!leak || !impact.available) return 0;
-    return impact.leaks.find((l) => l.id === leak)?.annual ?? 0;
-  };
+  const costOf = (id: string) =>
+    impact.available ? impact.leaks.find((leak) => leak.stageId === id)?.annual ?? 0 : 0;
   const ranked = [...result.sections].sort(
     (a, b) => costOf(b.id) - costOf(a.id) || b.opportunity - a.opportunity,
   );
@@ -137,7 +153,32 @@ export function checkReport(
         `priority ${i + 1} is ${priority.title}, but ranking by cost then headroom gives ${ranked[i]?.title}`,
       );
     }
+    if (priority.score >= PRIORITY_CEILING) {
+      add("priorities", `${priority.title} scored ${priority.score} and cannot be a priority`);
+    }
+    if (costOf(priority.id) === 0 && priority.score >= PRIORITY_SCORE) {
+      add(
+        "priorities",
+        `${priority.title} scored ${priority.score} with no cost against it, so it does not qualify`,
+      );
+    }
   });
+
+  // Fewer than three is a legitimate answer; padding it would invent work.
+  const qualifying = result.sections.filter(
+    (section) =>
+      section.score < PRIORITY_CEILING &&
+      (costOf(section.id) > 0 || section.score < PRIORITY_SCORE),
+  );
+  if (result.priorities.length !== Math.min(3, qualifying.length)) {
+    add(
+      "priorities",
+      `${result.priorities.length} priorities shown, but ${qualifying.length} stage(s) qualify`,
+    );
+  }
+  if (qualifying.length === 0 && result.cycle.priorities[0]?.title !== "Refine and protect") {
+    add("priorities", "nothing qualifies, so the plan should be Refine and protect");
+  }
 
   // The focus cycle has to be built on the first priority, not a different one.
   if (result.priorities[0] && result.cycle.stage !== result.priorities[0].title) {
@@ -224,12 +265,36 @@ export function checkReport(
 
   /* --------------------------------------------------------- next cycle */
 
-  const inCycle = new Set(cycle.priorities.map((p) => p.stage));
+  const inCycle = new Set([
+    ...cycle.priorities.map((p) => p.stage),
+    ...result.priorities.map((p) => p.title),
+    cycle.stage,
+  ]);
   if (cycle.next && inCycle.has(cycle.next.stage)) {
     add("nextCycle", `the next cycle names ${cycle.next.stage}, which is already in this one`);
   }
-  if (cycle.next && cycle.next.stage === cycle.stage) {
-    add("nextCycle", `the next cycle names the stage this one is built on`);
+
+  const leftOver = result.sections.filter((section) => !inCycle.has(section.title));
+  const everythingWorks = leftOver.every((section) => section.score >= PRIORITY_CEILING);
+  if (cycle.next && everythingWorks) {
+    add("nextCycle", `every remaining stage scores ${PRIORITY_CEILING}+, so no stage should be named`);
+  }
+  if (!cycle.next && !everythingWorks) {
+    const should = [...leftOver].sort(
+      (a, b) => (costOf(b.id) - costOf(a.id)) || a.score - b.score,
+    )[0];
+    add("nextCycle", `no stage named, but ${should?.title} is still waiting`);
+  }
+  if (cycle.next && !everythingWorks) {
+    const should = [...leftOver].sort(
+      (a, b) => (costOf(b.id) - costOf(a.id)) || a.score - b.score,
+    )[0];
+    if (should && should.title !== cycle.next.stage) {
+      add(
+        "nextCycle",
+        `the next cycle names ${cycle.next.stage}, but ${should.title} costs more or scores lower`,
+      );
+    }
   }
 
   /* --------------------------------------------------------------- copy */

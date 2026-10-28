@@ -79,9 +79,20 @@ const HIDING_SOMETHING = 25;
 export function bandWithWeakestStage(overall: number, sections: SectionResult[]): Band {
   const band = bandFor(overall);
   const weakest = sections.reduce((low, s) => Math.min(low, s.score), 100);
+  /*
+    Below 60 the number is already telling them they have problems, so the
+    wording does not need to pile on. The drop exists for the opposite case: a
+    score high enough to sound like reassurance with a stage in pieces under it.
+  */
+  if (overall < 60) return band;
   if (overall - weakest < HIDING_SOMETHING) return band;
 
-  const drop = weakest < 25 ? 2 : weakest < 50 ? 1 : 0;
+  /*
+    Two bands is reserved for a score that is genuinely flattering - one in the
+    seventies or above with a stage in pieces underneath it. A business already
+    scoring in the fifties does not need telling twice.
+  */
+  const drop = weakest < 25 && overall >= 70 ? 2 : weakest < 50 ? 1 : 0;
   if (drop === 0) return band;
   const i = BAND_ORDER.indexOf(band);
   return BAND_ORDER[Math.max(0, i - drop)];
@@ -96,6 +107,15 @@ export function levelFor(score: number): Level {
   if (score >= 75) return "Automated";
   if (score >= 50) return "Systemised";
   return "Manual";
+}
+
+/* What the named problems allow a stage to score, however the questions
+   averaged out. */
+export function frictionCeiling(problems: number): number {
+  if (problems >= 7) return 40;
+  if (problems >= 5) return 55;
+  if (problems >= 3) return 70;
+  return 100;
 }
 
 export function statusFor(score: number): Status {
@@ -198,7 +218,18 @@ export function scoreSection(section: Section, answers: Answers): SectionResult 
     if (review.fix) fixes.push(review.fix);
   }
 
-  const score = totalWeight > 0 ? Math.round((weighted / totalWeight) * 100) : 0;
+  const average = totalWeight > 0 ? Math.round((weighted / totalWeight) * 100) : 0;
+  /*
+    An average can outvote the evidence. A stage where the answers named four
+    separate things going wrong should not be able to score in the eighties
+    because the rest of its questions were fine - the owner can read the list
+    of problems and the number in the same glance, and if they disagree it is
+    the number they stop believing.
+
+    So the named problems cap the score. Three is a pattern, five is a stage
+    that does not work, seven is one that barely exists.
+  */
+  const score = Math.min(average, frictionCeiling(gaps.length));
   const status = statusFor(score);
   const verdict =
     status === "green" ? section.verdict.strong : status === "amber" ? section.verdict.ok : section.verdict.weak;
@@ -240,19 +271,27 @@ export function scoreDiagnostic(
   const band = bandWithWeakestStage(overall, sections);
 
   /*
-    Priorities are ranked by what the gap costs, because money is the thing an
-    owner can act on. Only some stages map onto a priced leak, so weighted
-    headroom breaks the ties and ranks everything the estimate cannot reach.
+    Who may be a priority at all.
+
+    A stage scoring 80 or more is not a priority, whatever it costs: telling an
+    owner to spend a quarter on something that is already working is how a
+    report loses them. Below that, a stage earns its place by having a cost
+    against it or by scoring under 75. Everything else waits.
+
+    They are then ranked by what the gap costs, because money is the thing an
+    owner can act on, with weighted headroom breaking ties and ranking the
+    stages the estimate cannot reach.
   */
-  const impact = estimateImpact(answers, currency, overall);
-  const costOf = (id: string) => {
-    const leak = LEAK_FOR_STAGE[id];
-    if (!leak || !impact.available) return 0;
-    return impact.leaks.find((l) => l.id === leak)?.annual ?? 0;
-  };
-  const ranked = [...sections].sort(
-    (a, b) => costOf(b.id) - costOf(a.id) || b.opportunity - a.opportunity,
-  );
+  const impact = estimateImpact(answers, currency, overall, sections);
+  const costOf = (id: string) =>
+    impact.available ? impact.leaks.find((leak) => leak.stageId === id)?.annual ?? 0 : 0;
+  const qualifies = (section: SectionResult) =>
+    section.score < PRIORITY_CEILING && (costOf(section.id) > 0 || section.score < PRIORITY_SCORE);
+
+  const ranked = [...sections]
+    .filter(qualifies)
+    .sort((a, b) => costOf(b.id) - costOf(a.id) || b.opportunity - a.opportunity);
+  // One or two is a fine answer. Padding it to three invents work.
   const priorities = ranked.slice(0, 3);
 
   // One quick win per stage, weakest stage first - three actions that pull in
@@ -333,6 +372,11 @@ function dedupeFixes(fixes: Fix[]): Fix[] {
   on. Priorities come from the stages the KPI actually depends on - so the work
   compounds on one number instead of being spread thinly across eight.
 */
+/* A stage at or above this is working, and is never a priority. */
+export const PRIORITY_CEILING = 80;
+/* Below this, a stage earns a place even with no cost figure against it. */
+export const PRIORITY_SCORE = 75;
+
 /* Which priced leak, if any, a stage is responsible for. */
 export const LEAK_FOR_STAGE: Record<string, string> = {
   reminders: "no-shows",
@@ -357,7 +401,14 @@ function buildCycle(
   quickWins: Fix[],
   impact: Impact,
 ): FocusCycle {
-  const lead = priorities[0] ?? sections[0];
+  const costFor = (id: string) =>
+    impact.available ? impact.leaks.find((leak) => leak.stageId === id)?.annual ?? 0 : 0;
+  /*
+    With no priorities at all, the cycle still needs a stage to be about. The
+    weakest one is the honest choice - it is the one with the most room left -
+    rather than whichever stage happens to come first in the list.
+  */
+  const lead = priorities[0] ?? [...sections].sort((a, b) => a.score - b.score)[0] ?? sections[0];
   const leadSection = SECTIONS.find((s) => s.id === lead.id) ?? SECTIONS[0];
   const kpi = leadSection.kpi;
 
@@ -401,21 +452,21 @@ function buildCycle(
   }
 
   /*
-    A business already doing nearly everything right has no work left to put in
-    a plan, and inventing some would be the one dishonest thing this report
-    could do. It gets the only priority that is actually true for it: hold the
-    standard, and start measuring the number so the next ninety days have a
-    baseline to beat.
+    A business already doing everything well has no gap to close, and inventing
+    one would be the one dishonest thing this report could do. It gets the
+    opportunity instead: the stage with the most to gain from being taken up a
+    level, framed as the upgrade it is rather than a problem it does not have.
   */
   if (cyclePriorities.length === 0) {
+    const bestSection = leadSection;
     cyclePriorities.push({
-      title: "Hold what you have, and start measuring it",
-      stage: leadSection.title,
+      title: "Refine and protect",
+      stage: bestSection.title,
       window: "",
       steps: [
-        `Start recording ${kpi.name.toLowerCase()} now, so the next ninety days have a number to beat.`,
-        kpi.measure.where,
-        "Re-run this diagnostic in ninety days and compare the two.",
+        `Nothing here needs fixing, so the next ninety days are about taking one thing further. ${bestSection.title} has the most room to gain.`,
+        bestSection.nextLevel,
+        `Start recording ${kpi.name.toLowerCase()} now, so the quarter has a number to hold.`,
       ],
     });
   }
@@ -426,13 +477,25 @@ function buildCycle(
     priority.window = windows[i] ?? windows[windows.length - 1];
   });
 
-  // The next cycle takes the strongest remaining opportunity that this one
-  // didn't already cover.
-  const covered = new Set(cyclePriorities.map((p) => p.stage));
-  const nextSection = [...sections]
-    .sort((a, b) => b.opportunity - a.opportunity)
-    .map((result) => SECTIONS.find((s) => s.id === result.id))
-    .find((section) => section && !covered.has(section.title) && section.id !== leadSection.id);
+  /*
+    The next cycle takes the costliest, or failing that the weakest, stage this
+    cycle is not already working on. If everything left is already working,
+    there is no next stage to name and the report says so instead of inventing
+    one.
+  */
+  const covered = new Set([
+    ...cyclePriorities.map((p) => p.stage),
+    ...priorities.map((p) => p.title),
+    leadSection.title,
+  ]);
+  const remaining = sections.filter((result) => !covered.has(result.title));
+  const nextResult = [...remaining]
+    .sort(
+      (a, b) =>
+        (costFor(a.id) === costFor(b.id) ? a.score - b.score : costFor(b.id) - costFor(a.id)),
+    )
+    .find((result) => result.score < PRIORITY_CEILING);
+  const nextSection = nextResult ? SECTIONS.find((s) => s.id === nextResult.id) : undefined;
 
   const inCycle = new Set(cyclePriorities.map((p) => p.stage));
   const later = [...sections]
@@ -446,7 +509,7 @@ function buildCycle(
     }));
 
   const worth = impact.available
-    ? impact.leaks.find((leak) => leak.id === LEAK_FOR_STAGE[leadSection.id])?.annual ?? null
+    ? impact.leaks.find((leak) => leak.stageId === leadSection.id)?.annual ?? null
     : null;
 
   /*
@@ -490,6 +553,9 @@ function buildCycle(
     target: kpi.target(answers),
     worth,
     priorities: cyclePriorities,
+    /* Null means every remaining stage is already working, and the report
+       says to come back and confirm rather than naming a stage for the sake
+       of naming one. */
     next: nextSection ? { stage: nextSection.title, kpi: nextSection.kpi.name } : null,
   };
 }
