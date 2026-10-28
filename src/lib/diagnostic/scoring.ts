@@ -170,7 +170,7 @@ function clamp01(n: number): number {
 function reviewQuestion(
   q: Question,
   value: AnswerValue | undefined,
-): { strength?: string; gap?: string; fix?: Fix } {
+): { strength?: string; gap?: string; fix?: Fix; friction?: number } {
   if (!hasAnswer(q, value)) return {};
   switch (q.kind) {
     case "choice": {
@@ -201,6 +201,7 @@ export function scoreSection(section: Section, answers: Answers): SectionResult 
   let totalWeight = 0;
   let answeredCount = 0;
   const strengths: string[] = [];
+  let friction = 0;
   const gaps: string[] = [];
   const fixes: Fix[] = [];
 
@@ -216,6 +217,13 @@ export function scoreSection(section: Section, answers: Answers): SectionResult 
     if (review.strength) strengths.push(review.strength);
     if (review.gap) gaps.push(review.gap);
     if (review.fix) fixes.push(review.fix);
+    /*
+      A gap is one problem unless the review says otherwise. A question that
+      reports six points of friction in a single sentence has to count as six,
+      or a stage can score in the eighties with its own answers listing six
+      things that are wrong.
+    */
+    if (review.gap) friction += review.friction ?? 1;
   }
 
   const average = totalWeight > 0 ? Math.round((weighted / totalWeight) * 100) : 0;
@@ -229,7 +237,7 @@ export function scoreSection(section: Section, answers: Answers): SectionResult 
     So the named problems cap the score. Three is a pattern, five is a stage
     that does not work, seven is one that barely exists.
   */
-  const score = Math.min(average, frictionCeiling(gaps.length));
+  const score = Math.min(average, frictionCeiling(friction));
   const status = statusFor(score);
   const verdict =
     status === "green" ? section.verdict.strong : status === "amber" ? section.verdict.ok : section.verdict.weak;
@@ -250,6 +258,7 @@ export function scoreSection(section: Section, answers: Answers): SectionResult 
     kpiName: section.kpi.name,
     nextLevel: section.nextLevel,
     level: levelFor(score),
+    friction,
     measure: section.kpi.measure,
     answered: answeredCount > 0,
   };
@@ -494,6 +503,8 @@ function buildCycle(
       (a, b) =>
         (costFor(a.id) === costFor(b.id) ? a.score - b.score : costFor(b.id) - costFor(a.id)),
     )
+    // A stage at 80 or above is working. Handing it to the next quarter would
+    // be the same mistake the priority rule exists to prevent.
     .find((result) => result.score < PRIORITY_CEILING);
   const nextSection = nextResult ? SECTIONS.find((s) => s.id === nextResult.id) : undefined;
 
@@ -550,7 +561,15 @@ function buildCycle(
     later,
     measure: kpi.measure,
     current: kpi.current(answers),
-    target: kpi.target(answers),
+    /*
+      With nothing to fix, the quarter is about holding the number rather than
+      lifting it - and a stage already past its target would otherwise be shown
+      a goal lower than where it stands, which reads as a downgrade.
+    */
+    target:
+      cyclePriorities[0]?.title === "Refine and protect" && kpi.current(answers)
+        ? `Hold at ${kpi.current(answers)}`
+        : kpi.target(answers),
     worth,
     priorities: cyclePriorities,
     /* Null means every remaining stage is already working, and the report

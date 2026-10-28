@@ -56,8 +56,18 @@ export interface MultiQuestion extends BaseQuestion {
   specify?: { whenValue: string; prompt: string; placeholder?: string };
   /** Scores the whole selection (breadth matters more than any one option). */
   scoreSelection: (values: string[]) => number;
-  /** Narrative for the selection as a whole. */
-  review?: (values: string[]) => { strength?: string; gap?: string; fix?: Fix };
+  /**
+   * Narrative for the selection as a whole. `friction` is how many separate
+   * problems the answer names, where that is more than one: a question that
+   * reports six points of friction in a single sentence still has to count as
+   * six, or the stage can score as if it had one.
+   */
+  review?: (values: string[]) => {
+    strength?: string;
+    gap?: string;
+    fix?: Fix;
+    friction?: number;
+  };
 }
 
 export interface SliderQuestion extends BaseQuestion {
@@ -72,7 +82,12 @@ export interface SliderQuestion extends BaseQuestion {
   format?: (value: number) => string;
   endLabels?: [string, string];
   scoreValue: (value: number) => number;
-  review?: (value: number) => { strength?: string; gap?: string; fix?: Fix };
+  review?: (value: number) => {
+    strength?: string;
+    gap?: string;
+    fix?: Fix;
+    friction?: number;
+  };
   /** An honest way out for a number nobody tracks yet. */
   unknown?: {
     label: string;
@@ -87,7 +102,12 @@ export interface ScaleQuestion extends BaseQuestion {
   kind: "scale";
   lowLabel: string;
   highLabel: string;
-  review?: (value: number) => { strength?: string; gap?: string; fix?: Fix };
+  review?: (value: number) => {
+    strength?: string;
+    gap?: string;
+    fix?: Fix;
+    friction?: number;
+  };
 }
 
 export interface TextQuestion extends BaseQuestion {
@@ -209,6 +229,8 @@ export interface SectionResult {
   nextLevel: string;
   /** Manual, Systemised or Automated, from the score. */
   level: Level;
+  /** How many separate problems the answers named for this stage. */
+  friction: number;
   /** How to get the number that tells them this stage is improving. */
   measure: { what: string; where: string; cadence: string };
   answered: boolean;

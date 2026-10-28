@@ -34,8 +34,14 @@ export interface Leak {
 }
 
 export interface Impact {
-  /** False when we couldn't estimate - the UI then says nothing about money. */
+  /** False when there is no figure to show. */
   available: boolean;
+  /**
+   * Why there is no figure. "no-numbers" means they never gave us the
+   * appointment figures; "no-leaks" means they did, and nothing is leaking
+   * enough to put a number on. The two deserve different sentences.
+   */
+  reason: "ok" | "no-numbers" | "no-leaks";
   appointmentsPerWeek: number;
   averageValue: number;
   annualRevenue: number;
@@ -73,6 +79,18 @@ function round(value: number): number {
   whole set rather than clipping the top of it keeps the parts adding up to the
   headline, which is the first thing a careful reader checks.
 */
+/* What is actually being lost, in the owner's words rather than the model's. */
+const GAP_LABEL: Record<string, string> = {
+  "lead-sources": "People who were never found",
+  "lead-response": "Enquiries that wait too long for a reply",
+  "lead-nurture": "Follow-ups that never happened",
+  booking: "People who gave up part-way through booking",
+  confirmation: "First visits that were never prepared for",
+  reminders: "Appointments that don't turn up",
+  reviews: "Reviews you never asked for",
+  retention: "Clients who don't come back",
+};
+
 function stageShare(section: Section, sections: Section[]): number {
   const total = sections.reduce((sum, s) => sum + s.weight, 0);
   return total > 0 ? section.weight / total : 1 / sections.length;
@@ -93,6 +111,7 @@ export function estimateImpact(
 
   const empty: Impact = {
     available: false,
+    reason: "no-numbers",
     appointmentsPerWeek: perWeek ?? 0,
     averageValue: value ?? 0,
     annualRevenue: 0,
@@ -189,7 +208,7 @@ export function estimateImpact(
     raw.push({
       id: section.id,
       stageId: section.id,
-      label: hit?.label ?? `${titleOf(section.id)}: what the gap costs`,
+      label: hit?.label ?? GAP_LABEL[section.id] ?? `${titleOf(section.id)}: what the gap costs`,
       annual: amount,
       raw: amount,
       basis:
@@ -217,8 +236,10 @@ export function estimateImpact(
 
   const total = leaks.reduce((sum, leak) => sum + leak.annual, 0);
 
+  const available = leaks.length > 0 && total >= 250;
   return {
-    available: leaks.length > 0 && total >= 250,
+    available,
+    reason: available ? "ok" : "no-leaks",
     appointmentsPerWeek: perWeek,
     averageValue: value,
     annualRevenue: round(revenue),

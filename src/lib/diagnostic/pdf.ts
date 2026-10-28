@@ -26,6 +26,7 @@ import {
 } from "./brand";
 import { BRAND_FONTS, GRADIENT, LOGO_RATIO, LOGO_WHITE } from "./brandAssets";
 import { toolsFor } from "./tools";
+import { KPI_LIFT } from "./kpiLift";
 
 /*
   The consulting deliverable. Drawn as vectors with jsPDF rather than a screen
@@ -510,10 +511,18 @@ function executiveSummary(doc: Doc, result: DiagnosticResult, profile: Profile, 
     setText(doc, 7.5, INK, "bold");
     doc.text("What the gaps are costing you", M + 6, y + 8);
     setText(doc, 9.5, INK, "normal");
-    doc.text("Add your appointment numbers to see what these gaps cost.", M + 6, y + 15);
+    doc.text(
+      impact.reason === "no-leaks"
+        ? "No significant leaks. Your journey is protecting your revenue."
+        : "Add your appointment numbers to see what these gaps cost.",
+      M + 6,
+      y + 15,
+    );
     setText(doc, 7.5, MUTED, "normal");
     doc.text(
-      "How many appointments you do in a normal week, and what one is worth on average.",
+      impact.reason === "no-leaks"
+        ? "Nothing scored low enough to put a figure against. Keep measuring, and re-run this in ninety days."
+        : "How many appointments you do in a normal week, and what one is worth on average.",
       M + 6,
       y + 20.5,
     );
@@ -572,7 +581,7 @@ function executiveSummary(doc: Doc, result: DiagnosticResult, profile: Profile, 
   y += 9;
   paragraph(
     doc,
-    "The next page maps all eight stages of your journey. From there, each stage has a page of its own: what's working, what's missing, and exactly what to do about it - followed by your 90-day focus cycle.",
+    "The next page maps all eight stages of your journey. From there the report narrows: the number to move over the next ninety days, then the two or three stages your own figures say are costing you most, written up in full.",
     M,
     y,
     COL_W,
@@ -931,6 +940,38 @@ function weekPlanPage(
     { size: 10, colour: MUTED, leading: 5 },
   );
 
+  /*
+    How many steps fit depends on how long they are, and the foot of the page
+    is already spoken for. So the plan is measured before it is drawn, and
+    trimmed until it clears the box below it. Nothing is lost by trimming: the
+    roadmap pages carry every recommendation in full.
+  */
+  const stepHeight = (action: string) => {
+    setText(doc, 9.5, INK, "normal");
+    return 4.5 + (doc.splitTextToSize(action, COL_W - 22) as string[]).length * 4.5 + 4;
+  };
+
+  const first = phases[0].steps.slice(0, 3);
+  const footH =
+    16 + first.reduce((total, step) => {
+      setText(doc, 8.5, INK, "normal");
+      return total + (doc.splitTextToSize(step.action, COL_W - 24) as string[]).length * 4.2 + 2;
+    }, 0);
+  const footY = PAGE_H - 26 - footH;
+
+  const planHeight = (perPhase: number) =>
+    phases.reduce(
+      (total, phase, i) =>
+        total +
+        7 +
+        phase.steps.slice(0, perPhase).reduce((sum, step) => sum + stepHeight(step.action), 0) +
+        (i < phases.length - 1 ? 9 : 0),
+      0,
+    );
+
+  let perPhase = 3;
+  while (perPhase > 1 && y + 8 + planHeight(perPhase) > footY - 8) perPhase -= 1;
+
   y += 8;
   phases.forEach((phase, i) => {
     fillCircle(doc, M + 3, y - 1, 3, PURPLE);
@@ -942,7 +983,7 @@ function weekPlanPage(
     doc.text(phase.window, PAGE_W - M, y, { align: "right" });
     y += 7;
 
-    phase.steps.forEach((step) => {
+    phase.steps.slice(0, perPhase).forEach((step) => {
       setText(doc, 6.5, step.effort === "quick" ? GREEN : PURPLE, {
         weight: "bold",
         charSpace: 0.4,
@@ -964,18 +1005,9 @@ function weekPlanPage(
     }
   });
 
-  /*
-    Where to start, at the foot. These are phase one's own items rather than a
-    separate list, because two lists of first steps on one page is one too many.
-  */
-  const first = phases[0].steps.slice(0, 3);
-  setText(doc, 8.5, INK, "normal");
-  const firstH = first.reduce(
-    (total, step) => total + (doc.splitTextToSize(step.action, COL_W - 20) as string[]).length * 4.2 + 2,
-    0,
-  );
-  const footY = Math.min(Math.max(y + 8, PAGE_H - 30 - firstH - 16), PAGE_H - 30 - firstH - 16);
-  fillRect(doc, M, footY, COL_W, firstH + 16, WARM_GREY);
+  /* Where to start, at the foot. These are phase one's own items rather than a
+     separate list, because two lists of first steps on one page is one too many. */
+  fillRect(doc, M, footY, COL_W, footH, WARM_GREY);
   setText(doc, 7.5, INK, { weight: "bold", charSpace: 0.6 });
   doc.text("THREE THINGS YOU CAN DO THIS WEEK", M + 8, footY + 9);
   let wy = footY + 16;
@@ -1030,29 +1062,42 @@ function dashboardPage(
   setText(doc, 7, FAINT, { weight: "bold", charSpace: 0.5 });
   doc.text("EXAMPLE FIGURES", M + 10, y + 34);
 
+  /*
+    The example figures are this business's own: today's number, and a month
+    that has moved one honest step towards the target. The trend line is drawn
+    in whichever direction that step went, so the picture and the numbers
+    cannot disagree.
+  */
+  const example = exampleFigures(cycle);
   setText(doc, 26, CREAM, "bold");
-  doc.text("18", M + 96, y + 24);
+  doc.text(example.now, M + 86, y + 24);
   setText(doc, 7.5, MUTED_ON_NAVY, "normal");
-  doc.text("this month", M + 96, y + 30);
+  doc.text("this month", M + 86, y + 30);
   setText(doc, 14, MUTED_ON_NAVY, "bold");
-  doc.text("31", M + 118, y + 24);
+  doc.text(example.before, M + 110, y + 24);
   setText(doc, 7.5, MUTED_ON_NAVY, "normal");
-  doc.text("last month", M + 118, y + 30);
-  sparkline(doc, PAGE_W - M - 44, y + 11, 34, 16);
+  doc.text("last month", M + 110, y + 30);
+  sparkline(doc, PAGE_W - M - 36, y + 11, 30, 16, example.improving);
   setText(doc, 7, MUTED_ON_NAVY, "normal");
-  doc.text("last 12 weeks", PAGE_W - M - 44, y + 33);
+  doc.text("last 12 weeks", PAGE_W - M - 36, y + 33);
   y += 46;
 
   // Supporting tiles, drawn from the stages in the roadmap.
-  const tiles = roadmap.map((section) => ({
-    name: section.kpiName,
-    stage: section.shortTitle,
-  }));
+  const tiles = roadmap
+    // The focus number has the whole panel above; repeating it as a tile
+    // wastes one of the six and makes the screen look busier than it is.
+    .filter((section) => section.kpiName !== cycle.kpi)
+    .map((section) => ({
+      name: section.kpiName,
+      stage: section.shortTitle,
+      figure: TILE_EXAMPLE[section.kpiName] ?? "- ",
+    }));
   const extra = [
-    { name: "Enquiries received this month", stage: "Lead Sources" },
-    { name: "Appointments booked this month", stage: "Booking" },
-    { name: "Clients who came back this month", stage: "Retention" },
-  ];
+    { name: "Enquiries received", stage: "Lead Sources", figure: "41 this month" },
+    { name: "Appointments booked", stage: "Booking", figure: "96 this month" },
+    { name: "Clients who came back", stage: "Retention", figure: "38 this month" },
+    { name: "Google reviews", stage: "Reviews", figure: "64 total, 7 new" },
+  ].filter((tile) => tile.name !== cycle.kpi);
   const all = [...tiles, ...extra].slice(0, 6);
 
   eyebrow(doc, "Supporting numbers", M, y, FAINT);
@@ -1066,8 +1111,10 @@ function dashboardPage(
     fillRect(doc, tx, ty, tw, 20, WARM_GREY);
     setText(doc, 6.5, FAINT, { weight: "bold", charSpace: 0.4 });
     doc.text(tile.stage.toUpperCase(), tx + 4, ty + 6);
-    setText(doc, 8.5, INK, "bold");
-    doc.text(doc.splitTextToSize(tile.name, tw - 8).slice(0, 2) as string[], tx + 4, ty + 12);
+    setText(doc, 8, INK, "normal");
+    doc.text(doc.splitTextToSize(tile.name, tw - 8).slice(0, 1) as string[], tx + 4, ty + 11);
+    setText(doc, 10, INK, "bold");
+    doc.text(tile.figure, tx + 4, ty + 17);
   });
   y += Math.ceil(all.length / 3) * 24 + 4;
 
@@ -1151,9 +1198,49 @@ function dashboardPage(
   });
 }
 
+/*
+  Example figures for the dashboard, in the focus KPI's own unit. "This month"
+  is today's number moved one step; a rate that improves by going down, like a
+  no-show rate, moves down.
+*/
+function exampleFigures(cycle: DiagnosticResult["cycle"]) {
+  const today = cycle.current ?? "";
+  const number = /(\d+(?:\.\d+)?)/.exec(today);
+  const lift = KPI_LIFT[cycle.kpi];
+  const down = lift?.direction === "down";
+
+  if (!number) {
+    // No measured figure to build on, so the example is plainly an example.
+    return { now: "- ", before: "- ", improving: true };
+  }
+
+  const value = Number(number[1]);
+  const step = Math.max(1, Math.round(value * 0.08));
+  const now = down ? Math.max(0, value - step) : value + step;
+  const unit = /%/.test(today) ? "%" : "";
+  return {
+    now: `${now}${unit}`,
+    before: `${value}${unit}`,
+    improving: !down,
+  };
+}
+
+/** Example figures for the supporting tiles, in each number's own unit. */
+const TILE_EXAMPLE: Record<string, string> = {
+  "New enquiries a month": "41 this month",
+  "Enquiry response time": "22 minutes",
+  "Enquiry-to-client conversion": "34%",
+  "Bookings taken without you": "61% online",
+  "First-appointment attendance": "88%",
+  "No-show rate": "9%",
+  "Google reviews": "64 total, 7 new",
+  "Repeat client rate": "38%",
+};
+
 /** A twelve-week trend line, drawn from an example shape rather than data. */
-function sparkline(doc: Doc, x: number, y: number, w: number, h: number) {
-  const points = [0.22, 0.3, 0.26, 0.38, 0.44, 0.4, 0.52, 0.6, 0.58, 0.7, 0.78, 0.86];
+function sparkline(doc: Doc, x: number, y: number, w: number, h: number, improving = true) {
+  const rising = [0.22, 0.3, 0.26, 0.38, 0.44, 0.4, 0.52, 0.6, 0.58, 0.7, 0.78, 0.86];
+  const points = improving ? rising : [...rising].reverse();
   doc.setDrawColor(LILAC[0], LILAC[1], LILAC[2]);
   doc.setLineWidth(0.6);
   points.forEach((p, i) => {

@@ -117,14 +117,28 @@ export function ResultsScreen({
         <section className="mt-12">
           <Card className="p-6 sm:p-8">
             <Eyebrow>What the gaps are costing</Eyebrow>
-            <p className="mt-4 max-w-[62ch] text-[17px] leading-[1.65] text-tulivo-ink">
-              Add your appointment numbers to see what these gaps cost.
-            </p>
-            <p className="mt-3 max-w-[62ch] text-[15px] leading-relaxed text-tulivo-muted">
-              Two answers are all it takes: how many appointments you do in a normal week, and
-              what one is worth on average. Without them the scores still stand, but there is no
-              honest way to put a figure on them.
-            </p>
+            {impact.reason === "no-leaks" ? (
+              <>
+                <p className="mt-4 max-w-[62ch] text-[17px] leading-[1.65] text-tulivo-ink">
+                  No significant leaks. Your journey is protecting your revenue.
+                </p>
+                <p className="mt-3 max-w-[62ch] text-[15px] leading-relaxed text-tulivo-muted">
+                  Nothing scored low enough to put a figure against. Keep measuring, and re-run
+                  this in ninety days to check it is holding.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="mt-4 max-w-[62ch] text-[17px] leading-[1.65] text-tulivo-ink">
+                  Add your appointment numbers to see what these gaps cost.
+                </p>
+                <p className="mt-3 max-w-[62ch] text-[15px] leading-relaxed text-tulivo-muted">
+                  Two answers are all it takes: how many appointments you do in a normal week, and
+                  what one is worth on average. Without them the scores still stand, but there is
+                  no honest way to put a figure on them.
+                </p>
+              </>
+            )}
           </Card>
         </section>
       )}

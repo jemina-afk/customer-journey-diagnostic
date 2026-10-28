@@ -1,4 +1,5 @@
 import { SECTIONS } from "./sections";
+import { KPI_LIFT, ceilingFor } from "./kpiLift";
 import {
   PRIORITY_CEILING,
   PRIORITY_SCORE,
@@ -60,10 +61,10 @@ export function checkReport(
     if (!Number.isFinite(section.score) || section.score < 0 || section.score > 100) {
       add("scores", `${section.title} scored ${section.score}, which is outside 0-100`);
     }
-    if (section.score > frictionCeiling(section.gaps.length)) {
+    if (section.score > frictionCeiling(section.friction)) {
       add(
         "scores",
-        `${section.title} scored ${section.score} with ${section.gaps.length} problems named, over its ceiling of ${frictionCeiling(section.gaps.length)}`,
+        `${section.title} scored ${section.score} with ${section.friction} problems named, over its ceiling of ${frictionCeiling(section.friction)}`,
       );
     }
     if (section.status !== statusFor(section.score)) {
@@ -252,15 +253,38 @@ export function checkReport(
 
   /* -------------------------------------------------------------- focus */
 
+  /* A target carries a unit when it names what is being counted: a percentage,
+     a sum of money, a number with a word after it, or a span of time. */
+  const UNIT = /[%£$€]|\d\s*[a-z+]|\bminute|\bhour|\bday|\bweek|\bmonth|\breview|\bclient|\benquir|\bout of\b/i;
+
   const cycle = result.cycle;
   if (!cycle.kpi) add("focus", "the cycle has no KPI");
   if (!cycle.target) add("focus", "the cycle has no target");
   // A target must carry a unit of some kind, or it is just a number on a page.
-  if (cycle.target && !/[%£$€]|\bminute|\bhour|\bday|\bweek|\bmonth|\breview|\bclient|\benquir|\bin \d|\d+\s*\+|out of/i.test(cycle.target)) {
+  if (cycle.target && !UNIT.test(cycle.target)) {
     add("focus", `the target "${cycle.target}" carries no unit`);
   }
   if (cycle.current !== null && cycle.current.trim() === "") {
     add("focus", "today's number is an empty string rather than absent");
+  }
+
+  /*
+    Every KPI type has a defined maximum lift. A target beyond it is a promise
+    the quarter cannot keep, and the owner stops believing the rest of the page.
+  */
+  const todayNumber = /(\d+(?:\.\d+)?)/.exec(cycle.current ?? "");
+  const targetNumber = /(\d+(?:\.\d+)?)/.exec(cycle.target);
+  if (todayNumber && targetNumber && KPI_LIFT[cycle.kpi]) {
+    const today = Number(todayNumber[1]);
+    const target = Number(targetNumber[1]);
+    const ceiling = ceilingFor(cycle.kpi, today);
+    const down = KPI_LIFT[cycle.kpi].direction === "down";
+    if (ceiling !== null && (down ? target < ceiling - 0.5 : target > ceiling + 0.5)) {
+      add(
+        "focus",
+        `${cycle.kpi} asks for ${target} from ${today}, past the most a quarter may claim (${ceiling.toFixed(0)})`,
+      );
+    }
   }
 
   /* --------------------------------------------------------- next cycle */
@@ -276,6 +300,13 @@ export function checkReport(
 
   const leftOver = result.sections.filter((section) => !inCycle.has(section.title));
   const everythingWorks = leftOver.every((section) => section.score >= PRIORITY_CEILING);
+  // A stage that is already working is never handed to the next quarter.
+  if (cycle.next) {
+    const named = result.sections.find((section) => section.title === cycle.next?.stage);
+    if (named && named.score >= PRIORITY_CEILING) {
+      add("nextCycle", `the next cycle names ${named.title}, which scores ${named.score}`);
+    }
+  }
   if (cycle.next && everythingWorks) {
     add("nextCycle", `every remaining stage scores ${PRIORITY_CEILING}+, so no stage should be named`);
   }
@@ -338,6 +369,10 @@ export function checkReport(
     PLACEHOLDERS.forEach((p) => {
       if (lower.includes(p)) add("copy", `"${text.slice(0, 60)}" still contains placeholder text`);
     });
+    // Nothing may describe a structure the report no longer has.
+    if (/\bstage one\b|page of its own|a page of their own/i.test(text)) {
+      add("copy", `"${text.slice(0, 60)}" describes a structure this report does not have`);
+    }
     // Nothing may assume they buy their enquiries.
     if (/\bcost per (lead|enquiry|click)\b|\byour ad spend\b|\bper click\b/i.test(text)) {
       add("copy", `"${text.slice(0, 60)}" assumes the business pays for enquiries`);

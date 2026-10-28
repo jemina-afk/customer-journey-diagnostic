@@ -1,3 +1,4 @@
+import { cappedTarget } from "./kpiLift";
 import { UNKNOWN } from "./types";
 import type { Answers, Question, Section } from "./types";
 
@@ -642,14 +643,14 @@ export const SECTIONS: Section[] = [
       },
       target: (answers) => {
         const value = num(answers, "lead-nurture.conversion-rate");
-        if (value === null) return "Measured first, then lifted by 10-15 points";
-        return `${Math.min(value + 15, 70)}%`;
+        if (value === null) return "Measured first, then lifted a few points";
+        return `${cappedTarget("Enquiry-to-client conversion", value, value + 8)}%`;
       },
       measure: {
         what:
           "Out of every hundred people who enquire, how many end up paying you for something.",
         where:
-          "Use the same enquiry list you started in stage one. Count how many enquiries you received last month. Then go through those same people and count how many have since had an appointment. Divide the second number by the first and multiply by a hundred. Use last month rather than this month, because people who enquired this week have not had time to decide yet.",
+          "Use the same enquiry list as above: one line per enquiry, with the date and where it came from. Count how many enquiries you received last month. Then go through those same people and count how many have since had an appointment. Divide the second number by the first and multiply by a hundred. Use last month rather than this month, because people who enquired this week have not had time to decide yet.",
         cadence:
           "Once a month, always looking at the month before last month. Doing it any sooner makes your conversion rate look worse than it is.",
       },
@@ -1280,6 +1281,7 @@ export const SECTIONS: Section[] = [
             };
           }
           return {
+            friction: signals.length,
             gap: `You recognise ${signals.length} point${signals.length === 1 ? "" : "s"} of friction in your booking process, and each one loses people who had already decided to book.`,
             fix: {
               action:
@@ -1567,8 +1569,7 @@ export const SECTIONS: Section[] = [
         const value = answer(answers, "reminders.noshow-rate");
         if (typeof value !== "number") return "Measured weekly, then halved";
         if (value <= 5) return "Held under 5%";
-        // Halving it is the most a quarter of reminder work can claim.
-        return `Under ${Math.ceil(value / 2)}%`;
+        return `Under ${cappedTarget("No-show rate", value, value / 2)}%`;
       },
       measure: {
         what:
@@ -2098,10 +2099,8 @@ export const SECTIONS: Section[] = [
       },
       target: (answers) => {
         const value = num(answers, "retention.repeat-rate");
-        if (value === null) return "Measured first, then up 10 points in a quarter";
-        // Ten points is a stretch already. Twenty, or a flat 60% floor, handed
-        // a business on 20% a forty-point jump nobody would believe.
-        return `${Math.min(value + 10, 85)}% repeat`;
+        if (value === null) return "Measured first, then up a few points in a quarter";
+        return `${cappedTarget("Repeat client rate", value, value + 10)}% repeat`;
       },
       measure: {
         what:

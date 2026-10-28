@@ -20,12 +20,34 @@ function pickOption(options: Option[], quality: Quality): string {
   return sorted[i].value;
 }
 
-/** A multi-select: the best answers pick broadly, the worst pick one thing. */
+/*
+  A multi-select, answered by what it scores rather than by how many boxes are
+  ticked. On "which routes bring you clients" more is better; on "which of
+  these problems happen" more is worse, and a fixture that ticked every box to
+  mean "good" gave the strong business six points of booking friction.
+*/
 function pickMulti(question: Extract<Question, { kind: "multi" }>, quality: Quality): string[] {
-  const options = question.options.filter((o) => !/^(none|other)$/i.test(o.value));
-  const pool = options.length > 0 ? options : question.options;
-  const count = Math.max(1, Math.round(quality * pool.length));
-  return pool.slice(0, count).map((o) => o.value);
+  const pool = question.options.filter((o) => !/^other$/i.test(o.value));
+  const candidates: string[][] = [];
+
+  const none = pool.find((o) => /^none/i.test(o.value));
+  if (none) candidates.push([none.value]);
+
+  const rest = pool.filter((o) => !/^none/i.test(o.value));
+  for (let n = 1; n <= rest.length; n++) {
+    candidates.push(rest.slice(0, n).map((o) => o.value));
+  }
+
+  let best = candidates[0] ?? [];
+  let bestGap = Infinity;
+  for (const pick of candidates) {
+    const gap = Math.abs(question.scoreSelection(pick) - quality);
+    if (gap < bestGap) {
+      bestGap = gap;
+      best = pick;
+    }
+  }
+  return best;
 }
 
 /** A slider: walk the range and keep whichever value scores closest to target. */

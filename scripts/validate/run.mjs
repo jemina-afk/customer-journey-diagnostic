@@ -19,6 +19,7 @@ import { scoreDiagnostic } from "./lib/scoring.js";
 import { estimateImpact, formatMoney } from "./lib/impact.js";
 import { checkReport } from "./lib/validate.js";
 import { frictionCeiling } from "./lib/scoring.js";
+import { KPI_LIFT, ceilingFor } from "./lib/kpiLift.js";
 import { TEST_PROFILES, answersFor } from "./lib/fixtures.js";
 import { currencyFor } from "./lib/currency.js";
 import { buildReport } from "./lib/pdf.js";
@@ -51,20 +52,89 @@ function checkLayout(doc) {
   const pages = doc.internal.pages;
   for (let page = 1; page < pages.length; page++) {
     const content = pages[page].join("\n");
+
+    /*
+      Two things can be read out of a page: where each line of text was placed,
+      and where each filled box was drawn. A line that sits inside a box drawn
+      after it is hidden behind that box, which is how a phase-three item
+      disappeared under the "three things you can do this week" panel - the
+      coordinates were all fine, and nothing was off the page.
+    */
+    const texts = [];
+    for (const m of content.matchAll(
+      /\/F\d+ ([\d.]+) Tf[\s\S]{0,120}?([\d.]+) ([\d.]+) Td\s*\(((?:\\.|[^)])*)\)\s*Tj/g,
+    )) {
+      const size = Number(m[1]) * PT_TO_MM;
+      const label = m[4].replace(/\\(.)/g, "$1");
+      texts.push({
+        x: Number(m[2]) * PT_TO_MM,
+        y: PAGE_H - Number(m[3]) * PT_TO_MM,
+        // Rough, but a collision has to be wider than rough to matter.
+        w: label.length * size * 0.52,
+        label,
+        at: m.index,
+      });
+    }
+    // Anything the richer pattern missed still has to sit inside the page.
     for (const m of content.matchAll(/([\d.]+) ([\d.]+) Td/g)) {
       const x = Number(m[1]) * PT_TO_MM;
-      // The stream's origin is the bottom-left corner of the page.
       const y = PAGE_H - Number(m[2]) * PT_TO_MM;
+      if (!texts.some((t) => Math.abs(t.x - x) < 0.1 && Math.abs(t.y - y) < 0.1)) {
+        texts.push({ x, y, w: 0, label: "", at: m.index });
+      }
+    }
 
-      // The cover bleeds to the edges on purpose; every other page does not.
-      if (page > 1 && (x < MARGIN - 2 || x > PAGE_W - MARGIN + 2)) {
-        problems.push(`page ${page}: text starts at x=${x.toFixed(1)}mm, outside the ${MARGIN}mm margins`);
+    // Two runs sharing a baseline must not share any of it.
+    for (let a = 0; a < texts.length; a++) {
+      for (let b = a + 1; b < texts.length; b++) {
+        const one = texts[a];
+        const two = texts[b];
+        if (one.w === 0 || two.w === 0) continue;
+        if (Math.abs(one.y - two.y) > 1.5) continue;
+        const left = one.x <= two.x ? one : two;
+        const right = one.x <= two.x ? two : one;
+        if (left.x + left.w > right.x + 0.5) {
+          problems.push(
+            `page ${page}: "${left.label.slice(0, 18)}" runs into "${right.label.slice(0, 18)}" at y=${left.y.toFixed(1)}mm`,
+          );
+        }
       }
-      if (y > FOOTER_BASELINE + 1) {
-        problems.push(`page ${page}: text at y=${y.toFixed(1)}mm is below the footer`);
+    }
+
+    const boxes = [];
+    for (const m of content.matchAll(/([\d.]+) ([\d.]+) ([\d.]+) ([-\d.]+) re\s*\n?f/g)) {
+      /* jsPDF writes a rect as "x yTopFromBottom w -h re", so the stream's y
+         is the box's TOP measured from the foot of the page, and the height
+         runs downward from it. */
+      const x = Number(m[1]) * PT_TO_MM;
+      const top = PAGE_H - Number(m[2]) * PT_TO_MM;
+      const w = Number(m[3]) * PT_TO_MM;
+      const h = Math.abs(Number(m[4])) * PT_TO_MM;
+      boxes.push({ x, w, top, bottom: top + h, at: m.index });
+    }
+
+    for (const t of texts) {
+      if (page > 1 && (t.x < MARGIN - 2 || t.x > PAGE_W - MARGIN + 2)) {
+        problems.push(`page ${page}: text starts at x=${t.x.toFixed(1)}mm, outside the ${MARGIN}mm margins`);
       }
-      if (page > 1 && y < HEADER_BASELINE - 1) {
-        problems.push(`page ${page}: text at y=${y.toFixed(1)}mm is above the header`);
+      if (t.y > FOOTER_BASELINE + 1) {
+        problems.push(`page ${page}: text at y=${t.y.toFixed(1)}mm is below the footer`);
+      }
+      if (page > 1 && t.y < HEADER_BASELINE - 1) {
+        problems.push(`page ${page}: text at y=${t.y.toFixed(1)}mm is above the header`);
+      }
+
+      // Painted over by a box drawn later in the stream.
+      for (const b of boxes) {
+        if (b.at < t.at) continue;
+        const inside =
+          t.x >= b.x - 1 && t.x <= b.x + b.w + 1 && t.y >= b.top - 1 && t.y <= b.bottom + 1;
+        if (inside) {
+          problems.push(
+            `page ${page}: text at y=${t.y.toFixed(1)}mm is hidden behind a box covering ${b.top.toFixed(1)}-${b.bottom.toFixed(1)}mm`,
+          );
+          break;
+        }
       }
     }
   }
@@ -222,9 +292,28 @@ const RULES = [
   ["no stage scores above what its named problems allow", (r) =>
     r.result.sections.every((s) => s.score <= frictionCeiling(s.gaps.length))],
   ["the focus target carries a unit", (r) =>
-    /[%£$€]|minute|hour|day|week|month|review|client|enquir|\d/i.test(r.result.cycle.target)],
-  ["nothing is drawn outside its margins", (r) =>
+    /[%£$€]|\d\s*[a-z+]|minute|hour|day|week|month|review|client|enquir|out of/i.test(r.result.cycle.target)],
+  ["nothing is drawn outside its margins or hidden behind a box", (r) =>
     !r.failures.some((f) => f.area === "layout")],
+  ["no focus target exceeds the maximum lift for its KPI", (r) => {
+    const today = /(\d+(?:\.\d+)?)/.exec(r.result.cycle.current ?? "");
+    const target = /(\d+(?:\.\d+)?)/.exec(r.result.cycle.target);
+    if (!today || !target) return true;
+    const ceiling = ceilingFor(r.result.cycle.kpi, Number(today[1]));
+    if (ceiling === null) return true;
+    return KPI_LIFT[r.result.cycle.kpi]?.direction === "down"
+      ? Number(target[1]) >= ceiling - 0.5
+      : Number(target[1]) <= ceiling + 0.5;
+  }],
+  ["the next cycle never names a stage scoring 80+", (r) => {
+    if (!r.result.cycle.next) return true;
+    const named = r.result.sections.find((s) => s.title === r.result.cycle.next.stage);
+    return !named || named.score < 80;
+  }],
+  ["no stage scores above what its friction allows", (r) =>
+    r.result.sections.every((s) => s.score <= frictionCeiling(s.friction))],
+  ["no cost line is labelled by its stage name", (r) =>
+    r.impact.leaks.every((l) => !/: what the gap costs$/.test(l.label))],
 ];
 for (const [name, holds] of RULES) {
   const broken = rows.filter((r) => !holds(r)).map((r) => r.profile.name);
