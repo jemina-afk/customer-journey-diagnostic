@@ -18,8 +18,20 @@ const WORKING_WEEKS = 50;
 
 /** No single leak may claim more than this share of annual revenue. */
 const PER_LEAK_CAP = 0.18;
-/** Nor may the total. */
+/*
+  Nor may the total - and the total cap bends with the score. A business doing
+  most things right cannot also be told a third of its revenue is recoverable,
+  so the ceiling is the headroom it actually has. At 20/100 almost the whole
+  cap is available; at 70/100 roughly a third of it is.
+*/
 const TOTAL_CAP = 0.35;
+const MIN_TOTAL_CAP = 0.08;
+
+function totalCapFor(overall: number | undefined): number {
+  if (overall === undefined) return TOTAL_CAP;
+  const headroom = Math.max(0, Math.min(100, 100 - overall)) / 100;
+  return Math.max(MIN_TOTAL_CAP, TOTAL_CAP * headroom);
+}
 
 export interface Leak {
   id: string;
@@ -61,6 +73,8 @@ function round(value: number): number {
 export function estimateImpact(
   answers: Answers,
   currency: Currency = DEFAULT_CURRENCY,
+  /** Their overall score, which sets how much of the cap is available. */
+  overall?: number,
 ): Impact {
   const perWeek = numberAnswer(answers, NUMBERS_KEYS.appointments);
   const value = numberAnswer(answers, NUMBERS_KEYS.value);
@@ -174,17 +188,27 @@ export function estimateImpact(
     }
   }
 
-  const total = Math.min(
-    leaks.reduce((sum, leak) => sum + leak.annual, 0),
-    revenue * TOTAL_CAP,
-  );
+  /*
+    When the total cap bites, every leak is scaled back with it. Capping only
+    the total would leave a report whose parts do not add up to its own
+    headline, which is the first thing a careful reader checks.
+  */
+  const raw = leaks.reduce((sum, leak) => sum + leak.annual, 0);
+  const ceiling = revenue * totalCapFor(overall);
+  if (raw > ceiling && raw > 0) {
+    const scale = ceiling / raw;
+    leaks.forEach((leak) => {
+      leak.annual = round(leak.annual * scale);
+    });
+  }
+  const total = leaks.reduce((sum, leak) => sum + leak.annual, 0);
 
   return {
     available: leaks.length > 0 && total >= 250,
     appointmentsPerWeek: perWeek,
     averageValue: value,
     annualRevenue: round(revenue),
-    leaks: leaks.sort((a, b) => b.annual - a.annual),
+    leaks: leaks.filter((leak) => leak.annual > 0).sort((a, b) => b.annual - a.annual),
     recoverable: round(total),
     assumptions,
   };

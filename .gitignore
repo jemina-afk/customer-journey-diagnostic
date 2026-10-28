@@ -25,3 +25,8 @@ next-env.d.ts
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Build directories for the sample and validation runs
+.sample-build/
+.validate/
+.sense/

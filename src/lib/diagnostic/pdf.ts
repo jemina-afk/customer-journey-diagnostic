@@ -433,7 +433,7 @@ function executiveSummary(doc: Doc, result: DiagnosticResult, profile: Profile, 
   // With a money estimate to show, this paragraph is the one to lose - the
   // figures below make the same point harder.
   const currency = currencyFor(profile.currency);
-  if (!estimateImpact(answers, currency).available) {
+  if (!estimateImpact(answers, currency, result.overall).available) {
     y = paragraph(
       doc,
       "Every finding is drawn from what you told us. Nothing here is generic: the gaps are the ones your answers revealed, and the recommendations are ordered by what a fix is worth to you.",
@@ -458,7 +458,7 @@ function executiveSummary(doc: Doc, result: DiagnosticResult, profile: Profile, 
   // What it's costing, before the priorities - it's the line that makes the
   // rest of the page feel urgent rather than interesting.
   y = Math.max(y, 104) + 8;
-  const impact = estimateImpact(answers, currency);
+  const impact = estimateImpact(answers, currency, result.overall);
   if (impact.available) {
     const boxH = 15 + impact.leaks.length * 5;
     doc.setFillColor(WARM_GREY[0], WARM_GREY[1], WARM_GREY[2]);

@@ -49,7 +49,10 @@ export function ResultsScreen({
   const [code, setCode] = useState("");
   const [showCode, setShowCode] = useState(false);
   const currency = useMemo(() => currencyFor(profile.currency), [profile.currency]);
-  const impact = useMemo(() => estimateImpact(answers, currency), [answers, currency]);
+  const impact = useMemo(
+    () => estimateImpact(answers, currency, result.overall),
+    [answers, currency, result.overall],
+  );
 
   /*
     A roadmap, not an equal write-up of eight stages: the two or three the

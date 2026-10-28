@@ -108,7 +108,7 @@ export const SECTIONS: Section[] = [
         if (!Array.isArray(sources) || sources.length === 0) return null;
         return `${sources.length} route${sources.length === 1 ? "" : "s"} in`;
       },
-      target: () => "Three dependable routes, with Google as one of them",
+      target: () => "3+ routes each bringing enquiries every month, Google among them",
       measure: {
         what:
           "Every enquiry you receive, where each one came from, and whether that person went on to book.",
@@ -332,7 +332,7 @@ export const SECTIONS: Section[] = [
                 fix: {
                   action:
                     "Search your main service plus your town in a private browser window. Note who ranks above you, then match them on reviews, photos and service detail in your profile.",
-                  impact: "Puts you in front of people already looking to book, at zero cost per enquiry.",
+                  impact: "Puts you in front of people who are already looking to book, without paying for the privilege.",
                   effort: "quick",
                 },
               },
@@ -957,8 +957,11 @@ export const SECTIONS: Section[] = [
       benefit:
         "Booking that works at any hour means the diary fills while you sleep, and it takes the back-and-forth messaging out of your evenings. You stop being the bottleneck in your own business.",
       supports: ["booking", "lead-response", "lead-sources"],
-      current: (answers) => label(answers, "booking", "247"),
-      target: () => "Every core service bookable 24/7 in two taps",
+      current: (answers) => {
+        const picked = label(answers, "booking", "247");
+        return picked ? `Online booking: ${picked.toLowerCase()}` : null;
+      },
+      target: () => "80%+ of bookings taken online, with no messages first",
       measure: {
         what:
           "What share of your appointments the client booked themselves, without a single message passing between you first.",
@@ -1324,7 +1327,7 @@ export const SECTIONS: Section[] = [
         "People who know what is coming turn up calmer, on time and ready, which makes the appointment itself better. A good first visit is also the single biggest predictor of a second one.",
       supports: ["confirmation", "reminders", "booking"],
       current: (answers) => label(answers, "confirmation", "confirmation"),
-      target: () => "Automated confirmation, preparation and forms before every first visit",
+      target: () => "100% of first visits confirmed, prepared and formed up before the day",
       measure: {
         what:
           "What share of first-time bookings actually turn up, and how many of those people completed whatever you asked them for beforehand.",

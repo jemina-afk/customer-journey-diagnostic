@@ -10,7 +10,11 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "methodology": "node scripts/build-methodology.mjs public/customer-journey-diagnostic-methodology.pdf",
-    "animation": "node scripts/record-animation.mjs"
+    "animation": "node scripts/record-animation.mjs",
+    "validate": "sh scripts/validate/validate.sh",
+    "samples": "sh scripts/validate/validate.sh --pdf",
+    "prebuild": "npm run validate",
+    "sample": "sh scripts/sample/build.sh"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",

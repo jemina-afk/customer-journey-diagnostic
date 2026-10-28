@@ -1,5 +1,5 @@
 import { SECTIONS } from "./sections";
-import { estimateImpact } from "./impact";
+import { estimateImpact, type Impact } from "./impact";
 import { UNKNOWN } from "./types";
 import { DEFAULT_CURRENCY, localise, money, type Currency } from "./currency";
 import type {
@@ -55,6 +55,36 @@ export function bandFor(score: number): Band {
   if (score >= 60) return "functional";
   if (score >= 40) return "leaking";
   return "critical";
+}
+
+const BAND_ORDER: Band[] = ["critical", "leaking", "functional", "optimised"];
+
+/*
+  A journey is a chain, so an average can flatter it. A business scoring 85
+  with one stage at 10 is not optimised: every client still has to get through
+  that stage, and telling them the foundations are solid would be the report
+  getting it plainly wrong.
+
+  So the headline band is held down when the average is hiding something - when
+  one stage sits far below the score the business is being given. A stage under
+  50 costs a band, one under 25 costs two. A business that is simply weak
+  everywhere is not penalised again for it: there, the average is already
+  telling the truth.
+
+  The overall number itself is untouched. The arithmetic is still the
+  arithmetic; it is the wording around it that has to be honest.
+*/
+const HIDING_SOMETHING = 25;
+
+export function bandWithWeakestStage(overall: number, sections: SectionResult[]): Band {
+  const band = bandFor(overall);
+  const weakest = sections.reduce((low, s) => Math.min(low, s.score), 100);
+  if (overall - weakest < HIDING_SOMETHING) return band;
+
+  const drop = weakest < 25 ? 2 : weakest < 50 ? 1 : 0;
+  if (drop === 0) return band;
+  const i = BAND_ORDER.indexOf(band);
+  return BAND_ORDER[Math.max(0, i - drop)];
 }
 
 /*
@@ -207,14 +237,14 @@ export function scoreDiagnostic(
     totalWeight += section.weight;
   });
   const overall = totalWeight > 0 ? Math.round(weighted / totalWeight) : 0;
-  const band = bandFor(overall);
+  const band = bandWithWeakestStage(overall, sections);
 
   /*
     Priorities are ranked by what the gap costs, because money is the thing an
     owner can act on. Only some stages map onto a priced leak, so weighted
     headroom breaks the ties and ranks everything the estimate cannot reach.
   */
-  const impact = estimateImpact(answers, currency);
+  const impact = estimateImpact(answers, currency, overall);
   const costOf = (id: string) => {
     const leak = LEAK_FOR_STAGE[id];
     if (!leak || !impact.available) return 0;
@@ -242,7 +272,7 @@ export function scoreDiagnostic(
     sections,
     priorities,
     quickWins,
-    cycle: buildCycle(priorities, sections, answers, quickWins),
+    cycle: buildCycle(priorities, sections, answers, quickWins, impact),
     clientValue: clientValueOf(answers, currency),
     completedAt: new Date().toISOString(),
   };
@@ -325,6 +355,7 @@ function buildCycle(
   sections: SectionResult[],
   answers: Answers,
   quickWins: Fix[],
+  impact: Impact,
 ): FocusCycle {
   const lead = priorities[0] ?? sections[0];
   const leadSection = SECTIONS.find((s) => s.id === lead.id) ?? SECTIONS[0];
@@ -352,9 +383,12 @@ function buildCycle(
     if (id !== leadSection.id && result.status === "green") continue;
 
     const room = id === leadSection.id ? 3 : 2;
-    let steps = result.fixes.filter((fix) => !used.has(fix.action)).slice(0, room);
-    // A stage whose only actions were quick wins still deserves its priority.
-    if (steps.length === 0) steps = result.fixes.slice(0, 1);
+    const steps = result.fixes.filter((fix) => !used.has(fix.action)).slice(0, room);
+    /*
+      A stage whose every action is already a quick win has nothing left to put
+      in the plan, and repeating one of them would have the owner doing the same
+      job twice. It keeps its quick wins and gives up its slot.
+    */
     if (steps.length === 0) continue;
     steps.forEach((fix) => used.add(fix.action));
 
@@ -363,6 +397,26 @@ function buildCycle(
       stage: section.title,
       window: "",
       steps: steps.map((fix) => fix.action),
+    });
+  }
+
+  /*
+    A business already doing nearly everything right has no work left to put in
+    a plan, and inventing some would be the one dishonest thing this report
+    could do. It gets the only priority that is actually true for it: hold the
+    standard, and start measuring the number so the next ninety days have a
+    baseline to beat.
+  */
+  if (cyclePriorities.length === 0) {
+    cyclePriorities.push({
+      title: "Hold what you have, and start measuring it",
+      stage: leadSection.title,
+      window: "",
+      steps: [
+        `Start recording ${kpi.name.toLowerCase()} now, so the next ninety days have a number to beat.`,
+        kpi.measure.where,
+        "Re-run this diagnostic in ninety days and compare the two.",
+      ],
     });
   }
 
@@ -391,7 +445,6 @@ function buildCycle(
       kpi: SECTIONS.find((s) => s.id === result.id)?.kpi.name ?? "",
     }));
 
-  const impact = estimateImpact(answers);
   const worth = impact.available
     ? impact.leaks.find((leak) => leak.id === LEAK_FOR_STAGE[leadSection.id])?.annual ?? null
     : null;
