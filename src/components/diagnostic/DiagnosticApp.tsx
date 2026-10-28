@@ -21,6 +21,7 @@ import { ResultsScreen } from "./ResultsScreen";
 import { NumbersScreen } from "./NumbersScreen";
 import { SignInScreen } from "./SignInScreen";
 import { TestBar } from "./TestBar";
+import { PreviewToggle } from "./PreviewToggle";
 import { SectionScreen } from "./SectionScreen";
 import { WelcomeScreen } from "./WelcomeScreen";
 
@@ -52,6 +53,9 @@ export function DiagnosticApp() {
   const [testMode, setTestMode] = useState(false);
   // null while unknown; false means the unlock button unlocks without charging.
   const [paymentLive, setPaymentLive] = useState<boolean | null>(null);
+  /* While nothing can take payment, the report opens on its own and the
+     results page offers a switch back to the closed view. */
+  const [previewOpen, setPreviewOpen] = useState(true);
   const [auth, setAuth] = useState<AuthState | null>(null);
   const [signInExpired, setSignInExpired] = useState(false);
   const [quotaError, setQuotaError] = useState<Quota | null>(null);
@@ -427,6 +431,11 @@ export function DiagnosticApp() {
     return <SignInScreen quota={quotaError} windowDays={auth.windowDays ?? 30} />;
   }
 
+  /* Nothing is being protected until something can take the money, so until
+     then both views are open to look at. A paid session is left alone. */
+  const previewable =
+    paymentLive === false && !DIAGNOSTIC.requirePayment && !session.unlocked;
+
   return (
     <CurrencyProvider currency={currency}>
       {testMode && (
@@ -476,9 +485,9 @@ export function DiagnosticApp() {
             result={result}
             profile={session.profile}
             answers={answers}
-            unlocked={Boolean(session.unlocked)}
+            unlocked={Boolean(session.unlocked) || (previewable && previewOpen)}
             tier={session.tier ?? null}
-            paymentBypassed={paymentLive === false && !DIAGNOSTIC.requirePayment}
+            paymentBypassed={previewable}
             unlocking={unlocking}
             unlockError={unlockError}
             onUnlock={unlock}
@@ -490,6 +499,15 @@ export function DiagnosticApp() {
         </motion.div>
       )}
       </AnimatePresence>
+
+      {stage === "results" && previewable && (
+        <>
+          {/* Room at the end of the page, so the floating switch never parks
+              on top of the last thing written there. */}
+          <div className="h-24" aria-hidden />
+          <PreviewToggle open={previewOpen} onChange={setPreviewOpen} />
+        </>
+      )}
     </CurrencyProvider>
   );
 }

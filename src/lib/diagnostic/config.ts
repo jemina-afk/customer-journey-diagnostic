@@ -10,17 +10,16 @@ export const DIAGNOSTIC = {
   /** Stan Store / external checkout, used when Stripe isn't configured. */
   checkoutUrl: process.env.NEXT_PUBLIC_CHECKOUT_URL ?? "",
   /*
-    Off the live site, the unlock button simply unlocks when no checkout is
-    configured, because otherwise the report can't be tested at all. On the
-    live site it stays locked, so a missing Stripe key can never hand the paid
-    report out for nothing. Set NEXT_PUBLIC_REQUIRE_PAYMENT to "false" to open
-    it there deliberately, or "true" to lock it everywhere.
+    While no way to take money is configured, the report opens on its own and
+    the results page shows a toggle between the open and closed views, so both
+    can be read and edited. There is nothing to protect yet: with no Stripe key
+    and no checkout URL, nobody could pay even if they wanted to.
+
+    Two things close it again, and either is enough. Connecting Stripe or a
+    checkout URL ends it automatically. Setting NEXT_PUBLIC_REQUIRE_PAYMENT to
+    "true" ends it now, whatever else is configured.
   */
-  requirePayment:
-    process.env.NEXT_PUBLIC_REQUIRE_PAYMENT === "true" ||
-    (process.env.NEXT_PUBLIC_REQUIRE_PAYMENT !== "false" &&
-      process.env.NODE_ENV === "production" &&
-      (process.env.NEXT_PUBLIC_VERCEL_ENV ?? "production") === "production"),
+  requirePayment: process.env.NEXT_PUBLIC_REQUIRE_PAYMENT === "true",
   bookingUrl: process.env.NEXT_PUBLIC_BOOKING_URL ?? "https://calendly.com/tulivodigital/15min",
   /** How long the free call is, in minutes. Used everywhere it's mentioned. */
   callMinutes: Number(process.env.NEXT_PUBLIC_CALL_MINUTES ?? 15),

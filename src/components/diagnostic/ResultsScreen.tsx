@@ -279,9 +279,10 @@ export function ResultsScreen({
             <div className="px-6 py-8 sm:px-10 sm:py-10">
               {paymentBypassed && (
                 <p className="mb-7 rounded-[4px] border border-tulivo-purple/40 bg-tulivo-section/70 px-4 py-3.5 text-[13px] leading-relaxed text-tulivo-ink">
-                  <strong className="font-semibold">Payment isn&apos;t connected yet.</strong> The button below
-                  unlocks the full report free, so you can test the whole flow. Add your Stripe key to
-                  start charging.
+                  <strong className="font-medium">Payment isn&apos;t connected yet.</strong> This is the
+                  closed view, as someone sees it before they pay. The button below unlocks the report
+                  without charging, and the switch at the bottom of the screen moves between the two
+                  views. Connecting Stripe ends both.
                 </p>
               )}
 
