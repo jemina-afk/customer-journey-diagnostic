@@ -490,23 +490,8 @@ export function ResultsScreen({
             </a>
           </Card>
 
-          <div className="mt-10">
-            <Eyebrow>This week</Eyebrow>
-            <h2 className="mt-3 text-[26px] font-semibold tracking-[-0.025em] text-tulivo-ink">
-              Three things you can do now
-            </h2>
-            <div className="mt-6 grid gap-4 md:grid-cols-3">
-              {result.quickWins.map((win, i) => (
-                <Card key={win.action} className="p-6">
-                  <span className="tabular text-[11px] font-semibold uppercase tracking-[0.2em] text-tulivo-muted">
-                    Win {i + 1}
-                  </span>
-                  <p className="mt-3 text-[15px] leading-relaxed text-tulivo-ink">{win.action}</p>
-                  <p className="mt-3 text-[13px] leading-relaxed text-tulivo-muted">{win.impact}</p>
-                </Card>
-              ))}
-            </div>
-          </div>
+          {/* The quick wins are marked where they sit in the 90-day plan below,
+              so there is no second list of the same three jobs here. */}
 
           <div className="mt-12">
             <Eyebrow>Your 90-day focus</Eyebrow>
@@ -616,7 +601,14 @@ export function ResultsScreen({
                             {priority.window}
                           </span>
                         </div>
-                        <p className="mt-1 text-[13px] text-tulivo-muted">via {priority.stage}</p>
+                        <p className="mt-1 text-[13px] text-tulivo-muted">
+                          via {priority.stage}
+                          {i === 0 && (
+                            <span className="ml-2 rounded-pill border border-tulivo-purple/50 px-2 py-[2px] text-[10px] font-medium uppercase tracking-[0.14em] text-tulivo-purple">
+                              Start this week
+                            </span>
+                          )}
+                        </p>
                         <ul className="mt-3 space-y-2.5">
                           {priority.steps.map((step) => (
                             <li key={step} className="flex gap-3 text-[15px] leading-relaxed text-tulivo-muted">

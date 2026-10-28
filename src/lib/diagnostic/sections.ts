@@ -633,9 +633,9 @@ export const SECTIONS: Section[] = [
     kpi: {
       name: "Enquiry-to-client conversion",
       metric: "The share of enquiries that become paying clients",
-      why: "This is the fortnight after that first reply, for everyone who did not book there and then. Most of them were not saying no, they were saying not yet, and then nobody asked again. You have already paid for their attention, so lifting this number costs nothing extra and shows up in the diary within weeks.",
+      why: "Most people who don't book straight away aren't saying no, they're saying not yet - and then nobody asks again. This is the fortnight after that first reply, for everyone who went quiet. These are people who have already shown interest, so lifting this number shows up in the diary within weeks.",
       benefit:
-        "The people in this group have already told you they are interested. Following up properly turns a chunk of them into clients without another pound spent on being found, and it stops your diary swinging between good months and quiet ones.",
+        "These are people who have already shown interest. Following up properly turns a chunk of them into clients you would otherwise never have heard from again, and it stops your diary swinging between good months and quiet ones.",
       supports: ["lead-nurture", "lead-response", "booking"],
       current: (answers) => {
         const value = num(answers, "lead-nurture.conversion-rate");
@@ -872,7 +872,7 @@ export const SECTIONS: Section[] = [
             gap: "With no website, there's nowhere for interested people to land or leave their details.",
             fix: {
               action:
-                "Launch a single page with your services, prices, photos and an enquiry form. It doesn't need to be big - it needs to exist.",
+                "Put up one page carrying your services, prices and an enquiry form, so every post and referral has somewhere to send people.",
               impact: "Gives every post, ad and referral somewhere to send people.",
               effort: "project",
             },

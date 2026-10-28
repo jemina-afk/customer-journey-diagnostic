@@ -379,6 +379,30 @@ export function checkReport(
     }
   });
 
+  /*
+    Nothing may be said twice. A recommendation that appears in its roadmap
+    section and again, word for word, in the plan makes the report look longer
+    than it is and makes the reader wonder which one they are meant to act on.
+    Eight words is long enough that a repeat is a repeat rather than a turn of
+    phrase two sentences happen to share.
+  */
+  const sentences = new Map<string, number>();
+  prose.forEach((line) => {
+    String(line ?? "")
+      .split(/(?<=[.!?])\s+/)
+      .forEach((sentence) => {
+        const words = sentence.trim().toLowerCase().replace(/[^a-z0-9 ]/g, "").split(/\s+/);
+        if (words.length < 8) return;
+        const key = words.join(" ");
+        sentences.set(key, (sentences.get(key) ?? 0) + 1);
+      });
+  });
+  sentences.forEach((count, key) => {
+    if (count > 1) {
+      add("copy", `"${key.slice(0, 60)}..." appears ${count} times in the report`);
+    }
+  });
+
   if (result.sections.length !== SECTIONS.length) {
     add("copy", `the report has ${result.sections.length} stages, not ${SECTIONS.length}`);
   }

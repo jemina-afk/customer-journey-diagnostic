@@ -32,10 +32,17 @@ const currency = currencyFor("GBP");
 const PAGE_W = 210;
 const PAGE_H = 297;
 const MARGIN = 20;
-/* The running header's baseline and the footer's, which are page furniture and
-   belong where they are. Body text has to stay between them. */
+/*
+  The running header's baseline and the footer's, which are page furniture and
+  belong where they are. Body text has to clear the footer RULE, not the
+  footer's own baseline - measuring against the baseline let a line sit at
+  283mm, under the rule and on top of the page number, and call it a pass.
+*/
 const HEADER_BASELINE = 14;
 const FOOTER_BASELINE = 285;
+const FOOTER_RULE = 280.5;
+/* Descenders hang below the baseline; roughly a fifth of the size covers it. */
+const DESCENDER = 0.22;
 
 /*
   jsPDF records every text run it draws, so the finished document can be asked
@@ -61,27 +68,24 @@ function checkLayout(doc) {
       coordinates were all fine, and nothing was off the page.
     */
     const texts = [];
+    let size = 3;
     for (const m of content.matchAll(
-      /\/F\d+ ([\d.]+) Tf[\s\S]{0,120}?([\d.]+) ([\d.]+) Td\s*\(((?:\\.|[^)])*)\)\s*Tj/g,
+      /\/F\d+ ([\d.]+) Tf|([\d.]+) ([\d.]+) Td(?:\s*\(((?:\\.|[^)])*)\)\s*Tj)?/g,
     )) {
-      const size = Number(m[1]) * PT_TO_MM;
-      const label = m[4].replace(/\\(.)/g, "$1");
+      if (m[1] !== undefined) {
+        size = Number(m[1]) * PT_TO_MM;
+        continue;
+      }
+      const label = (m[4] ?? "").replace(/\\(.)/g, "$1");
       texts.push({
+        size,
         x: Number(m[2]) * PT_TO_MM,
         y: PAGE_H - Number(m[3]) * PT_TO_MM,
         // Rough, but a collision has to be wider than rough to matter.
-        w: label.length * size * 0.52,
+        w: label.length * size * 0.5,
         label,
         at: m.index,
       });
-    }
-    // Anything the richer pattern missed still has to sit inside the page.
-    for (const m of content.matchAll(/([\d.]+) ([\d.]+) Td/g)) {
-      const x = Number(m[1]) * PT_TO_MM;
-      const y = PAGE_H - Number(m[2]) * PT_TO_MM;
-      if (!texts.some((t) => Math.abs(t.x - x) < 0.1 && Math.abs(t.y - y) < 0.1)) {
-        texts.push({ x, y, w: 0, label: "", at: m.index });
-      }
     }
 
     // Two runs sharing a baseline must not share any of it.
@@ -117,8 +121,14 @@ function checkLayout(doc) {
       if (page > 1 && (t.x < MARGIN - 2 || t.x > PAGE_W - MARGIN + 2)) {
         problems.push(`page ${page}: text starts at x=${t.x.toFixed(1)}mm, outside the ${MARGIN}mm margins`);
       }
-      if (t.y > FOOTER_BASELINE + 1) {
-        problems.push(`page ${page}: text at y=${t.y.toFixed(1)}mm is below the footer`);
+      // The footer's own two runs sit on their baseline by design.
+      const isFurniture =
+        Math.abs(t.y - FOOTER_BASELINE) < 0.6 || Math.abs(t.y - HEADER_BASELINE) < 0.6;
+      const bottom = t.y + (t.size ?? 3) * DESCENDER;
+      if (!isFurniture && bottom > FOOTER_RULE) {
+        problems.push(
+          `page ${page}: "${t.label.slice(0, 20)}" ends at y=${bottom.toFixed(1)}mm, past the footer rule at ${FOOTER_RULE}mm`,
+        );
       }
       if (page > 1 && t.y < HEADER_BASELINE - 1) {
         problems.push(`page ${page}: text at y=${t.y.toFixed(1)}mm is above the header`);

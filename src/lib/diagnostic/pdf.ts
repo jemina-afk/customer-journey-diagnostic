@@ -27,6 +27,8 @@ import {
 import { BRAND_FONTS, GRADIENT, LOGO_RATIO, LOGO_WHITE } from "./brandAssets";
 import { toolsFor } from "./tools";
 import { KPI_LIFT } from "./kpiLift";
+import { WHERE_TO_KEEP_IT, logFor } from "./log";
+import { mergeOverlapping, milestone, taskFor, type Task } from "./plan";
 
 /*
   The consulting deliverable. Drawn as vectors with jsPDF rather than a screen
@@ -554,10 +556,19 @@ function executiveSummary(doc: Doc, result: DiagnosticResult, profile: Profile, 
     );
   }
 
+  /* Whatever is left of the page belongs to the priorities below, and the
+     footer rule is where it stops. */
+  const summaryRoom = PAGE_H - 30 - y;
+  const perPriority = result.priorities.length > 0 ? summaryRoom / result.priorities.length : 0;
+
   result.priorities.forEach((section, i) => {
     const colour = statusColour(section.status);
     const summary = section.gaps[0] ?? section.verdict;
-    const lines = doc.splitTextToSize(summary, COL_W - 16) as string[];
+    setText(doc, 9, MUTED, "normal");
+    const all = doc.splitTextToSize(summary, COL_W - 16) as string[];
+    // However many lines the summary wants, it only gets what the page has.
+    const room = Math.max(1, Math.floor((perPriority - 22) / 4.2));
+    const lines = all.slice(0, room);
     const boxH = 20 + lines.length * 4.2;
 
     doc.setFillColor(WARM_GREY[0], WARM_GREY[1], WARM_GREY[2]);
@@ -717,30 +728,14 @@ function focusPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
 
   y += 12;
   eyebrow(doc, "How to measure it", M, y, FAINT);
-  y = paragraph(
+  paragraph(
     doc,
-    `Track the following data: ${lowerFirst(cycle.measure.what)}`,
+    "You'll track this with a simple log - page 9 shows exactly how, with a worked example.",
     M,
     y + 8,
     COL_W,
     { size: 10, colour: INK, leading: 4.9 },
   );
-  y += 4;
-  setText(doc, 8.5, INK, "bold");
-  doc.text("Where to get it", M, y);
-  y = paragraph(doc, cycle.measure.where, M, y + 5.5, COL_W, {
-    size: 9.5,
-    colour: MUTED,
-    leading: 4.6,
-  });
-  y += 4;
-  setText(doc, 8.5, INK, "bold");
-  doc.text("How often to check", M, y);
-  paragraph(doc, cycle.measure.cadence, M, y + 5.5, COL_W, {
-    size: 9.5,
-    colour: MUTED,
-    leading: 4.6,
-  });
 }
 
 /* ---------------------------------------------------------------- roadmap */
@@ -850,7 +845,13 @@ function roadmapPage(
 
   setText(doc, 8.5, INK, "bold");
   doc.text("The joined-up version", M, sy + 4);
-  paragraph(doc, tools.joinedUp, M, sy + 9.5, tierW, { size: 8.5, colour: MUTED, leading: 4 });
+  // Only as many lines as the page has room for above its footer rule.
+  setText(doc, 8.5, MUTED, "normal");
+  const joinedLines = doc.splitTextToSize(tools.joinedUp, tierW) as string[];
+  const roomForJoined = Math.max(1, Math.floor((PAGE_H - 30 - (sy + 9.5)) / 4));
+  joinedLines.slice(0, roomForJoined).forEach((line, i) => {
+    doc.text(line, M, sy + 9.5 + i * 4);
+  });
 }
 
 /* -------------------------------------------------------- week-by-week plan */
@@ -858,63 +859,55 @@ function roadmapPage(
 interface Phase {
   label: string;
   window: string;
-  steps: { stage: string; action: string; effort: Fix["effort"] }[];
+  /** How far into the quarter this phase ends, for the milestone figure. */
+  through: number;
+  tasks: Task[];
 }
 
 /*
-  One timeline for the quarter. Every recommendation from the roadmap is placed
-  in a phase: quick wins first, then the projects behind them, in priority
-  order, so the plan reads as one list rather than three separate ones.
+  One timeline for the quarter, as a checklist rather than prose. Every
+  recommendation from the roadmap is placed in a phase - quick wins from the
+  stage costing most first, then the builds behind them - and overlapping jobs
+  are merged, because two descriptions of the same work read as twice as much
+  of it.
 */
-function buildPhases(result: DiagnosticResult, roadmap: SectionResult[]): Phase[] {
+function buildPhases(roadmap: SectionResult[]): Phase[] {
   const phases: Phase[] = [
-    { label: "Phase one", window: "Weeks 1-2", steps: [] },
-    { label: "Phase two", window: "Weeks 3-6", steps: [] },
-    { label: "Phase three", window: "Weeks 7-12", steps: [] },
+    { label: "Phase one", window: "Weeks 1-2", through: 0.2, tasks: [] },
+    { label: "Phase two", window: "Weeks 3-6", through: 0.55, tasks: [] },
+    { label: "Phase three", window: "Weeks 7-12", through: 1, tasks: [] },
   ];
 
   const seen = new Set<string>();
   const add = (into: number, section: SectionResult, fix: Fix) => {
-    if (seen.has(fix.action) || phases[into].steps.length >= 3) return;
+    if (seen.has(fix.action) || phases[into].tasks.length >= 4) return;
     seen.add(fix.action);
-    phases[into].steps.push({
-      stage: section.shortTitle,
-      action: fix.action,
-      effort: fix.effort,
-    });
+    phases[into].tasks.push(taskFor(fix, section));
   };
 
   const lead = roadmap[0];
   const rest = roadmap.slice(1);
-  const quick = (section: SectionResult) => section.fixes.filter((f) => f.effort === "quick");
-  const projects = (section: SectionResult) => section.fixes.filter((f) => f.effort !== "quick");
+  const quick = (s: SectionResult) => s.fixes.filter((f) => f.effort === "quick");
+  const builds = (s: SectionResult) => s.fixes.filter((f) => f.effort !== "quick");
 
-  /*
-    The first fortnight belongs to the stage that is costing the most, and only
-    to the parts of it that can be switched on quickly. The quarter then widens:
-    the other priorities' quick wins and the lead stage's build in the middle,
-    the remaining builds at the end. Three to a phase, because a phase with six
-    things in it is a list, not a plan.
-  */
   if (lead) quick(lead).forEach((f) => add(0, lead, f));
   rest.forEach((section) => quick(section).forEach((f) => add(0, section, f)));
-
-  if (lead) projects(lead).forEach((f) => add(1, lead, f));
+  if (lead) builds(lead).forEach((f) => add(1, lead, f));
   rest.forEach((section) => quick(section).forEach((f) => add(1, section, f)));
+  rest.forEach((section) => builds(section).forEach((f) => add(2, section, f)));
+  if (lead) builds(lead).forEach((f) => add(2, lead, f));
 
-  rest.forEach((section) => projects(section).forEach((f) => add(2, section, f)));
-  if (lead) projects(lead).forEach((f) => add(2, lead, f));
-
-  // A phase with nothing in it reads as a gap in the plan rather than a light
-  // month, so anything still unplaced fills it.
   phases.forEach((phase, i) => {
-    if (phase.steps.length > 0) return;
+    if (phase.tasks.length > 0) return;
     const spare = roadmap
       .flatMap((section) => section.fixes.map((fix) => ({ section, fix })))
       .find(({ fix }) => !seen.has(fix.action));
     if (spare) add(i, spare.section, spare.fix);
   });
 
+  phases.forEach((phase) => {
+    phase.tasks = mergeOverlapping(phase.tasks);
+  });
   return phases;
 }
 
@@ -926,107 +919,140 @@ function weekPlanPage(
 ) {
   doc.addPage();
   pageFurniture(doc, profile, "Your 90 days");
-  const phases = buildPhases(result, roadmap);
+  const phases = buildPhases(roadmap);
+  const cycle = result.cycle;
 
   eyebrow(doc, "The plan", M, 30, PURPLE);
   setText(doc, 24, INK, { font: DISPLAY });
   doc.text("Week by week", M, 41);
-  let y = paragraph(
-    doc,
-    `Everything from the roadmap, in the order to do it. All of it moves ${result.cycle.kpi}.`,
-    M,
-    51,
-    COL_W,
-    { size: 10, colour: MUTED, leading: 5 },
-  );
 
   /*
-    How many steps fit depends on how long they are, and the foot of the page
-    is already spoken for. So the plan is measured before it is drawn, and
-    trimmed until it clears the box below it. Nothing is lost by trimming: the
-    roadmap pages carry every recommendation in full.
+    Only claim everything moves one number when everything does. A plan that
+    includes retention work while the focus is response time is doing two
+    jobs, and saying so is more useful than a tidy sentence.
   */
-  const stepHeight = (action: string) => {
-    setText(doc, 9.5, INK, "normal");
-    return 4.5 + (doc.splitTextToSize(action, COL_W - 22) as string[]).length * 4.5 + 4;
+  const all = phases.flatMap((phase) => phase.tasks);
+  const offFocus = all.filter((task) => task.moves !== cycle.kpi);
+  const intro =
+    offFocus.length === 0
+      ? `All of it moves ${cycle.kpi}.`
+      : `Most of this moves ${cycle.kpi}; the ${[...new Set(offFocus.map((t) => t.stage.toLowerCase()))].join(" and ")} tasks protect the clients you win.`;
+  let y = paragraph(doc, `Everything from the roadmap, in the order to do it. ${intro}`, M, 51, COL_W, {
+    size: 10,
+    colour: MUTED,
+    leading: 5,
+  });
+
+  /* Four columns, sized so the instruction gets the room and the rest stay
+     scannable down the page. */
+  const COLS = [COL_W * 0.44, COL_W * 0.13, COL_W * 0.27, COL_W * 0.16];
+  const X: number[] = [];
+  COLS.reduce((left, width, i) => {
+    X[i] = left;
+    return left + width;
+  }, M);
+
+  y += 6;
+
+  /*
+    Measure first, draw second. Every row's height depends on how its own text
+    wraps, so the only honest way to know whether the table fits is to add it
+    up - then trim the longest phase until it does, and share whatever room is
+    left between the rows rather than leaving it at the foot.
+  */
+  const rowHeight = (task: Task) => {
+    setText(doc, 8.5, INK, "normal");
+    const a = (doc.splitTextToSize(task.short, COLS[0] - 4) as string[]).length;
+    setText(doc, 7.5, MUTED, "normal");
+    const d = (doc.splitTextToSize(task.doneWhen, COLS[2] - 4) as string[]).length;
+    const m = (doc.splitTextToSize(task.moves, COLS[3] - 4) as string[]).length;
+    return Math.max(a * 4.2, d * 3.9, m * 3.9) + 4.5;
   };
 
-  const first = phases[0].steps.slice(0, 3);
-  const footH =
-    16 + first.reduce((total, step) => {
-      setText(doc, 8.5, INK, "normal");
-      return total + (doc.splitTextToSize(step.action, COL_W - 24) as string[]).length * 4.2 + 2;
-    }, 0);
-  const footY = PAGE_H - 26 - footH;
-
-  const planHeight = (perPhase: number) =>
+  const tableHeight = (perPhase: number, pad: number) =>
     phases.reduce(
-      (total, phase, i) =>
+      (total, phase) =>
         total +
-        7 +
-        phase.steps.slice(0, perPhase).reduce((sum, step) => sum + stepHeight(step.action), 0) +
-        (i < phases.length - 1 ? 9 : 0),
+        22 +
+        phase.tasks
+          .slice(0, perPhase)
+          .reduce((sum, task) => sum + rowHeight(task) + pad, 0),
       0,
     );
 
-  let perPhase = 3;
-  while (perPhase > 1 && y + 8 + planHeight(perPhase) > footY - 8) perPhase -= 1;
+  const room = PAGE_H - 30 - y;
+  let perPhase = 4;
+  while (perPhase > 1 && tableHeight(perPhase, 0) > room) perPhase -= 1;
+  phases.forEach((phase) => {
+    phase.tasks = phase.tasks.slice(0, perPhase);
+  });
+  const shown = phases.reduce((n, phase) => n + phase.tasks.length, 0);
+  const pad = Math.max(0, Math.min(5, (room - tableHeight(perPhase, 0)) / Math.max(shown, 1)));
 
-  y += 8;
+  let started = 0;
   phases.forEach((phase, i) => {
-    fillCircle(doc, M + 3, y - 1, 3, PURPLE);
-    setText(doc, 8, WHITE, "bold");
-    doc.text(String(i + 1), M + 3, y + 0.4, { align: "center" });
-    setText(doc, 12, INK, "bold");
-    doc.text(phase.label, M + 11, y);
+    setText(doc, 11.5, INK, "bold");
+    doc.text(`${phase.label}`, M, y);
     setText(doc, 9, PURPLE, "bold");
     doc.text(phase.window, PAGE_W - M, y, { align: "right" });
-    y += 7;
+    y += 6;
 
-    phase.steps.slice(0, perPhase).forEach((step) => {
-      setText(doc, 6.5, step.effort === "quick" ? GREEN : PURPLE, {
-        weight: "bold",
-        charSpace: 0.4,
-      });
-      doc.text(step.effort === "quick" ? "QUICK WIN" : "PROJECT", M + 11, y);
-      setText(doc, 7.5, FAINT, "normal");
-      doc.text(step.stage, PAGE_W - M, y, { align: "right" });
-      y = paragraph(doc, step.action, M + 11, y + 4.5, COL_W - 22, {
-        size: 9.5,
-        colour: INK,
-        leading: 4.5,
-      });
-      y += 4;
+    fillRect(doc, M, y - 4, COL_W, 6.5, WARM_GREY);
+    setText(doc, 6.5, INK, { weight: "bold", charSpace: 0.4 });
+    ["TASK", "TIME", "DONE WHEN", "MOVES"].forEach((head, c) => doc.text(head, X[c] + 2, y));
+    y += 6;
+
+    phase.tasks.forEach((task) => {
+      setText(doc, 8.5, INK, "normal");
+      const actionLines = doc.splitTextToSize(task.short, COLS[0] - 4) as string[];
+      setText(doc, 7.5, MUTED, "normal");
+      const doneLines = doc.splitTextToSize(task.doneWhen, COLS[2] - 4) as string[];
+      const movesLines = doc.splitTextToSize(task.moves, COLS[3] - 4) as string[];
+      const rowH = rowHeight(task) + pad;
+
+      // The first jobs of the quarter are marked where they sit, so the page
+      // needs no second list telling the reader where to start.
+      const startLabel = i === 0 && started < 3;
+      if (startLabel) started += 1;
+
+      setText(doc, 8.5, INK, "normal");
+      doc.text(actionLines, X[0] + 2, y);
+      if (startLabel) {
+        setText(doc, 6, PURPLE, { weight: "bold", charSpace: 0.4 });
+        doc.text("START THIS WEEK", X[0] + 2, y + actionLines.length * 4.2 + 1.5);
+      }
+      setText(doc, 8, INK, "bold");
+      doc.text(task.time, X[1] + 2, y);
+      setText(doc, 7.5, MUTED, "normal");
+      doc.text(doneLines, X[2] + 2, y);
+      doc.text(movesLines, X[3] + 2, y);
+
+      y += rowH + (startLabel ? 4 : 0);
+      doc.setDrawColor(LINE[0], LINE[1], LINE[2]);
+      doc.setLineWidth(0.2);
+      doc.line(M, y - 2.5, PAGE_W - M, y - 2.5);
     });
 
-    if (i < phases.length - 1) {
-      rule(doc, y + 1, M + 11, COL_W - 11);
-      y += 9;
-    }
-  });
-
-  /* Where to start, at the foot. These are phase one's own items rather than a
-     separate list, because two lists of first steps on one page is one too many. */
-  fillRect(doc, M, footY, COL_W, footH, WARM_GREY);
-  setText(doc, 7.5, INK, { weight: "bold", charSpace: 0.6 });
-  doc.text("THREE THINGS YOU CAN DO THIS WEEK", M + 8, footY + 9);
-  let wy = footY + 16;
-  first.forEach((step) => {
-    fillCircle(doc, M + 9.2, wy - 1.2, 1, PURPLE);
-    wy = paragraph(doc, step.action, M + 13, wy, COL_W - 24, {
-      size: 8.5,
-      colour: INK,
-      leading: 4.2,
-    }) + 2;
+    const figure = milestone(cycle.current, cycle.target, phase.through);
+    const week = phase.window.split("-")[1] ?? phase.window;
+    setText(doc, 8, PURPLE, "normal");
+    doc.text(
+      figure
+        ? `By the end of week ${week}, your ${cycle.kpi.toLowerCase()} should be around ${figure}.`
+        : `By the end of week ${week}, ${phase.tasks[0]?.doneWhen ?? "this phase should be running without you"}.`,
+      M,
+      y + 2,
+    );
+    y += 10;
   });
 }
 
 /* ------------------------------------------------- your tracking dashboard */
 
 /*
-  An example of what one screen should tell them, drawn with illustrative
-  figures rather than their own, because they have not started recording yet.
-  Every number on it is marked as an example so it cannot be mistaken for data.
+  The tracking page answers three questions in order: what do I write down,
+  how do I turn that into the number, and when do I do it. The example
+  dashboard at the top stays; everything under it is the practical half.
 */
 function dashboardPage(
   doc: Doc,
@@ -1050,7 +1076,6 @@ function dashboardPage(
     { size: 10, colour: MUTED, leading: 5 },
   );
 
-  // The focus KPI, large, this month against last.
   let y = 64;
   fillRect(doc, M, y, COL_W, 40, NAVY);
   setText(doc, 7, MUTED_ON_NAVY, { weight: "bold", charSpace: 0.6 });
@@ -1062,12 +1087,6 @@ function dashboardPage(
   setText(doc, 7, FAINT, { weight: "bold", charSpace: 0.5 });
   doc.text("EXAMPLE FIGURES", M + 10, y + 34);
 
-  /*
-    The example figures are this business's own: today's number, and a month
-    that has moved one honest step towards the target. The trend line is drawn
-    in whichever direction that step went, so the picture and the numbers
-    cannot disagree.
-  */
   const example = exampleFigures(cycle);
   setText(doc, 26, CREAM, "bold");
   doc.text(example.now, M + 86, y + 24);
@@ -1080,12 +1099,9 @@ function dashboardPage(
   sparkline(doc, PAGE_W - M - 36, y + 11, 30, 16, example.improving);
   setText(doc, 7, MUTED_ON_NAVY, "normal");
   doc.text("last 12 weeks", PAGE_W - M - 36, y + 33);
-  y += 46;
+  y += 48;
 
-  // Supporting tiles, drawn from the stages in the roadmap.
-  const tiles = roadmap
-    // The focus number has the whole panel above; repeating it as a tile
-    // wastes one of the six and makes the screen look busier than it is.
+  const supporting = roadmap
     .filter((section) => section.kpiName !== cycle.kpi)
     .map((section) => ({
       name: section.kpiName,
@@ -1096,105 +1112,93 @@ function dashboardPage(
     { name: "Enquiries received", stage: "Lead Sources", figure: "41 this month" },
     { name: "Appointments booked", stage: "Booking", figure: "96 this month" },
     { name: "Clients who came back", stage: "Retention", figure: "38 this month" },
-    { name: "Google reviews", stage: "Reviews", figure: "64 total, 7 new" },
   ].filter((tile) => tile.name !== cycle.kpi);
-  const all = [...tiles, ...extra].slice(0, 6);
+  const tiles = [...supporting, ...extra].slice(0, 3);
 
-  eyebrow(doc, "Supporting numbers", M, y, FAINT);
-  y += 8;
   const tw = (COL_W - 8) / 3;
-  all.forEach((tile, i) => {
-    const col = i % 3;
-    const row = Math.floor(i / 3);
-    const tx = M + col * (tw + 4);
-    const ty = y + row * 24;
-    fillRect(doc, tx, ty, tw, 20, WARM_GREY);
+  tiles.forEach((tile, i) => {
+    const tx = M + i * (tw + 4);
+    fillRect(doc, tx, y, tw, 20, WARM_GREY);
     setText(doc, 6.5, FAINT, { weight: "bold", charSpace: 0.4 });
-    doc.text(tile.stage.toUpperCase(), tx + 4, ty + 6);
+    doc.text(tile.stage.toUpperCase(), tx + 4, y + 6);
     setText(doc, 8, INK, "normal");
-    doc.text(doc.splitTextToSize(tile.name, tw - 8).slice(0, 1) as string[], tx + 4, ty + 11);
+    doc.text(doc.splitTextToSize(tile.name, tw - 8).slice(0, 1) as string[], tx + 4, y + 11);
     setText(doc, 10, INK, "bold");
-    doc.text(tile.figure, tx + 4, ty + 17);
+    doc.text(tile.figure, tx + 4, y + 17);
   });
-  y += Math.ceil(all.length / 3) * 24 + 4;
+  y += 28;
 
-  // What to record, as three short field lists.
+  /* ------------------------------------------------------------ your log */
+
+  const log = logFor(cycle.kpi);
   rule(doc, y - 2);
   y += 6;
-  eyebrow(doc, "What to record", M, y, PURPLE);
-  y = paragraph(
-    doc,
-    "Three lists is enough. A spreadsheet with three tabs will carry you through the first ninety days; a booking system or a CRM can fill them in for you later. The fields in purple are the ones that feed your focus number.",
-    M,
-    y + 8,
-    COL_W,
-    { size: 9, colour: MUTED, leading: 4.3 },
-  );
+  eyebrow(doc, "Your log", M, y, PURPLE);
+  y += 8;
+  y = paragraph(doc, WHERE_TO_KEEP_IT, M, y, COL_W, { size: 9, colour: MUTED, leading: 4.3 });
+  y += 4;
 
-  y += 5;
-  const lists: { name: string; fields: { label: string; feeds: boolean }[] }[] = [
-    {
-      name: "Enquiries",
-      fields: [
-        { label: "Date received", feeds: true },
-        { label: "Where they came from", feeds: true },
-        { label: "Time of first reply", feeds: cycle.stage === "Lead Response" },
-        { label: "Did they book", feeds: true },
-      ],
-    },
-    {
-      name: "Appointments",
-      fields: [
-        { label: "Date and treatment", feeds: false },
-        { label: "New or returning", feeds: cycle.stage === "Retention & Re-engagement" },
-        { label: "Attended, cancelled or missed", feeds: cycle.stage === "Reminders & No-Show Prevention" },
-        { label: "Rebooked before leaving", feeds: cycle.stage === "Retention & Re-engagement" },
-      ],
-    },
-    {
-      name: "Clients",
-      fields: [
-        { label: "Name and contact", feeds: false },
-        { label: "First visit date", feeds: false },
-        { label: "Last visit date", feeds: false },
-        { label: "Review left", feeds: cycle.stage === "Reviews & Reputation" },
-      ],
-    },
-  ];
-
-  lists.forEach((list, i) => {
-    const lx = M + i * (tw + 4);
-    setText(doc, 9, INK, "bold");
-    doc.text(list.name, lx, y);
-    let fy = y + 6;
-    list.fields.forEach((field) => {
-      const colour = field.feeds ? PURPLE : MUTED;
-      fillCircle(doc, lx + 1.2, fy - 1.2, 0.9, colour);
-      setText(doc, 8, field.feeds ? INK : MUTED, field.feeds ? "bold" : "normal");
-      doc.text(doc.splitTextToSize(field.label, tw - 6) as string[], lx + 4, fy);
-      fy += 5.4;
-    });
+  const cw = COL_W / log.columns.length;
+  fillRect(doc, M, y - 4, COL_W, 6.5, WARM_GREY);
+  setText(doc, 6, INK, { weight: "bold", charSpace: 0.3 });
+  log.columns.forEach((head, i) => {
+    doc.text(doc.splitTextToSize(head.toUpperCase(), cw - 3).slice(0, 1) as string[], M + 2 + i * cw, y);
   });
-  y += 30;
+  y += 6;
+  log.rows.forEach((row) => {
+    setText(doc, 7.5, INK, "normal");
+    row.forEach((cell, i) => {
+      doc.text(doc.splitTextToSize(cell, cw - 3).slice(0, 1) as string[], M + 2 + i * cw, y);
+    });
+    doc.setDrawColor(LINE[0], LINE[1], LINE[2]);
+    doc.setLineWidth(0.2);
+    doc.line(M, y + 2, PAGE_W - M, y + 2);
+    y += 6.5;
+  });
+  y += 4;
 
-  // The weekly scoreboard, kept from the old measurement page.
-  rule(doc, y);
+  /* -------------------------------------------- working out your number */
+
+  eyebrow(doc, "Working out your number", M, y, FAINT);
   y += 8;
-  eyebrow(doc, "A scoreboard worth keeping", M, y, FAINT);
+  fillRect(doc, M, y - 5, COL_W, 13, WARM_GREY);
+  fillRect(doc, M, y - 5, 1.6, 13, PURPLE);
+  setText(doc, 10, INK, "bold");
+  doc.text(log.worked, M + 7, y + 2.5);
+  y += 13;
+  y = paragraph(doc, log.whichMonth, M, y, COL_W, { size: 9, colour: MUTED, leading: 4.3 });
+  y += 6;
+
+  /* ------------------------------------------------ your 10-minute Monday */
+
+  eyebrow(doc, "Your 10-minute Monday", M, y, PURPLE);
   y += 8;
-  const cols = ["Week", "Focus number", "Moved?", "What changed"];
-  fillRect(doc, M, y - 4, COL_W, 8, WARM_GREY);
-  setText(doc, 7.5, INK, "bold");
-  const colW = COL_W / cols.length;
-  cols.forEach((col, i) => doc.text(col, M + 3 + i * colW, y + 1));
-  y += 8;
-  setText(doc, 8, MUTED, "normal");
-  ["Week 1", "Week 2", "Week 3", "Week 4"].forEach((week) => {
-    doc.text(week, M + 3, y);
+  log.monday.forEach((step, i) => {
+    fillCircle(doc, M + 2.6, y - 1.2, 2.6, PURPLE);
+    setText(doc, 6.5, WHITE, "bold");
+    doc.text(String(i + 1), M + 2.6, y + 0.4, { align: "center" });
+    setText(doc, 9, INK, "normal");
+    y = paragraph(doc, step, M + 8, y, COL_W - 8, { size: 9, colour: INK, leading: 4.3 }) + 2.5;
+  });
+  y += 4;
+
+  // The scoreboard, with the milestones from the plan already in it.
+  const targets = [0.2, 0.55, 1].map((through) => milestone(cycle.current, cycle.target, through));
+  const cols = ["Month", "Your number", "Target", "What you changed"];
+  const sw = COL_W / cols.length;
+  fillRect(doc, M, y - 4, COL_W, 6.5, WARM_GREY);
+  setText(doc, 6.5, INK, { weight: "bold", charSpace: 0.3 });
+  cols.forEach((col, i) => doc.text(col.toUpperCase(), M + 2 + i * sw, y));
+  y += 6.5;
+  ["Month 1", "Month 2", "Month 3"].forEach((month, i) => {
+    setText(doc, 8, MUTED, "normal");
+    doc.text(month, M + 2, y);
+    setText(doc, 8, PURPLE, "bold");
+    doc.text(targets[i] ?? cycle.target, M + 2 + 2 * sw, y);
     doc.setDrawColor(LINE[0], LINE[1], LINE[2]);
     doc.setLineWidth(0.2);
     doc.line(M, y + 2.5, PAGE_W - M, y + 2.5);
-    y += 7;
+    y += 6.2;
   });
 }
 
@@ -1209,20 +1213,13 @@ function exampleFigures(cycle: DiagnosticResult["cycle"]) {
   const lift = KPI_LIFT[cycle.kpi];
   const down = lift?.direction === "down";
 
-  if (!number) {
-    // No measured figure to build on, so the example is plainly an example.
-    return { now: "- ", before: "- ", improving: true };
-  }
+  if (!number) return { now: "- ", before: "- ", improving: true };
 
   const value = Number(number[1]);
   const step = Math.max(1, Math.round(value * 0.08));
   const now = down ? Math.max(0, value - step) : value + step;
   const unit = /%/.test(today) ? "%" : "";
-  return {
-    now: `${now}${unit}`,
-    before: `${value}${unit}`,
-    improving: !down,
-  };
+  return { now: `${now}${unit}`, before: `${value}${unit}`, improving: !down };
 }
 
 /** Example figures for the supporting tiles, in each number's own unit. */

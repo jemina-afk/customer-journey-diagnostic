@@ -1,4 +1,5 @@
 import { SECTIONS } from "./sections";
+import { shortName } from "./plan";
 import { estimateImpact, type Impact } from "./impact";
 import { UNKNOWN } from "./types";
 import { DEFAULT_CURRENCY, localise, money, type Currency } from "./currency";
@@ -251,7 +252,9 @@ export function scoreSection(section: Section, answers: Answers): SectionResult 
     opportunity: Math.round((100 - score) * section.weight),
     strengths,
     gaps,
-    fixes,
+    /* Two questions in a stage can reach the same conclusion, and the report
+       should not ask for the same job twice because of it. */
+    fixes: dedupeFixes(fixes),
     verdict,
     tools: section.tools,
     project: section.project,
@@ -456,7 +459,7 @@ function buildCycle(
       title: section.purpose,
       stage: section.title,
       window: "",
-      steps: steps.map((fix) => fix.action),
+      steps: steps.map((fix) => shortName(fix.action)),
     });
   }
 
@@ -474,7 +477,7 @@ function buildCycle(
       window: "",
       steps: [
         `Nothing here needs fixing, so the next ninety days are about taking one thing further. ${bestSection.title} has the most room to gain.`,
-        bestSection.nextLevel,
+        `Read the next-level note for ${bestSection.title} and pick the one part of it worth building first.`,
         `Start recording ${kpi.name.toLowerCase()} now, so the quarter has a number to hold.`,
       ],
     });
@@ -528,7 +531,10 @@ function buildCycle(
     it is written out rather than asserted: weakest stage by weighted headroom
     wins, and the supporting work is whatever else moves the same number.
   */
-  const names = cyclePriorities.slice(1).map((p) => p.stage);
+  const names = priorities
+    .slice(1)
+    .map((p) => p.title)
+    .filter((title) => title !== leadSection.title);
   const supportingNames =
     names.length > 1
       ? `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`
