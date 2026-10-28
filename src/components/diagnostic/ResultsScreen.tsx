@@ -7,6 +7,7 @@ import { DIAGNOSTIC } from "@/lib/diagnostic/config";
 import { STATUS_LABEL, annualValueOfOneMoreClientPerMonth } from "@/lib/diagnostic/scoring";
 import { estimateImpact, formatMoney } from "@/lib/diagnostic/impact";
 import { currencyFor } from "@/lib/diagnostic/currency";
+import { toolsFor } from "@/lib/diagnostic/tools";
 import type { Answers, DiagnosticResult, Profile, SectionResult } from "@/lib/diagnostic/types";
 import { RadarChart, ScoreDial } from "./RadarChart";
 import { Locked, LockIcon } from "./Locked";
@@ -49,6 +50,15 @@ export function ResultsScreen({
   const [showCode, setShowCode] = useState(false);
   const currency = useMemo(() => currencyFor(profile.currency), [profile.currency]);
   const impact = useMemo(() => estimateImpact(answers, currency), [answers, currency]);
+
+  /*
+    A roadmap, not an equal write-up of eight stages: the two or three the
+    costs point at go in depth, and everything else is listed at the end.
+  */
+  const byCost = result.priorities.filter((s) => s.status !== "green").slice(0, 3);
+  const roadmap = byCost.length > 0 ? byCost : result.priorities.slice(0, 2);
+  const inRoadmap = new Set(roadmap.map((s) => s.id));
+  const laterStages = result.sections.filter((s) => !inRoadmap.has(s.id));
 
   return (
     <div className="mx-auto w-full max-w-[1080px] px-5 py-10 sm:px-8 sm:py-14">
@@ -163,10 +173,13 @@ export function ResultsScreen({
           <h2 className="text-[13px] font-semibold uppercase tracking-[0.2em] text-tulivo-muted">
             Stage by stage
           </h2>
-          <ul className="mt-5 space-y-4">
+          <ul className="mt-5 space-y-5">
             {result.sections.map((section, i) => (
               <li key={section.id}>
                 <ScoreRow section={section} delay={i * 0.05} />
+                <p className="mt-1.5 text-[13.5px] leading-snug text-tulivo-muted">
+                  {section.gaps[0] ?? section.verdict}
+                </p>
               </li>
             ))}
           </ul>
@@ -182,6 +195,11 @@ export function ResultsScreen({
               <StatusDot status="red" /> Critical gap (under 50)
             </span>
           </div>
+          <p className="mt-3 text-[12px] leading-relaxed text-tulivo-faint">
+            Manual means it depends on somebody remembering. Systemised means there is a
+            process, but it still needs you. Automated means it happens without anyone
+            thinking about it.
+          </p>
         </Card>
       </section>
 
@@ -616,27 +634,27 @@ export function ResultsScreen({
         </section>
       )}
 
-      {/* ---------- Section-by-section ---------- */}
+      {/* ---------- The roadmap ---------- */}
       <section className="mt-14">
-        <Eyebrow>The detail</Eyebrow>
+        <Eyebrow>The roadmap</Eyebrow>
         <h2 className="mt-3 text-[30px] font-medium tracking-[-0.038em] text-tulivo-head">
-          Stage-by-stage analysis
+          {roadmap.length === 1 ? "The stage to work on" : `The ${roadmap.length} stages to work on`}
         </h2>
         <p className="mt-4 max-w-[70ch] text-[16px] leading-[1.65] text-tulivo-muted">
-          This is the reference section, not the plan. Every one of the eight stages is
-          written up here, whether it needs work or not, so you can look anything up when
-          you come to it. What to actually do over the next three months is the 90-day
-          focus above. If the two ever seem to disagree, follow the 90-day focus.
+          Not all eight. These are the stages your own numbers say are costing you the
+          most, and they are the ones the next three months are for. The rest are listed
+          at the end, so you know what is waiting.
         </p>
         <div className="mt-7 space-y-4">
-          {result.sections.map((section) => (
+          {roadmap.map((section) => (
             <Card key={section.id} className="p-6 sm:p-8">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                   <StatusDot status={section.status} />
-                  <h3 className="text-[18px] font-semibold tracking-[-0.02em] text-tulivo-ink">
+                  <h3 className="text-[20px] font-medium tracking-[-0.035em] text-tulivo-head">
                     {section.title}
                   </h3>
+                  <LevelChip level={section.level} />
                 </div>
                 <span className="tabular text-[14px] font-medium text-tulivo-muted">
                   {section.score}/100 · {STATUS_LABEL[section.status]}
@@ -667,6 +685,53 @@ export function ResultsScreen({
           ))}
         </div>
       </section>
+
+      {/* ---------- Your next cycle ---------- */}
+      {laterStages.length > 0 && (
+        <section className="mt-14">
+          <Eyebrow>After this quarter</Eyebrow>
+          <h2 className="mt-3 text-[30px] font-medium tracking-[-0.038em] text-tulivo-head">
+            Your next cycle
+          </h2>
+          <p className="mt-4 max-w-[70ch] text-[16px] leading-[1.65] text-tulivo-muted">
+            These stages are not in the roadmap on purpose. A quarter spent on everything
+            is a quarter spent on nothing. They are here so you know what is waiting, not
+            so you start on them now.
+          </p>
+          <ul className="mt-7 space-y-3">
+            {laterStages.map((section) => (
+              <li
+                key={section.id}
+                className="rounded-[4px] border border-tulivo-line bg-tulivo-card p-5"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+                  <div className="flex items-center gap-3">
+                    <StatusDot status={section.status} />
+                    <h3 className="text-[17px] font-medium tracking-[-0.03em] text-tulivo-head">
+                      {section.title}
+                    </h3>
+                    <LevelChip level={section.level} />
+                  </div>
+                  <span className="tabular text-[14px] font-medium text-tulivo-muted">
+                    {section.score}/100
+                  </span>
+                </div>
+                <p className="mt-2.5 text-[15px] leading-relaxed text-tulivo-muted">
+                  {section.gaps[0] ?? section.verdict}
+                </p>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-6 max-w-[70ch] text-[16px] leading-[1.65] text-tulivo-ink">
+            Re-run the diagnostic in 90 days. When your focus number has moved and held,
+            your next cycle starts with{" "}
+            <strong className="font-medium text-tulivo-head">
+              {result.cycle.next?.stage ?? laterStages[0].title}
+            </strong>
+            .
+          </p>
+        </section>
+      )}
 
       {/* ---------- Next steps ---------- */}
       <section className="mt-14">
@@ -701,10 +766,14 @@ export function ResultsScreen({
               </div>
             ))}
           </div>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <p className="mt-7 max-w-[70ch] text-[15px] leading-relaxed text-tulivo-muted">
+            We&apos;ll go through your roadmap, agree the one thing to fix first, and look
+            at which parts are worth building properly.
+          </p>
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
             <a href={DIAGNOSTIC.bookingUrl} target="_blank" rel="noreferrer" className="sm:w-auto">
               <Button variant={unlocked ? "primary" : "ghost"} full>
-                Book a call to discuss your results
+                Book your free 30-minute walkthrough
               </Button>
             </a>
             <button
@@ -715,6 +784,11 @@ export function ResultsScreen({
               Start a new diagnostic
             </button>
           </div>
+          <p className="mt-6 max-w-[70ch] rounded-[4px] bg-tulivo-section/70 p-4 text-[15px] leading-relaxed text-tulivo-ink">
+            If you&apos;d like help putting it in place, your {DIAGNOSTIC.currencySymbol}
+            {DIAGNOSTIC.tiers[0].price} comes off any system or partnership you book within
+            30 days.
+          </p>
         </Card>
       </section>
 
@@ -727,6 +801,22 @@ export function ResultsScreen({
         </a>
       </footer>
     </div>
+  );
+}
+
+/* Manual, Systemised or Automated: how the stage is run, not how well. */
+function LevelChip({ level }: { level: SectionResult["level"] }) {
+  return (
+    <span
+      className={cn(
+        "rounded-pill border px-2.5 py-[3px] text-[10px] font-medium uppercase tracking-[0.14em]",
+        level === "Automated" && "border-tulivo-green/50 text-tulivo-green",
+        level === "Systemised" && "border-tulivo-purple/50 text-tulivo-purple",
+        level === "Manual" && "border-tulivo-line text-tulivo-muted",
+      )}
+    >
+      {level}
+    </span>
   );
 }
 
@@ -862,40 +952,68 @@ function SectionDetail({ section }: { section: SectionResult }) {
           </div>
         </div>
 
-        <div className="mt-6 rounded-[4px] bg-tulivo-section/60 p-5">
-          <p className="text-[12px] font-medium uppercase tracking-[0.16em] text-tulivo-muted">
-            Tools worth considering
+        {/* What an automated version of this stage would do. No price. */}
+        <div className="mt-5 rounded-[4px] bg-tulivo-navy p-6">
+          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-tulivo-lilac">
+            The next level · Built with you
           </p>
-          <ul className="mt-3 space-y-2.5">
-            {section.tools.map((tool) => (
-              <li
-                key={tool}
-                className="flex gap-3 text-[15px] leading-relaxed text-tulivo-ink"
-              >
+          <p className="mt-3 text-[15.5px] leading-[1.65] text-tulivo-on-navy">
+            {section.nextLevel}
+          </p>
+        </div>
+
+        <ToolTiers section={section} />
+      </div>
+    </div>
+  );
+}
+
+/* Three tiers: what to start with, what is on the market, and how it joins up.
+   The list itself is edited in content/tools.json, not here. */
+function ToolTiers({ section }: { section: SectionResult }) {
+  const tools = toolsFor(section.id);
+  return (
+    <div className="mt-5 rounded-[4px] bg-tulivo-section/60 p-5 sm:p-6">
+      <p className="text-[12px] font-medium uppercase tracking-[0.16em] text-tulivo-muted">
+        Tools
+      </p>
+      <div className="mt-4 grid gap-6 sm:grid-cols-2">
+        <div>
+          <p className="text-[14px] font-medium text-tulivo-head">Start here</p>
+          <ul className="mt-2.5 space-y-2">
+            {tools.startHere.map((line) => (
+              <li key={line} className="flex gap-3 text-[15px] leading-relaxed text-tulivo-ink">
                 <span className="mt-[9px] h-[5px] w-[5px] shrink-0 rounded-full bg-tulivo-purple" />
-                <span>{tool}</span>
+                <span>{line}</span>
               </li>
             ))}
           </ul>
-          <div className="mt-5 border-t border-tulivo-line pt-4">
-            <p className="text-[13px] font-medium text-tulivo-head">
-              Worth considering as a project
-            </p>
-            <p className="mt-1.5 text-[14px] leading-relaxed text-tulivo-muted">
-              {section.project}
-            </p>
-            <p className="mt-2.5 text-[14px] leading-relaxed text-tulivo-muted">
-              If you&apos;d like help setting it up, email{" "}
-              <a
-                href={`mailto:${DIAGNOSTIC.contactEmail}`}
-                className="font-medium text-tulivo-head underline underline-offset-4"
-              >
-                {DIAGNOSTIC.contactEmail}
-              </a>
-              .
-            </p>
-          </div>
         </div>
+        <div>
+          <p className="text-[14px] font-medium text-tulivo-head">Tools on the market</p>
+          <ul className="mt-2.5 space-y-2.5">
+            {tools.market.map((tool) => (
+              <li key={tool.name} className="text-[15px] leading-snug text-tulivo-ink">
+                <span className="font-medium">{tool.name}</span>
+                <span className="mt-0.5 block text-[13.5px] text-tulivo-muted">{tool.what}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+      <div className="mt-5 border-t border-tulivo-line pt-4">
+        <p className="text-[14px] font-medium text-tulivo-head">The joined-up version</p>
+        <p className="mt-1.5 text-[15px] leading-relaxed text-tulivo-muted">{tools.joinedUp}</p>
+        <p className="mt-3 text-[14px] leading-relaxed text-tulivo-muted">
+          If you&apos;d like help putting it in place, email{" "}
+          <a
+            href={`mailto:${DIAGNOSTIC.contactEmail}`}
+            className="font-medium text-tulivo-head underline underline-offset-4"
+          >
+            {DIAGNOSTIC.contactEmail}
+          </a>
+          .
+        </p>
       </div>
     </div>
   );

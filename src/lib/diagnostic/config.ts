@@ -4,6 +4,9 @@
   sensible defaults so the diagnostic works out of the box.
 */
 
+/* One place for the page count, so the copy can never drift from the PDF. */
+const DIAGNOSTIC_PAGES = Number(process.env.NEXT_PUBLIC_REPORT_PAGES ?? 12);
+
 export const DIAGNOSTIC = {
   price: process.env.NEXT_PUBLIC_DIAGNOSTIC_PRICE ?? "97",
   currencySymbol: "£",
@@ -24,10 +27,11 @@ export const DIAGNOSTIC = {
   /** How long the free call is, in minutes. Used everywhere it's mentioned. */
   callMinutes: Number(process.env.NEXT_PUBLIC_CALL_MINUTES ?? 15),
   contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "jemina@tulivodigital.com",
+  instagram: process.env.NEXT_PUBLIC_INSTAGRAM ?? "@tulivo.digital",
   consultant: "Jemina Semakula",
   company: "Tulivo Digital",
   website: process.env.NEXT_PUBLIC_SITE_URL ?? "tulivodigital.com",
-  reportPages: 26,
+  reportPages: DIAGNOSTIC_PAGES,
   /** Written out for the sign-in screen, e.g. "twice in any 30 days". */
   runsPerWindowLabel: `${
     Number(process.env.NEXT_PUBLIC_RUNS_PER_WINDOW ?? 2) === 2
@@ -45,7 +49,7 @@ export const DIAGNOSTIC = {
       id: "report",
       name: "Your full report",
       price: Number(process.env.NEXT_PUBLIC_TIER_REPORT_PRICE ?? 97),
-      blurb: `Everything unlocked on screen, plus a ${Number(process.env.NEXT_PUBLIC_REPORT_PAGES ?? 16)}-page PDF to keep.`,
+      blurb: `Everything unlocked on screen, plus a ${DIAGNOSTIC_PAGES}-page PDF to keep.`,
       features: [
         "Exactly what's broken in each of the eight stages",
         "Specific recommendations written from your answers",

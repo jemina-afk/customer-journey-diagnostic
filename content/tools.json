@@ -1,0 +1,109 @@
+{
+  "_comment": "Tools suggested in the report, by stage. Edit this file to change what is recommended - nothing here is generated. Three tiers per stage: what to start with (free, or already in their hands), what is on the market (well-established products, no prices, no affiliate links), and one line on how the pieces join up. Keep each list to two to four entries so a page stays readable.",
+  "stages": {
+    "lead-sources": {
+      "startHere": [
+        "Google Business Profile, claimed and filled in properly. It is free and it is where most local searches end up.",
+        "A single page per service on the site you already have, each one with a way to book on it."
+      ],
+      "market": [
+        { "name": "Google Business Profile", "what": "Your listing in search and maps, with photos, services and booking" },
+        { "name": "Fresha", "what": "Booking and client records, widely used in treatment businesses" },
+        { "name": "Booksy", "what": "Booking with its own marketplace, so the listing brings enquiries too" }
+      ],
+      "joinedUp": "The booking system holds the diary, the Google listing points straight at it, and every service page uses the same booking link, so there is one route in however somebody finds you."
+    },
+    "lead-response": {
+      "startHere": [
+        "Instant replies turned on in Instagram and Facebook settings, with your prices and a booking link in them.",
+        "An automatic reply on your website form, so nobody is left wondering whether it sent."
+      ],
+      "market": [
+        { "name": "ManyChat", "what": "Automated conversations on Instagram, Facebook and WhatsApp" },
+        { "name": "WhatsApp Business", "what": "Away messages, quick replies and a catalogue, free to set up" },
+        { "name": "GoHighLevel", "what": "One inbox across every channel, with automated replies and booking" },
+        { "name": "HubSpot", "what": "A shared inbox and contact record, with a free tier to start on" }
+      ],
+      "joinedUp": "Every channel feeds one inbox, the first reply goes out on its own with a booking link in it, and anything that needs you is waiting in one place rather than on four apps."
+    },
+    "lead-nurture": {
+      "startHere": [
+        "Three saved messages: the day after, day three, and day seven. Send them by hand until the pattern is proven.",
+        "A note in the diary each Friday to check who enquired this week and never heard back."
+      ],
+      "market": [
+        { "name": "GoHighLevel", "what": "Email and text sequences triggered by an enquiry that has not booked" },
+        { "name": "HubSpot", "what": "Contact records with follow-up sequences and reminders" },
+        { "name": "ManyChat", "what": "Follow-up in the channel the enquiry arrived on" }
+      ],
+      "joinedUp": "An enquiry that does not book joins a sequence by itself, the sequence stops the moment they do book, and you only step in when somebody replies."
+    },
+    "booking": {
+      "startHere": [
+        "One booking link, used in every bio, every listing and every reply.",
+        "Deposits switched on, if your system can take them."
+      ],
+      "market": [
+        { "name": "Fresha", "what": "Online booking, deposits and client records" },
+        { "name": "Phorest", "what": "Booking and client management built for salons and clinics" },
+        { "name": "Timely", "what": "Booking with consultation forms and deposits" },
+        { "name": "Booksy", "what": "Booking with reminders and a client app" }
+      ],
+      "joinedUp": "One diary, one link, open at any hour, taking the deposit at the point of booking so the slot is held properly."
+    },
+    "confirmation": {
+      "startHere": [
+        "The confirmation message your booking system already sends, rewritten to say what happens next.",
+        "A what-to-expect message sent by hand two days before, until it is worth automating."
+      ],
+      "market": [
+        { "name": "Fresha", "what": "Automatic confirmations and pre-appointment forms" },
+        { "name": "Phorest", "what": "Consultation forms collected before the appointment" },
+        { "name": "Timely", "what": "Pre-appointment messages and forms tied to the service booked" }
+      ],
+      "joinedUp": "Booking triggers the confirmation, the confirmation carries the form, and the form is back before the client arrives."
+    },
+    "reminders": {
+      "startHere": [
+        "Reminders switched on at 48 and 24 hours in the system you already pay for.",
+        "A cancellation policy written in one short paragraph and shown at the point of booking."
+      ],
+      "market": [
+        { "name": "Fresha", "what": "Automated reminders by text and email" },
+        { "name": "Phorest", "what": "Reminders with a waitlist that offers released slots" },
+        { "name": "Booksy", "what": "Reminders and a cancellation policy clients agree to" },
+        { "name": "GoHighLevel", "what": "Reminder sequences across text, email and WhatsApp" }
+      ],
+      "joinedUp": "The reminder asks for a yes or no rather than just telling them, and a no goes straight to the people waiting for a slot."
+    },
+    "reviews": {
+      "startHere": [
+        "Your Google review link, shortened and saved in your phone, sent after every appointment.",
+        "An hour a month set aside to reply to every review you have had."
+      ],
+      "market": [
+        { "name": "Google Business Profile", "what": "Where the reviews live and where new clients read them" },
+        { "name": "Fresha", "what": "Automatic review requests after an appointment" },
+        { "name": "GoHighLevel", "what": "Review requests and replies handled in one place" }
+      ],
+      "joinedUp": "The appointment finishing is what sends the request, the request points at one tap, and the replies are drafted ready for you to approve."
+    },
+    "retention": {
+      "startHere": [
+        "Ask for the next booking before the client leaves. It costs nothing and it moves fastest.",
+        "A list of everyone who has not been back in three months, worked through by hand once."
+      ],
+      "market": [
+        { "name": "Phorest", "what": "Client lists, rebooking prompts and lapsed-client campaigns" },
+        { "name": "Fresha", "what": "Client records with repeat and lapsed reporting" },
+        { "name": "GoHighLevel", "what": "Re-engagement sequences timed from the last appointment" },
+        { "name": "HubSpot", "what": "Client records with lists and campaigns built from them" }
+      ],
+      "joinedUp": "The system knows when each client is due back, asks them before you would have remembered to, and only tells you about the ones who do not answer."
+    }
+  },
+  "connectors": [
+    { "name": "Zapier", "what": "Joins tools that do not talk to each other" },
+    { "name": "Make", "what": "The same job, with more control over the steps" }
+  ]
+}

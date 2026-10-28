@@ -14,6 +14,7 @@ import type {
   Question,
   Section,
   SectionResult,
+  Level,
   Status,
 } from "./types";
 
@@ -54,6 +55,17 @@ export function bandFor(score: number): Band {
   if (score >= 60) return "functional";
   if (score >= 40) return "leaking";
   return "critical";
+}
+
+/*
+  How the stage is being run, not how well it scores. The bands line up with
+  the status bands, because a stage somebody has to remember is exactly the
+  stage that scores badly.
+*/
+export function levelFor(score: number): Level {
+  if (score >= 75) return "Automated";
+  if (score >= 50) return "Systemised";
+  return "Manual";
 }
 
 export function statusFor(score: number): Status {
@@ -174,6 +186,9 @@ export function scoreSection(section: Section, answers: Answers): SectionResult 
     verdict,
     tools: section.tools,
     project: section.project,
+    kpiName: section.kpi.name,
+    nextLevel: section.nextLevel,
+    level: levelFor(score),
     measure: section.kpi.measure,
     answered: answeredCount > 0,
   };
@@ -194,9 +209,21 @@ export function scoreDiagnostic(
   const overall = totalWeight > 0 ? Math.round(weighted / totalWeight) : 0;
   const band = bandFor(overall);
 
-  // Priorities: where the weighted headroom is greatest - i.e. where the next
-  // hour of work buys the most.
-  const priorities = [...sections].sort((a, b) => b.opportunity - a.opportunity).slice(0, 3);
+  /*
+    Priorities are ranked by what the gap costs, because money is the thing an
+    owner can act on. Only some stages map onto a priced leak, so weighted
+    headroom breaks the ties and ranks everything the estimate cannot reach.
+  */
+  const impact = estimateImpact(answers, currency);
+  const costOf = (id: string) => {
+    const leak = LEAK_FOR_STAGE[id];
+    if (!leak || !impact.available) return 0;
+    return impact.leaks.find((l) => l.id === leak)?.annual ?? 0;
+  };
+  const ranked = [...sections].sort(
+    (a, b) => costOf(b.id) - costOf(a.id) || b.opportunity - a.opportunity,
+  );
+  const priorities = ranked.slice(0, 3);
 
   // One quick win per stage, weakest stage first - three actions that pull in
   // three different directions beat three variations on the same idea.
@@ -276,6 +303,14 @@ function dedupeFixes(fixes: Fix[]): Fix[] {
   on. Priorities come from the stages the KPI actually depends on - so the work
   compounds on one number instead of being spread thinly across eight.
 */
+/* Which priced leak, if any, a stage is responsible for. */
+export const LEAK_FOR_STAGE: Record<string, string> = {
+  reminders: "no-shows",
+  "lead-nurture": "enquiries",
+  "lead-response": "enquiries",
+  retention: "retention",
+};
+
 const MAX_PRIORITIES = 4;
 
 const WINDOWS: Record<number, string[]> = {
@@ -357,14 +392,8 @@ function buildCycle(
     }));
 
   const impact = estimateImpact(answers);
-  const leakFor: Record<string, string> = {
-    reminders: "no-shows",
-    "lead-nurture": "enquiries",
-    "lead-response": "enquiries",
-    retention: "retention",
-  };
   const worth = impact.available
-    ? impact.leaks.find((leak) => leak.id === leakFor[leadSection.id])?.annual ?? null
+    ? impact.leaks.find((leak) => leak.id === LEAK_FOR_STAGE[leadSection.id])?.annual ?? null
     : null;
 
   /*

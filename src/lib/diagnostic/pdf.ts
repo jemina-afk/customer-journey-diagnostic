@@ -1,4 +1,4 @@
-import type { Answers, DiagnosticResult, Profile, SectionResult } from "./types";
+import type { Answers, DiagnosticResult, Fix, Level, Profile, SectionResult } from "./types";
 import { DIAGNOSTIC } from "./config";
 import { STATUS_LABEL, annualValueOfOneMoreClientPerMonth } from "./scoring";
 import { estimateImpact, formatMoney } from "./impact";
@@ -25,6 +25,7 @@ import {
   type RGB,
 } from "./brand";
 import { BRAND_FONTS, GRADIENT, LOGO_RATIO, LOGO_WHITE } from "./brandAssets";
+import { toolsFor } from "./tools";
 
 /*
   The consulting deliverable. Drawn as vectors with jsPDF rather than a screen
@@ -61,15 +62,22 @@ export async function buildReport(
   doc.setLineCap("round");
   registerFonts(doc);
 
+  /*
+    A roadmap, not an equal write-up of eight stages. The reader has already
+    paid, so the report opens on where they are and spends its pages on the two
+    or three stages their own numbers say are costing the most.
+  */
+  const roadmap = result.priorities.filter((s) => s.status !== "green").slice(0, 3);
+  const inDepth = roadmap.length > 0 ? roadmap : result.priorities.slice(0, 2);
+
   coverPage(doc, result, profile);
-  whyItMattersPage(doc, profile);
   executiveSummary(doc, result, profile, answers);
-  journeyMapPage(doc, result, profile);
-  focusIntroPage(doc, result, profile);
-  actionPlanPage(doc, result, profile);
-  measurementPage(doc, result, profile);
-  stageReviewIntroPage(doc, result, profile);
-  result.sections.forEach((section, i) => sectionPage(doc, section, profile, i + 1));
+  glancePage(doc, result, profile);
+  focusPage(doc, result, profile);
+  inDepth.forEach((section, i) => roadmapPage(doc, section, profile, i + 1, inDepth.length));
+  weekPlanPage(doc, result, profile, inDepth);
+  dashboardPage(doc, result, profile, inDepth);
+  nextCyclePage(doc, result, profile, inDepth);
   nextStepsPage(doc, result, profile);
   aboutPage(doc, profile);
 
@@ -391,119 +399,6 @@ function coverPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
   );
 }
 
-function whyItMattersPage(doc: Doc, profile: Profile) {
-  doc.addPage();
-  pageFurniture(doc, profile, "Why this matters");
-  const c = currencyFor(profile.currency).symbol;
-
-  eyebrow(doc, "Before you spend more on ads", M, 30);
-  setText(doc, 26, INK, { font: DISPLAY });
-  doc.text("Fix the journey first. Then", M, 40);
-  doc.text("the ads are worth paying for.", M, 49);
-
-  let y = paragraph(
-    doc,
-    "Ads change one thing: how many people ask about you. What happens next decides how many of them become clients. If people are slipping away along the way, more ads just means more people slipping away. You pay twice - once for the ad, and again for the client you never got.",
-    M,
-    61,
-    COL_W,
-    { size: 10, colour: INK, leading: 5 },
-  );
-
-  y = paragraph(
-    doc,
-    "Here is what the research says about the eight stages in this report.",
-    M,
-    y + 4,
-    COL_W,
-    { size: 10, colour: MUTED, leading: 5 },
-  );
-
-  // Four findings. Big number first, one short line under it.
-  const findings = [
-    {
-      stat: "75%",
-      title: "People choose fast",
-      body:
-        "of people pick a local business in under 30 minutes. More than one in four decide in under five. Most look at three businesses or fewer. Reply tomorrow and the job has gone.",
-    },
-    {
-      stat: "71%",
-      title: "Hard to book means no booking",
-      body:
-        "of regular clients say they have given up on booking because it was too hard to reach someone or book online. They did not complain. They just went elsewhere.",
-    },
-    {
-      stat: "a third",
-      title: "One text saves the slot",
-      body:
-        "fewer missed appointments after one text reminder the day before: 7.5% down to 5.0%. A no-show is a client you already paid for, in time you cannot sell twice.",
-    },
-    {
-      stat: "97%",
-      title: "Everyone checks you first",
-      body:
-        "of people read reviews before choosing a local business. More than two thirds will only use one rated 4 stars or better. Your reviews are read before your website.",
-    },
-  ];
-
-  y += 6;
-  const boxW = (COL_W - 6) / 2;
-  findings.forEach((finding, i) => {
-    const x = M + (i % 2) * (boxW + 6);
-    const top = y + Math.floor(i / 2) * 50;
-
-    doc.setFillColor(WARM_GREY[0], WARM_GREY[1], WARM_GREY[2]);
-    doc.rect(x, top, boxW, 46, "F");
-    setText(doc, 26, INK, { font: DISPLAY });
-    doc.text(finding.stat, x + 5, top + 14);
-    let titleSize = 8;
-    setText(doc, titleSize, INK, "bold");
-    while (doc.getTextWidth(finding.title) > boxW - 10 && titleSize > 6.5) {
-      titleSize -= 0.25;
-      setText(doc, titleSize, INK, "bold");
-    }
-    doc.text(finding.title, x + 5, top + 21);
-    paragraph(doc, finding.body, x + 5, top + 27, boxW - 10, { size: 8, colour: MUTED, leading: 3.8 });
-  });
-
-  y += 50 * Math.ceil(findings.length / 2) + 2;
-
-  // The arithmetic that makes the point better than any of the above.
-  doc.setFillColor(WARM_GREY[0], WARM_GREY[1], WARM_GREY[2]);
-  doc.rect(M, y, COL_W, 34, "F");
-  setText(doc, 7.5, INK, "bold");
-  doc.text("What this means for a marketing budget", M + 6, y + 8);
-  paragraph(
-    doc,
-    `Say each enquiry costs you ${c}25, and one in five becomes a client. So ${c}1,000 buys 40 enquiries and 8 clients. Now make it one in three. The same ${c}1,000 buys 12 clients. To get those 4 extra clients from ads alone you would spend ${c}500 more, every month, for as long as you keep advertising. Fixing the journey is a one-off.`,
-    M + 6,
-    y + 15,
-    COL_W - 12,
-    { size: 9, colour: INK, leading: 4.4 },
-  );
-  y += 41;
-
-  paragraph(
-    doc,
-    "The cheapest clients you will ever win are the ones already in your inbox.",
-    M,
-    y,
-    COL_W,
-    { size: 10, colour: INK, leading: 5 },
-  );
-
-  rule(doc, PAGE_H - 38);
-  paragraph(
-    doc,
-    "Sources: Consumer Search Behavior, BrightLocal (2026), 1,200+ US consumers. Salon and Spa Consumer Survey, Zenoti (2025), 1,000+ US clients. Chong & Jawad, Reducing Did Not Attends at a Community Mental Health Service Through the Implementation of SMS Reminders: A Closed Loop Audit (2025). Local Consumer Review Survey, BrightLocal (2026), 1,002 US adults.",
-    M,
-    PAGE_H - 32,
-    COL_W,
-    { size: 7, colour: FAINT, leading: 3.4 },
-  );
-}
-
 function executiveSummary(doc: Doc, result: DiagnosticResult, profile: Profile, answers: Answers) {
   doc.addPage();
   pageFurniture(doc, profile, "Executive summary");
@@ -629,552 +524,631 @@ function strongest(result: DiagnosticResult): SectionResult {
   return [...result.sections].sort((a, b) => b.score - a.score)[0];
 }
 
-function journeyMapPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
-  doc.addPage();
-  pageFurniture(doc, profile, "Your journey map");
-
-  eyebrow(doc, "Your customer journey map", M, 30);
-  setText(doc, 26, INK, { font: DISPLAY });
-  doc.text("Where clients flow - and where they leak", M, 40);
-  paragraph(
-    doc,
-    "Each stage is colour-coded by how well it's working. A client has to pass through every one of these to become a returning, referring regular - so the weakest stage sets the ceiling for everything after it.",
-    M,
-    50,
-    COL_W,
-    { size: 10, colour: MUTED, leading: 5 },
-  );
-
-  radar(doc, PAGE_W / 2, 108, 32, result.sections);
-
-  let y = 158;
-  eyebrow(doc, "Stage by stage", M, y);
-  y += 8;
-  result.sections.forEach((section, i) => {
-    const colour = statusColour(section.status);
-    doc.setFillColor(colour[0], colour[1], colour[2]);
-    doc.circle(M + 3, y - 1, 3, "F");
-    setText(doc, 8, WHITE, "bold");
-    doc.text(String(i + 1), M + 3, y + 0.3, { align: "center" });
-
-    setText(doc, 10, INK, "bold");
-    doc.text(section.title, M + 10, y);
-    setText(doc, 9, colour, "bold");
-    doc.text(`${section.score}/100 · ${STATUS_LABEL[section.status]}`, PAGE_W - M, y, { align: "right" });
-
-    if (i < result.sections.length - 1) {
-      doc.setDrawColor(LINE[0], LINE[1], LINE[2]);
-      doc.setLineWidth(0.4);
-      doc.line(M + 3, y + 2.6, M + 3, y + 8.4);
-    }
-    y += 12;
-  });
-}
-
-function sectionPage(doc: Doc, section: SectionResult, profile: Profile, index: number) {
-  doc.addPage();
-  pageFurniture(doc, profile, `Stage ${index} of 8`);
-  const colour = statusColour(section.status);
-
-  eyebrow(doc, `Stage ${index}`, M, 30);
-  setText(doc, 26, INK, { font: DISPLAY });
-  doc.text(section.title, M, 40);
-
-  setText(doc, 26, colour, { font: DISPLAY });
-  doc.text(String(section.score), PAGE_W - M, 40, { align: "right" });
-  setText(doc, 8, FAINT, "normal");
-  doc.text("/100", PAGE_W - M, 45, { align: "right" });
-  scoreBar(doc, M, 47, COL_W, section.score, colour);
-  setText(doc, 8.5, colour, "bold");
-  doc.text(STATUS_LABEL[section.status], M, 55);
-
-  let y = paragraph(doc, section.verdict, M, 65, COL_W, { size: 10, colour: INK, leading: 5 });
-  y += 8;
-
-  if (section.strengths.length > 0) {
-    eyebrow(doc, "What's working", M, y, GREEN);
-    y += 6;
-    section.strengths.slice(0, 3).forEach((s) => {
-      y = bullet(doc, s, M, y, COL_W, GREEN) + 2.5;
-    });
-    y += 4;
-  }
-
-  if (section.gaps.length > 0) {
-    eyebrow(doc, "Gaps identified", M, y, RED);
-    y += 6;
-    section.gaps.slice(0, 3).forEach((g) => {
-      y = bullet(doc, g, M, y, COL_W, RED) + 2.5;
-    });
-    y += 4;
-  }
-
-  if (section.fixes.length > 0) {
-    eyebrow(doc, "Recommendations", M, y, PURPLE);
-    y += 6;
-    section.fixes.slice(0, 3).forEach((fix, i) => {
-      const boxTop = y - 4;
-      const actionLines = doc.splitTextToSize(fix.action, COL_W - 12) as string[];
-      const impactLines = doc.splitTextToSize(`Impact: ${fix.impact}`, COL_W - 12) as string[];
-      const boxH = 10 + actionLines.length * 4.4 + impactLines.length * 4;
-      doc.setFillColor(WARM_GREY[0], WARM_GREY[1], WARM_GREY[2]);
-      doc.rect(M, boxTop, COL_W, boxH, "F");
-
-      setText(doc, 7.5, INK, "bold");
-      doc.text(`${String(i + 1).padStart(2, "0")} · ${fix.effort === "quick" ? "QUICK WIN" : "PROJECT"}`, M + 5, boxTop + 6, {
-        charSpace: 0.6,
-      });
-      let inner = paragraph(doc, fix.action, M + 5, boxTop + 12, COL_W - 12, {
-        size: 9.5,
-        colour: INK,
-        leading: 4.4,
-      });
-      paragraph(doc, `Impact: ${fix.impact}`, M + 5, inner + 1, COL_W - 12, {
-        size: 8.5,
-        colour: MUTED,
-        leading: 4,
-      });
-      y = boxTop + boxH + 5;
-    });
-  } else {
-    y = paragraph(
-      doc,
-      "No urgent gaps here. Keep this stage running as it is and revisit it when the priorities above are done.",
-      M,
-      y,
-      COL_W,
-      { size: 9.5, colour: MUTED, leading: 4.4 },
-    ) + 6;
-  }
-
-  /*
-    The foot of every stage page: the number to watch, where to find it, how
-    often to look, the tools, and the thing worth building. Written out in
-    full rather than abbreviated, which means it no longer always fits under
-    the fixes - so it flows onto a second page when it has to.
-  */
-  doc.addPage();
-  pageFurniture(doc, profile, section.title);
-
-  eyebrow(doc, section.title, M, 30, FAINT);
-  setText(doc, 22, INK, { font: DISPLAY });
-  doc.text("How you'll know it's working", M, 41);
-
-  let fy = 54;
-  fy = paragraph(
-    doc,
-    `Track the following data: ${lowerFirst(section.measure.what)}`,
-    M,
-    fy,
-    COL_W,
-    { size: 11, colour: INK, leading: 5.2 },
-  );
-
-  fy += 10;
-  rule(doc, fy - 4);
-  setText(doc, 9, INK, "bold");
-  doc.text("Where to get it", M, fy + 2);
-  fy = paragraph(doc, section.measure.where, M, fy + 8, COL_W, {
-    size: 10,
-    colour: MUTED,
-    leading: 4.9,
-  });
-
-  fy += 8;
-  setText(doc, 9, INK, "bold");
-  doc.text("How often to check", M, fy);
-  fy = paragraph(doc, section.measure.cadence, M, fy + 6, COL_W, {
-    size: 10,
-    colour: MUTED,
-    leading: 4.9,
-  });
-
-  fy += 14;
-  rule(doc, fy - 6);
-  eyebrow(doc, "Tools worth considering", M, fy, PURPLE);
-  fy += 9;
-  section.tools.forEach((tool) => {
-    // The marker belongs beside the first line, so it is placed from the y the
-    // paragraph started at, not the y it ended on.
-    fillCircle(doc, M + 1.6, fy - 1.4, 1.1, PURPLE);
-    fy = paragraph(doc, tool, M + 6, fy, COL_W - 6, {
-      size: 10,
-      colour: INK,
-      leading: 4.9,
-    });
-    fy += 4;
-  });
-
-  fy += 8;
-  const projectLines = (() => {
-    setText(doc, 10.5, INK, "normal");
-    return doc.splitTextToSize(section.project, COL_W - 14) as string[];
-  })();
-  const projectH = 28 + projectLines.length * 5;
-  fillRect(doc, M, fy, COL_W, projectH, WARM_GREY);
-  fillRect(doc, M, fy, 1.6, projectH, PURPLE);
-  setText(doc, 7.5, INK, "bold");
-  doc.text("WORTH CONSIDERING AS A PROJECT", M + 7, fy + 8, { charSpace: 0.6 });
-  const pEnd = paragraph(doc, section.project, M + 7, fy + 15, COL_W - 14, {
-    size: 10.5,
-    colour: INK,
-    leading: 5,
-  });
-  paragraph(
-    doc,
-    `If you'd like help setting it up, email ${DIAGNOSTIC.contactEmail}.`,
-    M + 7,
-    pEnd + 3,
-    COL_W - 14,
-    { size: 9.5, colour: MUTED, leading: 4.6 },
-  );
-}
-
 /* "Every enquiry you receive..." reads wrong after a colon. */
 function lowerFirst(text: string): string {
   return text.charAt(0).toLowerCase() + text.slice(1);
 }
 
-/*
-  Before the plan itself: what a 90-day focus is, why this number and not one
-  of the other seven, what moving it gets them, and which stages this quarter
-  is deliberately leaving alone.
-*/
-function focusIntroPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
+/* ------------------------------------------------- your journey at a glance */
+
+const LEVEL_NOTE: Record<Level, string> = {
+  Manual: "depends on somebody remembering",
+  Systemised: "there is a process, but it still needs you",
+  Automated: "happens without anyone thinking about it",
+};
+
+/** The Manual / Systemised / Automated chip, sized to its own text. */
+function levelChip(doc: Doc, level: Level, x: number, y: number): number {
+  setText(doc, 7, INK, "bold");
+  const w = doc.getTextWidth(level.toUpperCase()) + 7;
+  const colour = level === "Automated" ? GREEN : level === "Systemised" ? PURPLE : MUTED;
+  doc.setDrawColor(colour[0], colour[1], colour[2]);
+  doc.setLineWidth(0.4);
+  doc.roundedRect(x, y - 3.8, w, 5.6, 2.8, 2.8, "S");
+  setText(doc, 6.5, colour, { weight: "bold", charSpace: 0.4 });
+  doc.text(level.toUpperCase(), x + 3.5, y);
+  return w;
+}
+
+function glancePage(doc: Doc, result: DiagnosticResult, profile: Profile) {
+  doc.addPage();
+  pageFurniture(doc, profile, "Your journey at a glance");
+
+  eyebrow(doc, "All eight stages", M, 30);
+  setText(doc, 24, INK, { font: DISPLAY });
+  doc.text("Your journey at a glance", M, 41);
+
+  radar(doc, M + 42, 86, 28, result.sections);
+
+  const legendX = M + 92;
+  setText(doc, 8.5, INK, "bold");
+  doc.text("How each stage is being run", legendX, 62);
+  let ly = 69;
+  (["Automated", "Systemised", "Manual"] as Level[]).forEach((level) => {
+    const w = levelChip(doc, level, legendX, ly);
+    setText(doc, 8, MUTED, "normal");
+    const note = doc.splitTextToSize(
+      LEVEL_NOTE[level],
+      PAGE_W - M - (legendX + w + 4),
+    ) as string[];
+    doc.text(note, legendX + w + 4, ly);
+    ly += 4 + note.length * 4.2;
+  });
+  setText(doc, 8, MUTED, "normal");
+  const scale = doc.splitTextToSize(
+    "Manual is under 50, Systemised is 50 to 74, Automated is 75 and over.",
+    PAGE_W - M - legendX,
+  ) as string[];
+  doc.text(scale, legendX, ly + 2);
+
+  let y = 124;
+  rule(doc, y - 6);
+  result.sections.forEach((section) => {
+    const colour = statusColour(section.status);
+    setText(doc, 10, INK, "bold");
+    doc.text(section.title, M, y);
+
+    const chipW = levelChip(doc, section.level, M + 72, y - 0.6);
+    setText(doc, 9.5, colour, "bold");
+    doc.text(`${section.score}/100`, PAGE_W - M, y, { align: "right" });
+
+    scoreBar(doc, M + 72 + chipW + 5, y - 2.2, PAGE_W - M - (M + 72 + chipW + 5) - 16, section.score, colour);
+
+    const gap = section.gaps[0] ?? section.verdict;
+    paragraph(doc, gap, M, y + 5, COL_W - 6, { size: 8.5, colour: MUTED, leading: 4 });
+    y += 19.5;
+  });
+}
+
+/* ------------------------------------------------------- your 90-day focus */
+
+function focusPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
   doc.addPage();
   pageFurniture(doc, profile, "Your 90-day focus");
   const cycle = result.cycle;
 
-  eyebrow(doc, "What happens next", M, 30);
-  setText(doc, 26, INK, { font: DISPLAY });
+  eyebrow(doc, "One number for the next three months", M, 30);
+  setText(doc, 24, INK, { font: DISPLAY });
   doc.text("Your 90-day focus", M, 41);
 
-  let y = paragraph(doc, cycle.explainer, M, 54, COL_W, {
-    size: 10.5,
-    colour: INK,
-    leading: 5.2,
-  });
+  // The number itself, on navy, because it is the thing to remember.
+  const panelH = 54;
+  fillRect(doc, M, 50, COL_W, panelH, NAVY);
+  setText(doc, 7.5, MUTED_ON_NAVY, { weight: "bold", charSpace: 0.6 });
+  doc.text("YOUR FOCUS KPI", M + 10, 62);
+  setText(doc, 19, CREAM, "bold");
+  doc.text(cycle.kpi, M + 10, 74);
+  setText(doc, 9, MUTED_ON_NAVY, "normal");
+  doc.text(doc.splitTextToSize(cycle.metric, 96) as string[], M + 10, 82);
 
-  y += 10;
-  doc.setFillColor(WARM_GREY[0], WARM_GREY[1], WARM_GREY[2]);
-  const whyLines = (() => {
-    setText(doc, 9.5, INK, "normal");
-    return doc.splitTextToSize(cycle.chosenBecause, COL_W - 14) as string[];
-  })();
-  const whyH = 18 + whyLines.length * 4.6;
-  doc.rect(M, y, COL_W, whyH, "F");
-  fillRect(doc, M, y, 1.6, whyH, PURPLE);
-  setText(doc, 7.5, INK, "bold");
-  doc.text("WHY THIS NUMBER, AND NOT ONE OF THE OTHER SEVEN", M + 7, y + 8, { charSpace: 0.6 });
-  paragraph(doc, cycle.chosenBecause, M + 7, y + 15, COL_W - 14, {
-    size: 9.5,
-    colour: INK,
-    leading: 4.6,
-  });
-  y += whyH + 12;
+  const boxX = PAGE_W - M - 62;
+  setText(doc, 7, MUTED_ON_NAVY, { weight: "bold", charSpace: 0.5 });
+  doc.text("TODAY", boxX, 62);
+  doc.text("IN 90 DAYS", boxX + 32, 62);
+  setText(doc, 12, CREAM, "bold");
+  doc.text(doc.splitTextToSize(cycle.current ?? "Not measured", 28) as string[], boxX, 70);
+  setText(doc, 12, LILAC, "bold");
+  doc.text(doc.splitTextToSize(cycle.target, 28) as string[], boxX + 32, 70);
 
-  eyebrow(doc, "What you get when it moves", M, y, PURPLE);
-  y = paragraph(doc, cycle.benefit, M, y + 8, COL_W, {
-    size: 10,
-    colour: INK,
-    leading: 4.9,
-  });
+  let y = 50 + panelH + 12;
+  eyebrow(doc, "Why this number matters most for you", M, y, PURPLE);
+  y = paragraph(doc, cycle.why, M, y + 8, COL_W, { size: 10.5, colour: INK, leading: 5.2 });
 
-  if (cycle.later.length > 0) {
-    y += 12;
-    eyebrow(doc, "Not this quarter, but still a concern", M, y, FAINT);
-    y = paragraph(
-      doc,
-      "These stages also scored below where they should be. They are deliberately not in the plan, because a quarter spent on everything is a quarter spent on nothing. Leave them until the number above has moved and held, then they become the next cycle.",
-      M,
-      y + 8,
-      COL_W,
-      { size: 9, colour: MUTED, leading: 4.3 },
-    );
-    y += 5;
-    cycle.later.forEach((item) => {
-      doc.setFillColor(WARM_GREY[0], WARM_GREY[1], WARM_GREY[2]);
-      doc.rect(M, y, COL_W, 11, "F");
-      fillRect(doc, M + 4, y + 4.4, 2.2, 2.2, statusColour(item.status));
-      setText(doc, 9.5, INK, "bold");
-      doc.text(item.stage, M + 9, y + 5);
-      setText(doc, 8, MUTED, "normal");
-      doc.text(item.kpi, M + 9, y + 9);
-      setText(doc, 9.5, MUTED, "bold");
-      doc.text(`${item.score}/100`, PAGE_W - M - 5, y + 7, { align: "right" });
-      y += 13;
-    });
-  }
-}
-
-/* A divider, so the eight write-ups are not mistaken for the plan. */
-function stageReviewIntroPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
-  doc.addPage();
-  pageFurniture(doc, profile, "Stage-by-stage analysis");
-
-  eyebrow(doc, "The detail", M, 30);
-  setText(doc, 26, INK, { font: DISPLAY });
-  doc.text("Stage-by-stage analysis", M, 41);
-
-  let y = paragraph(
-    doc,
-    "The rest of this report is reference, not plan. All eight stages are written up over the following pages, whether they need work or not, so you can look any one of them up when you come to it.",
-    M,
-    54,
-    COL_W,
-    { size: 10.5, colour: INK, leading: 5.2 },
-  );
-  y = paragraph(
-    doc,
-    `What to actually do over the next three months is the 90-day focus you have just read: ${result.cycle.kpi}, and the priorities underneath it. If the two ever seem to disagree, follow the 90-day focus.`,
-    M,
-    y + 6,
-    COL_W,
-    { size: 10.5, colour: INK, leading: 5.2 },
-  );
+  y += 8;
+  y = paragraph(doc, cycle.benefit, M, y, COL_W, { size: 10.5, colour: MUTED, leading: 5.2 });
 
   y += 12;
-  rule(doc, y);
-  y += 10;
-  eyebrow(doc, "How each stage is laid out", M, y, FAINT);
-  y += 8;
-  [
-    "The score, and what it means in practice",
-    "What is working, so you keep doing it",
-    "What is leaking, named rather than hinted at",
-    "What to do about it, in order",
-    "The one number that tells you it is working, where to find it and how often to look",
-    "Tools worth considering, and the thing worth building properly",
-  ].forEach((line) => {
-    y = bullet(doc, line, M, y, COL_W, PURPLE) + 2;
+  rule(doc, y - 6);
+  eyebrow(doc, "How this number was chosen", M, y, FAINT);
+  y = paragraph(doc, cycle.chosenBecause, M, y + 8, COL_W, {
+    size: 9.5,
+    colour: MUTED,
+    leading: 4.6,
+  });
+
+  y += 12;
+  eyebrow(doc, "How to measure it", M, y, FAINT);
+  y = paragraph(
+    doc,
+    `Track the following data: ${lowerFirst(cycle.measure.what)}`,
+    M,
+    y + 8,
+    COL_W,
+    { size: 10, colour: INK, leading: 4.9 },
+  );
+  y += 4;
+  setText(doc, 8.5, INK, "bold");
+  doc.text("Where to get it", M, y);
+  y = paragraph(doc, cycle.measure.where, M, y + 5.5, COL_W, {
+    size: 9.5,
+    colour: MUTED,
+    leading: 4.6,
+  });
+  y += 4;
+  setText(doc, 8.5, INK, "bold");
+  doc.text("How often to check", M, y);
+  paragraph(doc, cycle.measure.cadence, M, y + 5.5, COL_W, {
+    size: 9.5,
+    colour: MUTED,
+    leading: 4.6,
   });
 }
 
-function actionPlanPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
+/* ---------------------------------------------------------------- roadmap */
+
+function roadmapPage(
+  doc: Doc,
+  section: SectionResult,
+  profile: Profile,
+  index: number,
+  total: number,
+) {
   doc.addPage();
-  pageFurniture(doc, profile, "Your 90-day focus");
-  const cycle = result.cycle;
+  pageFurniture(doc, profile, `Roadmap ${index} of ${total}`);
+  const tools = toolsFor(section.id);
 
-  eyebrow(doc, "Your 90-day focus", M, 30);
-  setText(doc, 26, INK, { font: DISPLAY });
-  doc.text("One number, three or four priorities", M, 40);
-  paragraph(
-    doc,
-    `Everything below moves ${cycle.kpi}. The windows add up to the whole thirteen weeks, so this is the quarter, not the first fortnight of it.`,
-    M,
-    50,
-    COL_W,
-    { size: 10, colour: MUTED, leading: 5 },
-  );
+  eyebrow(doc, `Priority ${index}`, M, 30, PURPLE);
+  setText(doc, 22, INK, { font: DISPLAY });
+  doc.text(section.title, M, 41);
+  const chipW = levelChip(doc, section.level, M, 48);
+  setText(doc, 9, statusColour(section.status), "bold");
+  doc.text(`${section.score}/100`, M + chipW + 5, 48);
 
-  // The KPI panel.
-  let y = 64;
-  const boxW = 46;
-  const leftW = COL_W - boxW - 18;
-  // Measure each block in the face it will actually be drawn in, or the
-  // wrapping is wrong and the text runs out of its panel.
-  setText(doc, 8.5, INK, "normal");
-  const whyLines = doc.splitTextToSize(cycle.why, leftW) as string[];
-  setText(doc, 9.5, INK, "bold");
-  const targetLines = doc.splitTextToSize(cycle.target, boxW) as string[];
-  const currentLines = doc.splitTextToSize(cycle.current ?? "Not measured", boxW) as string[];
-  const panelH = Math.max(
-    34 + whyLines.length * 4.3,
-    26 + (currentLines.length + targetLines.length) * 4.3,
-  );
-  doc.setFillColor(WARM_GREY[0], WARM_GREY[1], WARM_GREY[2]);
-  doc.rect(M, y, COL_W, panelH, "F");
-  setText(doc, 7.5, INK, "bold");
-  doc.text("Your focus KPI", M + 6, y + 8);
-  setText(doc, 15, INK, "bold");
-  doc.text(cycle.kpi, M + 6, y + 17);
-  setText(doc, 8.5, MUTED, "normal");
-  doc.text(cycle.metric, M + 6, y + 23);
-  paragraph(doc, cycle.why, M + 6, y + 30, leftW, { size: 8.5, colour: INK, leading: 4.3 });
-
-  // Today → target, in the right-hand column of the panel.
-  const boxX = PAGE_W - M - boxW - 6;
-  setText(doc, 7, FAINT, "bold");
-  doc.text("Today", boxX, y + 8);
-  setText(doc, 9.5, INK, "bold");
-  doc.text(currentLines, boxX, y + 13);
-  const targetY = y + 17 + currentLines.length * 4.3;
-  setText(doc, 7, INK, "bold");
-  doc.text("In 90 days", boxX, targetY);
-  setText(doc, 9.5, INK, "bold");
-  doc.text(targetLines, boxX, targetY + 5);
-  y += panelH + 8;
-
-  if (cycle.worth !== null) {
-    setText(doc, 9, INK, "bold");
-    doc.text(
-      `Worth roughly ${formatMoney(cycle.worth, currencyFor(profile.currency))} a year once it moves.`,
-      M,
-      y,
-    );
-    y += 8;
-  }
-
-  // The aligned priorities.
-  eyebrow(doc, "The priorities in this cycle", M, y, PURPLE);
-  y += 8;
-  cycle.priorities.forEach((priority, i) => {
-    doc.setFillColor(PURPLE[0], PURPLE[1], PURPLE[2]);
-    doc.circle(M + 3, y - 1.2, 3, "F");
-    setText(doc, 8, WHITE, "bold");
-    doc.text(String(i + 1), M + 3, y + 0.2, { align: "center" });
-
-    setText(doc, 11, INK, "bold");
-    doc.text(priority.title, M + 10, y);
-    setText(doc, 8, FAINT, "bold");
-    doc.text(priority.window, PAGE_W - M, y, { align: "right" });
-    setText(doc, 8, INK, "normal");
-    doc.text(`via ${priority.stage}`, M + 10, y + 4.6);
-    y += 10;
-    priority.steps.slice(0, i === 0 ? 3 : 2).forEach((step) => {
-      y = bullet(doc, step, M + 10, y, COL_W - 10, PURPLE) + 2;
+  // Two columns: what is working, and what is not.
+  const colW = (COL_W - 10) / 2;
+  let ly = 62;
+  let ry = 62;
+  eyebrow(doc, "What's working", M, ly, GREEN);
+  ly += 8;
+  (section.strengths.length ? section.strengths : ["Nothing scored strongly here yet."])
+    .slice(0, 3)
+    .forEach((line) => {
+      ly = bullet(doc, line, M, ly, colW, GREEN) + 1.5;
     });
-    y += 4;
+
+  eyebrow(doc, "The gaps", M + colW + 10, ry, RED);
+  ry += 8;
+  (section.gaps.length ? section.gaps : ["No gaps recorded for this stage."])
+    .slice(0, 3)
+    .forEach((line) => {
+      ry = bullet(doc, line, M + colW + 10, ry, colW, RED) + 1.5;
+    });
+
+  let y = Math.max(ly, ry) + 8;
+  rule(doc, y - 6);
+  eyebrow(doc, "What to do", M, y, PURPLE);
+  y += 8;
+  section.fixes.slice(0, 3).forEach((fix) => {
+    setText(doc, 7, fix.effort === "quick" ? GREEN : PURPLE, { weight: "bold", charSpace: 0.5 });
+    doc.text(fix.effort === "quick" ? "QUICK WIN" : "PROJECT", M, y);
+    y = paragraph(doc, fix.action, M + 24, y, COL_W - 24, {
+      size: 9.5,
+      colour: INK,
+      leading: 4.5,
+    });
+    y = paragraph(doc, fix.impact, M + 24, y + 0.5, COL_W - 24, {
+      size: 8.5,
+      colour: MUTED,
+      leading: 4,
+    });
+    y += 3.5;
   });
 
-  // Quick wins and the next cycle share the foot of the page.
-  const footTop = Math.max(y + 2, 224);
-  rule(doc, footTop - 6);
-  eyebrow(doc, "Three things you can do this week", M, footTop, FAINT);
-  let wy = footTop + 6;
-  result.quickWins.slice(0, 3).forEach((win) => {
-    wy = bullet(doc, win.action, M, wy, COL_W, PURPLE) + 1.5;
+  // The next level, on navy, with no price attached to it.
+  y += 2;
+  setText(doc, 9.5, CREAM, "normal");
+  const nlLines = doc.splitTextToSize(section.nextLevel, COL_W - 20) as string[];
+  const nlH = 18 + nlLines.length * 4.6;
+  fillRect(doc, M, y, COL_W, nlH, NAVY);
+  setText(doc, 7.5, LILAC, { weight: "bold", charSpace: 0.6 });
+  doc.text("THE NEXT LEVEL  ·  BUILT WITH YOU", M + 10, y + 8);
+  setText(doc, 9.5, CREAM, "normal");
+  doc.text(nlLines, M + 10, y + 15);
+  y += nlH + 8;
+
+  // Tools, in three tiers across the page.
+  eyebrow(doc, "Tools", M, y, FAINT);
+  y += 8;
+  const tierW = (COL_W - 12) / 2;
+
+  setText(doc, 8.5, INK, "bold");
+  doc.text("Start here", M, y);
+  let sy = y + 5.5;
+  tools.startHere.forEach((line) => {
+    sy = bullet(doc, line, M, sy, tierW, PURPLE) + 1;
   });
 
-  if (cycle.next) {
-    const nextY = Math.max(wy + 4, 262);
-    doc.setFillColor(WARM_GREY[0], WARM_GREY[1], WARM_GREY[2]);
-    doc.rect(M, nextY, COL_W, 16, "F");
-    setText(doc, 7.5, FAINT, "bold");
-    doc.text("Then the next cycle", M + 5, nextY + 6);
-    setText(doc, 9.5, INK, "bold");
-    doc.text(`${cycle.next.kpi} - ${cycle.next.stage}`, M + 5, nextY + 12);
-  }
+  setText(doc, 8.5, INK, "bold");
+  doc.text("Tools on the market", M + tierW + 12, y);
+  let my = y + 5.5;
+  tools.market.slice(0, 3).forEach((tool) => {
+    setText(doc, 8.5, INK, "bold");
+    doc.text(tool.name, M + tierW + 12, my);
+    my = paragraph(doc, tool.what, M + tierW + 12, my + 4, tierW, {
+      size: 8,
+      colour: MUTED,
+      leading: 3.8,
+    }) + 1.5;
+  });
+
+  setText(doc, 8.5, INK, "bold");
+  doc.text("The joined-up version", M, sy + 4);
+  paragraph(doc, tools.joinedUp, M, sy + 9.5, tierW, { size: 8.5, colour: MUTED, leading: 4 });
+}
+
+/* -------------------------------------------------------- week-by-week plan */
+
+interface Phase {
+  label: string;
+  window: string;
+  steps: { stage: string; action: string; effort: Fix["effort"] }[];
 }
 
 /*
-  Guidance is only useful if someone can tell whether it worked. This page names
-  the numbers that follow from their own priorities, says where each one comes
-  from, and gives them a scoreboard small enough that it might actually get kept.
+  One timeline for the quarter. Every recommendation from the roadmap is placed
+  in a phase: quick wins first, then the projects behind them, in priority
+  order, so the plan reads as one list rather than three separate ones.
 */
-function measurementPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
-  doc.addPage();
-  pageFurniture(doc, profile, "How to know it's working");
-
-  eyebrow(doc, "Measuring the change", M, 30);
-  setText(doc, 26, INK, { font: DISPLAY });
-  doc.text("How you'll know it's working", M, 40);
-  const metrics: { name: string; measure: SectionResult["measure"]; lead: boolean }[] = [
-    { name: result.cycle.kpi, measure: result.cycle.measure, lead: true },
+function buildPhases(result: DiagnosticResult, roadmap: SectionResult[]): Phase[] {
+  const phases: Phase[] = [
+    { label: "Phase one", window: "Weeks 1-2", steps: [] },
+    { label: "Phase two", window: "Weeks 3-6", steps: [] },
+    { label: "Phase three", window: "Weeks 7-12", steps: [] },
   ];
-  result.cycle.priorities.slice(1).forEach((priority) => {
-    const section = result.sections.find((s) => s.title === priority.stage);
-    if (section && !metrics.some((m) => m.measure.what === section.measure.what)) {
-      metrics.push({ name: priority.stage, measure: section.measure, lead: false });
-    }
-  });
-  const shown = metrics.slice(0, 3);
-  const counts = ["One number", "Two numbers", "Three numbers"];
 
-  paragraph(
+  const seen = new Set<string>();
+  const add = (into: number, section: SectionResult, fix: Fix) => {
+    if (seen.has(fix.action) || phases[into].steps.length >= 3) return;
+    seen.add(fix.action);
+    phases[into].steps.push({
+      stage: section.shortTitle,
+      action: fix.action,
+      effort: fix.effort,
+    });
+  };
+
+  const lead = roadmap[0];
+  const rest = roadmap.slice(1);
+  const quick = (section: SectionResult) => section.fixes.filter((f) => f.effort === "quick");
+  const projects = (section: SectionResult) => section.fixes.filter((f) => f.effort !== "quick");
+
+  /*
+    The first fortnight belongs to the stage that is costing the most, and only
+    to the parts of it that can be switched on quickly. The quarter then widens:
+    the other priorities' quick wins and the lead stage's build in the middle,
+    the remaining builds at the end. Three to a phase, because a phase with six
+    things in it is a list, not a plan.
+  */
+  if (lead) quick(lead).forEach((f) => add(0, lead, f));
+  rest.forEach((section) => quick(section).forEach((f) => add(0, section, f)));
+
+  if (lead) projects(lead).forEach((f) => add(1, lead, f));
+  rest.forEach((section) => quick(section).forEach((f) => add(1, section, f)));
+
+  rest.forEach((section) => projects(section).forEach((f) => add(2, section, f)));
+  if (lead) projects(lead).forEach((f) => add(2, lead, f));
+
+  // A phase with nothing in it reads as a gap in the plan rather than a light
+  // month, so anything still unplaced fills it.
+  phases.forEach((phase, i) => {
+    if (phase.steps.length > 0) return;
+    const spare = roadmap
+      .flatMap((section) => section.fixes.map((fix) => ({ section, fix })))
+      .find(({ fix }) => !seen.has(fix.action));
+    if (spare) add(i, spare.section, spare.fix);
+  });
+
+  return phases;
+}
+
+function weekPlanPage(
+  doc: Doc,
+  result: DiagnosticResult,
+  profile: Profile,
+  roadmap: SectionResult[],
+) {
+  doc.addPage();
+  pageFurniture(doc, profile, "Your 90 days");
+  const phases = buildPhases(result, roadmap);
+
+  eyebrow(doc, "The plan", M, 30, PURPLE);
+  setText(doc, 24, INK, { font: DISPLAY });
+  doc.text("Week by week", M, 41);
+  let y = paragraph(
     doc,
-    `${counts[shown.length - 1] ?? "These numbers"}, checked at the right interval, will tell you whether any of this landed. Everything else is noise until ${shown.length === 1 ? "it moves" : "they move"}.`,
+    `Everything from the roadmap, in the order to do it. All of it moves ${result.cycle.kpi}.`,
     M,
-    50,
+    51,
     COL_W,
     { size: 10, colour: MUTED, leading: 5 },
   );
 
-  let y = 64;
-  shown.forEach((metric, i) => {
-    const whatLines = doc.splitTextToSize(metric.measure.what, COL_W - 14) as string[];
-    const whereLines = doc.splitTextToSize(`Where from: ${metric.measure.where}`, COL_W - 14) as string[];
-    const cadenceLines = doc.splitTextToSize(`How often: ${metric.measure.cadence}`, COL_W - 14) as string[];
-    const boxH = 24 + whatLines.length * 4.2 + (whereLines.length + cadenceLines.length) * 3.9;
+  y += 8;
+  phases.forEach((phase, i) => {
+    fillCircle(doc, M + 3, y - 1, 3, PURPLE);
+    setText(doc, 8, WHITE, "bold");
+    doc.text(String(i + 1), M + 3, y + 0.4, { align: "center" });
+    setText(doc, 12, INK, "bold");
+    doc.text(phase.label, M + 11, y);
+    setText(doc, 9, PURPLE, "bold");
+    doc.text(phase.window, PAGE_W - M, y, { align: "right" });
+    y += 7;
 
-    const tint = metric.lead ? WARM_GREY : WARM_GREY;
-    doc.setFillColor(tint[0], tint[1], tint[2]);
-    doc.rect(M, y, COL_W, boxH, "F");
+    phase.steps.forEach((step) => {
+      setText(doc, 6.5, step.effort === "quick" ? GREEN : PURPLE, {
+        weight: "bold",
+        charSpace: 0.4,
+      });
+      doc.text(step.effort === "quick" ? "QUICK WIN" : "PROJECT", M + 11, y);
+      setText(doc, 7.5, FAINT, "normal");
+      doc.text(step.stage, PAGE_W - M, y, { align: "right" });
+      y = paragraph(doc, step.action, M + 11, y + 4.5, COL_W - 22, {
+        size: 9.5,
+        colour: INK,
+        leading: 4.5,
+      });
+      y += 4;
+    });
 
-    setText(doc, 7.5, metric.lead ? PURPLE : FAINT, "bold");
-    doc.text(metric.lead ? "Your focus number" : `Supporting number ${i}`, M + 6, y + 8);
-    setText(doc, 12.5, INK, "bold");
-    doc.text(metric.name, M + 6, y + 15.5);
+    if (i < phases.length - 1) {
+      rule(doc, y + 1, M + 11, COL_W - 11);
+      y += 9;
+    }
+  });
 
-    let inner = paragraph(doc, metric.measure.what, M + 6, y + 22, COL_W - 14, {
-      size: 9,
+  /*
+    Where to start, at the foot. These are phase one's own items rather than a
+    separate list, because two lists of first steps on one page is one too many.
+  */
+  const first = phases[0].steps.slice(0, 3);
+  setText(doc, 8.5, INK, "normal");
+  const firstH = first.reduce(
+    (total, step) => total + (doc.splitTextToSize(step.action, COL_W - 20) as string[]).length * 4.2 + 2,
+    0,
+  );
+  const footY = Math.min(Math.max(y + 8, PAGE_H - 30 - firstH - 16), PAGE_H - 30 - firstH - 16);
+  fillRect(doc, M, footY, COL_W, firstH + 16, WARM_GREY);
+  setText(doc, 7.5, INK, { weight: "bold", charSpace: 0.6 });
+  doc.text("THREE THINGS YOU CAN DO THIS WEEK", M + 8, footY + 9);
+  let wy = footY + 16;
+  first.forEach((step) => {
+    fillCircle(doc, M + 9.2, wy - 1.2, 1, PURPLE);
+    wy = paragraph(doc, step.action, M + 13, wy, COL_W - 24, {
+      size: 8.5,
       colour: INK,
       leading: 4.2,
-    });
-    inner = paragraph(doc, `Where from: ${metric.measure.where}`, M + 6, inner + 1.5, COL_W - 14, {
-      size: 8,
-      colour: MUTED,
-      leading: 3.9,
-    });
-    paragraph(doc, `How often: ${metric.measure.cadence}`, M + 6, inner + 1, COL_W - 14, {
-      size: 8,
-      colour: MUTED,
-      leading: 3.9,
-    });
-
-    y += boxH + 5;
+    }) + 2;
   });
+}
 
-  // A scoreboard small enough to rule on one page and keep by the till.
-  y += 2;
-  eyebrow(doc, "A scoreboard worth keeping", M, y, PURPLE);
-  y = paragraph(
+/* ------------------------------------------------- your tracking dashboard */
+
+/*
+  An example of what one screen should tell them, drawn with illustrative
+  figures rather than their own, because they have not started recording yet.
+  Every number on it is marked as an example so it cannot be mistaken for data.
+*/
+function dashboardPage(
+  doc: Doc,
+  result: DiagnosticResult,
+  profile: Profile,
+  roadmap: SectionResult[],
+) {
+  doc.addPage();
+  pageFurniture(doc, profile, "Your tracking dashboard");
+  const cycle = result.cycle;
+
+  eyebrow(doc, "One screen, once a month", M, 30, PURPLE);
+  setText(doc, 24, INK, { font: DISPLAY });
+  doc.text("Your tracking dashboard", M, 41);
+  paragraph(
     doc,
-    "Five numbers, written down every Monday for the week just gone. Two minutes, and it is the whole measurement system: a spreadsheet nobody fills in is worth less than a notebook that gets used.",
+    "This is what to build, not what you have. The figures below are an example of the shape; yours go in once you start recording.",
     M,
-    y + 7,
+    51,
     COL_W,
-    { size: 9, colour: MUTED, leading: 4.3 },
-  ) + 5;
+    { size: 10, colour: MUTED, leading: 5 },
+  );
 
-  const columns = ["Week", "Enquiries", "Replied in 5 min", "Booked", "No-shows"];
-  const colW = COL_W / columns.length;
-  doc.setFillColor(WARM_GREY[0], WARM_GREY[1], WARM_GREY[2]);
-  doc.rect(M, y, COL_W, 9, "F");
-  columns.forEach((column, i) => {
-    setText(doc, 7, MUTED, "bold");
-    doc.text(column, M + 3 + i * colW, y + 6);
+  // The focus KPI, large, this month against last.
+  let y = 64;
+  fillRect(doc, M, y, COL_W, 40, NAVY);
+  setText(doc, 7, MUTED_ON_NAVY, { weight: "bold", charSpace: 0.6 });
+  doc.text("YOUR FOCUS KPI", M + 10, y + 10);
+  setText(doc, 11, CREAM, "bold");
+  doc.text(cycle.kpi, M + 10, y + 19);
+  setText(doc, 8, MUTED_ON_NAVY, "normal");
+  doc.text("This month against last month", M + 10, y + 27);
+  setText(doc, 7, FAINT, { weight: "bold", charSpace: 0.5 });
+  doc.text("EXAMPLE FIGURES", M + 10, y + 34);
+
+  setText(doc, 26, CREAM, "bold");
+  doc.text("18", M + 96, y + 24);
+  setText(doc, 7.5, MUTED_ON_NAVY, "normal");
+  doc.text("this month", M + 96, y + 30);
+  setText(doc, 14, MUTED_ON_NAVY, "bold");
+  doc.text("31", M + 118, y + 24);
+  setText(doc, 7.5, MUTED_ON_NAVY, "normal");
+  doc.text("last month", M + 118, y + 30);
+  sparkline(doc, PAGE_W - M - 44, y + 11, 34, 16);
+  setText(doc, 7, MUTED_ON_NAVY, "normal");
+  doc.text("last 12 weeks", PAGE_W - M - 44, y + 33);
+  y += 46;
+
+  // Supporting tiles, drawn from the stages in the roadmap.
+  const tiles = roadmap.map((section) => ({
+    name: section.kpiName,
+    stage: section.shortTitle,
+  }));
+  const extra = [
+    { name: "Enquiries received this month", stage: "Lead Sources" },
+    { name: "Appointments booked this month", stage: "Booking" },
+    { name: "Clients who came back this month", stage: "Retention" },
+  ];
+  const all = [...tiles, ...extra].slice(0, 6);
+
+  eyebrow(doc, "Supporting numbers", M, y, FAINT);
+  y += 8;
+  const tw = (COL_W - 8) / 3;
+  all.forEach((tile, i) => {
+    const col = i % 3;
+    const row = Math.floor(i / 3);
+    const tx = M + col * (tw + 4);
+    const ty = y + row * 24;
+    fillRect(doc, tx, ty, tw, 20, WARM_GREY);
+    setText(doc, 6.5, FAINT, { weight: "bold", charSpace: 0.4 });
+    doc.text(tile.stage.toUpperCase(), tx + 4, ty + 6);
+    setText(doc, 8.5, INK, "bold");
+    doc.text(doc.splitTextToSize(tile.name, tw - 8).slice(0, 2) as string[], tx + 4, ty + 12);
   });
-  y += 9;
-  doc.setDrawColor(LINE[0], LINE[1], LINE[2]);
-  doc.setLineWidth(0.25);
-  for (let row = 0; row < 4; row++) {
-    const rowY = y + row * 7.5;
-    doc.line(M, rowY + 7.5, M + COL_W, rowY + 7.5);
-    doc.line(M, rowY, M, rowY + 7.5);
-    doc.line(M + COL_W, rowY, M + COL_W, rowY + 7.5);
-    columns.forEach((_, i) => {
-      if (i > 0) doc.line(M + i * colW, rowY, M + i * colW, rowY + 7.5);
-    });
-  }
-  y += 4 * 7.5 + 6;
+  y += Math.ceil(all.length / 3) * 24 + 4;
 
+  // What to record, as three short field lists.
+  rule(doc, y - 2);
+  y += 6;
+  eyebrow(doc, "What to record", M, y, PURPLE);
   y = paragraph(
     doc,
-    "Once a month, work out the two that need a month's distance: what share of enquiries became clients, and what share of your appointments were repeat clients.",
+    "Three lists is enough. A spreadsheet with three tabs will carry you through the first ninety days; a booking system or a CRM can fill them in for you later. The fields in purple are the ones that feed your focus number.",
     M,
-    y,
+    y + 8,
     COL_W,
     { size: 9, colour: MUTED, leading: 4.3 },
   );
 
-  const noteY = Math.min(Math.max(y + 6, 244), 250);
-  doc.setFillColor(INK[0], INK[1], INK[2]);
-  doc.rect(M, noteY, COL_W, 24, "F");
-  setText(doc, 10.5, WHITE, "bold");
-  doc.text("If a number hasn't moved in six weeks", M + 8, noteY + 10);
-  setText(doc, 9, [214, 206, 198], "normal");
-  doc.text("Go back to the priority behind it rather than adding another one on top.", M + 8, noteY + 17.5);
+  y += 5;
+  const lists: { name: string; fields: { label: string; feeds: boolean }[] }[] = [
+    {
+      name: "Enquiries",
+      fields: [
+        { label: "Date received", feeds: true },
+        { label: "Where they came from", feeds: true },
+        { label: "Time of first reply", feeds: cycle.stage === "Lead Response" },
+        { label: "Did they book", feeds: true },
+      ],
+    },
+    {
+      name: "Appointments",
+      fields: [
+        { label: "Date and treatment", feeds: false },
+        { label: "New or returning", feeds: cycle.stage === "Retention & Re-engagement" },
+        { label: "Attended, cancelled or missed", feeds: cycle.stage === "Reminders & No-Show Prevention" },
+        { label: "Rebooked before leaving", feeds: cycle.stage === "Retention & Re-engagement" },
+      ],
+    },
+    {
+      name: "Clients",
+      fields: [
+        { label: "Name and contact", feeds: false },
+        { label: "First visit date", feeds: false },
+        { label: "Last visit date", feeds: false },
+        { label: "Review left", feeds: cycle.stage === "Reviews & Reputation" },
+      ],
+    },
+  ];
+
+  lists.forEach((list, i) => {
+    const lx = M + i * (tw + 4);
+    setText(doc, 9, INK, "bold");
+    doc.text(list.name, lx, y);
+    let fy = y + 6;
+    list.fields.forEach((field) => {
+      const colour = field.feeds ? PURPLE : MUTED;
+      fillCircle(doc, lx + 1.2, fy - 1.2, 0.9, colour);
+      setText(doc, 8, field.feeds ? INK : MUTED, field.feeds ? "bold" : "normal");
+      doc.text(doc.splitTextToSize(field.label, tw - 6) as string[], lx + 4, fy);
+      fy += 5.4;
+    });
+  });
+  y += 30;
+
+  // The weekly scoreboard, kept from the old measurement page.
+  rule(doc, y);
+  y += 8;
+  eyebrow(doc, "A scoreboard worth keeping", M, y, FAINT);
+  y += 8;
+  const cols = ["Week", "Focus number", "Moved?", "What changed"];
+  fillRect(doc, M, y - 4, COL_W, 8, WARM_GREY);
+  setText(doc, 7.5, INK, "bold");
+  const colW = COL_W / cols.length;
+  cols.forEach((col, i) => doc.text(col, M + 3 + i * colW, y + 1));
+  y += 8;
+  setText(doc, 8, MUTED, "normal");
+  ["Week 1", "Week 2", "Week 3", "Week 4"].forEach((week) => {
+    doc.text(week, M + 3, y);
+    doc.setDrawColor(LINE[0], LINE[1], LINE[2]);
+    doc.setLineWidth(0.2);
+    doc.line(M, y + 2.5, PAGE_W - M, y + 2.5);
+    y += 7;
+  });
+}
+
+/** A twelve-week trend line, drawn from an example shape rather than data. */
+function sparkline(doc: Doc, x: number, y: number, w: number, h: number) {
+  const points = [0.22, 0.3, 0.26, 0.38, 0.44, 0.4, 0.52, 0.6, 0.58, 0.7, 0.78, 0.86];
+  doc.setDrawColor(LILAC[0], LILAC[1], LILAC[2]);
+  doc.setLineWidth(0.6);
+  points.forEach((p, i) => {
+    if (i === 0) return;
+    const x1 = x + ((i - 1) / (points.length - 1)) * w;
+    const x2 = x + (i / (points.length - 1)) * w;
+    doc.line(x1, y + h - points[i - 1] * h, x2, y + h - p * h);
+  });
+  fillCircle(doc, x + w, y + h - points[points.length - 1] * h, 1.1, LILAC);
+}
+
+/* -------------------------------------------------------- your next cycle */
+
+function nextCyclePage(doc: Doc, result: DiagnosticResult, profile: Profile, roadmap: SectionResult[]) {
+  doc.addPage();
+  pageFurniture(doc, profile, "Your next cycle");
+
+  const inRoadmap = new Set(roadmap.map((s) => s.id));
+  const rest = result.sections.filter((s) => !inRoadmap.has(s.id));
+
+  eyebrow(doc, "After this quarter", M, 30, FAINT);
+  setText(doc, 24, INK, { font: DISPLAY });
+  doc.text("Your next cycle", M, 41);
+  let y = paragraph(
+    doc,
+    "These stages are not in the plan on purpose. A quarter spent on everything is a quarter spent on nothing. They are here so you know what is waiting, not so you start on them now.",
+    M,
+    51,
+    COL_W,
+    { size: 10.5, colour: MUTED, leading: 5.2 },
+  );
+
+  y += 10;
+  rest.forEach((section) => {
+    const colour = statusColour(section.status);
+    setText(doc, 11, INK, "bold");
+    doc.text(section.title, M, y);
+    const chipW = levelChip(doc, section.level, M + 72, y - 0.6);
+    setText(doc, 10, colour, "bold");
+    doc.text(`${section.score}/100`, PAGE_W - M, y, { align: "right" });
+    void chipW;
+    y = paragraph(doc, section.gaps[0] ?? section.verdict, M, y + 6, COL_W - 6, {
+      size: 9.5,
+      colour: MUTED,
+      leading: 4.6,
+    });
+    y += 7;
+  });
+
+  const foot = Math.max(y + 6, PAGE_H - 70);
+  fillRect(doc, M, foot, COL_W, 34, NAVY);
+  setText(doc, 7.5, LILAC, { weight: "bold", charSpace: 0.6 });
+  doc.text("WHEN TO COME BACK", M + 10, foot + 11);
+  setText(doc, 10.5, CREAM, "normal");
+  const next = result.cycle.next?.stage ?? rest[0]?.title ?? "the next weakest stage";
+  doc.text(
+    doc.splitTextToSize(
+      `Re-run the diagnostic in 90 days. When your focus number has moved and held, your next cycle starts with ${next}.`,
+      COL_W - 20,
+    ) as string[],
+    M + 10,
+    foot + 20,
+  );
 }
 
 function nextStepsPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
@@ -1211,25 +1185,45 @@ function nextStepsPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
   });
 
   y += 4;
-  doc.setFillColor(INK[0], INK[1], INK[2]);
-  doc.rect(M, y, COL_W, 34, "F");
-  setText(doc, 13, WHITE, "bold");
-  doc.text(`Book a ${DIAGNOSTIC.callMinutes}-minute call`, M + 8, y + 13);
-  setText(doc, 9.5, [214, 206, 198], "normal");
-  doc.text("We'll walk through your three priorities and what to fix first.", M + 8, y + 20);
-  setText(doc, 9.5, [237, 198, 182], "bold");
-  doc.text(DIAGNOSTIC.bookingUrl, M + 8, y + 27);
-
-  y += 44;
-  rule(doc, y);
-  paragraph(
-    doc,
-    `Your score today is ${result.overall}/100, and your focus KPI is ${result.cycle.kpi}. Re-run this diagnostic in ninety days: when that number has moved and held, the next cycle takes on ${result.cycle.next ? result.cycle.next.kpi : "the next KPI"}.`,
-    M,
-    y + 8,
-    COL_W,
-    { size: 9.5, colour: MUTED, leading: 4.4 },
+  const btnW = 48;
+  const btnX = PAGE_W - M - btnW - 10;
+  fillRect(doc, M, y, COL_W, 46, NAVY);
+  setText(doc, 14, CREAM, "bold");
+  doc.text("Book your free 30-minute walkthrough", M + 10, y + 15);
+  setText(doc, 9.5, MUTED_ON_NAVY, "normal");
+  doc.text(
+    doc.splitTextToSize(
+      "We'll go through your roadmap, agree the one thing to fix first, and look at which parts are worth building properly.",
+      btnX - M - 20,
+    ) as string[],
+    M + 10,
+    y + 24,
   );
+
+  /* A real button: the pill itself is the link, so it works from a tap as well
+     as from the address printed under it. */
+  const btnY = y + 13;
+  doc.setFillColor(CREAM[0], CREAM[1], CREAM[2]);
+  doc.roundedRect(btnX, btnY, btnW, 13, 6.5, 6.5, "F");
+  setText(doc, 9.5, NAVY, "bold");
+  doc.text("Book your call", btnX + btnW / 2, btnY + 8.4, { align: "center" });
+  doc.link(btnX, btnY, btnW, 13, { url: DIAGNOSTIC.bookingUrl });
+  setText(doc, 6.5, MUTED_ON_NAVY, "normal");
+  doc.text(
+    doc.splitTextToSize(DIAGNOSTIC.bookingUrl, btnW + 8) as string[],
+    btnX + btnW / 2,
+    btnY + 18,
+    { align: "center" },
+  );
+
+  y += 56;
+  setText(doc, 9.5, INK, "normal");
+  const offsetLines = doc.splitTextToSize(
+    `If you'd like help putting it in place, your ${DIAGNOSTIC.currencySymbol}${DIAGNOSTIC.tiers[0].price} comes off any system or partnership you book within 30 days.`,
+    COL_W - 16,
+  ) as string[];
+  fillRect(doc, M, y, COL_W, 10 + offsetLines.length * 4.6, WARM_GREY);
+  doc.text(offsetLines, M + 8, y + 8);
 }
 
 function aboutPage(doc: Doc, profile: Profile) {
@@ -1265,6 +1259,7 @@ function aboutPage(doc: Doc, profile: Profile) {
   y += 7;
   [
     "Customer journey diagnostics and implementation",
+    "AI assistants and automated client communications",
     "Automation and CRM builds for clinics, studios and salons",
     "Websites and booking journeys designed to convert",
     "Reputation, retention and referral systems",
@@ -1279,9 +1274,19 @@ function aboutPage(doc: Doc, profile: Profile) {
   y += 8;
   setText(doc, 11, INK, "bold");
   doc.text(DIAGNOSTIC.contactEmail, M, y);
+  doc.link(M, y - 4, doc.getTextWidth(DIAGNOSTIC.contactEmail), 6, {
+    url: `mailto:${DIAGNOSTIC.contactEmail}`,
+  });
   setText(doc, 10, MUTED, "normal");
   doc.text(DIAGNOSTIC.website, M, y + 7);
-  doc.text(DIAGNOSTIC.bookingUrl, M, y + 14);
+  doc.link(M, y + 3, doc.getTextWidth(DIAGNOSTIC.website), 6, {
+    url: `https://${DIAGNOSTIC.website}`,
+  });
+  doc.text(DIAGNOSTIC.instagram, M, y + 14);
+  doc.text(DIAGNOSTIC.bookingUrl, M, y + 21);
+  doc.link(M, y + 17, doc.getTextWidth(DIAGNOSTIC.bookingUrl), 6, {
+    url: DIAGNOSTIC.bookingUrl,
+  });
 
   doc.setFillColor(PURPLE[0], PURPLE[1], PURPLE[2]);
   doc.rect(M, PAGE_H - 40, 20, 1.4, "F");

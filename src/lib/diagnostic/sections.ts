@@ -92,6 +92,8 @@ export const SECTIONS: Section[] = [
       "Local directory listings for your area and the work you do",
     ],
     purpose: "Be findable where clients are already looking",
+    nextLevel:
+      "An assistant that keeps your listings current on its own: hours, services and prices the same everywhere, new photos posted without you remembering, and questions on your Google listing answered as they arrive. Every enquiry is tagged with where it came from, so you stop guessing which channel is earning its place.",
     project:
       "A booking-first page for each service you sell, with your Google Business Profile claimed, filled in properly and pointing at it.",
     kpi: {
@@ -360,6 +362,8 @@ export const SECTIONS: Section[] = [
       "Three saved replies covering the questions you are asked most",
     ],
     purpose: "Answer every enquiry within minutes, at any hour",
+    nextLevel:
+      "An AI assistant that answers on every channel you use, at any hour, in your words. It handles price and availability, asks the one or two things you need to know, and books straight into your diary. Anything it cannot answer arrives with you already summarised, so you reply once rather than from the beginning.",
     project:
       "A chatbot across your website, Instagram and Facebook that answers price and availability questions on its own and books people straight into your diary, with a shared inbox behind it so nothing sits unread.",
     kpi: {
@@ -621,6 +625,8 @@ export const SECTIONS: Section[] = [
       "A time-limited incentive for first-time bookings",
     ],
     purpose: "Keep talking to the people who did not book straight away",
+    nextLevel:
+      "Follow-up that runs itself and knows when to stop. Each enquiry who has not booked gets a sequence shaped around what they asked about, by email, text or the channel they came in on. It stops the moment they book, and the replies that need a person come to you with the thread already read.",
     project:
       "An automated follow-up sequence, by email and text, that runs itself for every enquiry who did not book on the first reply.",
     kpi: {
@@ -940,6 +946,8 @@ export const SECTIONS: Section[] = [
       "A single booking link used everywhere, so there's one route in",
     ],
     purpose: "Make booking effortless and always open",
+    nextLevel:
+      "Booking that behaves like a receptionist rather than a form: it offers the right slot for the treatment, takes the deposit, and handles the moving and rescheduling without you. Slots that free up are offered to the people most likely to take them, so the gaps close themselves.",
     project:
       "Online booking that works at three in the morning, linked from every profile you have, taking a deposit at the point of booking.",
     kpi: {
@@ -1304,6 +1312,8 @@ export const SECTIONS: Section[] = [
       "Any forms or details you need, collected before arrival",
     ],
     purpose: "Prepare every client before they arrive",
+    nextLevel:
+      "Everything between booking and arriving, handled for you. The confirmation carries what to expect for that specific treatment, the forms go out and come back before the day, and anything missing is chased without you noticing it was. Clients arrive knowing what is happening, which is most of what makes a first visit go well.",
     project:
       "An automatic confirmation the moment someone books, a 'what to expect' message before the day, and any forms you need collected in advance.",
     kpi: {
@@ -1534,6 +1544,8 @@ export const SECTIONS: Section[] = [
       "An automatic message the same day someone misses an appointment",
     ],
     purpose: "Protect the diary you've already filled",
+    nextLevel:
+      "Two-way reminders that ask rather than tell. A client confirms or cancels from the message, and a cancellation goes straight to a waitlist that fills the slot from the people most likely to say yes. Repeated no-shows are flagged quietly, so you can decide what to do about them rather than finding out later.",
     project:
       "Automatic reminders at forty-eight and twenty-four hours, a cancellation policy shown at the point of booking, and a message that goes out the same day somebody misses.",
     kpi: {
@@ -1815,6 +1827,8 @@ export const SECTIONS: Section[] = [
       "A monthly slot for replying to every review you've received",
     ],
     purpose: "Build proof that does the selling for you",
+    nextLevel:
+      "A review request that goes out at the moment the appointment finishes, worded for the treatment they had, and pointing at one tap. New reviews arrive with a reply already drafted in your voice for you to approve or change, so your listing stays answered rather than ignored.",
     project:
       "An automatic review request after every appointment, pointing at a one-tap Google review link.",
     kpi: {
@@ -2062,6 +2076,8 @@ export const SECTIONS: Section[] = [
       "A simple referral reward for existing clients",
     ],
     purpose: "Turn first visits into regulars",
+    nextLevel:
+      "Rebooking prompts timed to each treatment's own cycle rather than one blanket reminder, so clients hear from you when they are actually due. Anyone drifting past their window is picked up automatically, and the ones who do come back are asked to bring someone with them.",
     project:
       "An automatic 'we have missed you' sequence for clients who have not been back, and a referral reward for the ones who do return.",
     kpi: {

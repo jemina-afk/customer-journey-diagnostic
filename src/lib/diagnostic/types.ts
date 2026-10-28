@@ -157,6 +157,11 @@ export interface Section {
   project: string;
   /** What this stage contributes when it becomes a priority in a cycle. */
   purpose: string;
+  /**
+   * What an automated, AI-supported version of this stage would do for them,
+   * written as outcomes rather than features. Shown as "Built with you".
+   */
+  nextLevel: string;
   /** The KPI this stage owns. */
   kpi: Kpi;
   questions: Question[];
@@ -174,6 +179,13 @@ export interface Profile {
 }
 
 export type Band = "optimised" | "functional" | "leaking" | "critical";
+
+/*
+  How a stage is being run, rather than how well. Manual means it depends on
+  somebody remembering; Systemised means there is a process; Automated means it
+  happens without anyone thinking about it.
+*/
+export type Level = "Manual" | "Systemised" | "Automated";
 export type Status = "green" | "amber" | "red";
 
 export interface SectionResult {
@@ -191,6 +203,12 @@ export interface SectionResult {
   tools: string[];
   /** The project worth building at this stage. */
   project: string;
+  /** The short name of the number this stage owns. */
+  kpiName: string;
+  /** What the automated version of this stage does for them. */
+  nextLevel: string;
+  /** Manual, Systemised or Automated, from the score. */
+  level: Level;
   /** How to get the number that tells them this stage is improving. */
   measure: { what: string; where: string; cadence: string };
   answered: boolean;
