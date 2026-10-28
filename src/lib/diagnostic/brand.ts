@@ -36,6 +36,11 @@ export const INK: RGB = NAVY;
 export const MUTED: RGB = LABEL_GREY;
 export const FAINT: RGB = [123, 123, 136];
 
-export const DISPLAY = "Italiana";
-export const SERIF = "Cormorant";
-export const SANS = "Inter";
+/*
+  One typeface, as on the page: Switzer. The three names are kept because the
+  page code reads by role rather than by family, and because a second face may
+  come back for a cover one day.
+*/
+export const DISPLAY = "Switzer";
+export const SERIF = "Switzer";
+export const SANS = "Switzer";

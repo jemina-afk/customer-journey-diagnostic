@@ -27,7 +27,7 @@ export const DIAGNOSTIC = {
   consultant: "Jemina Semakula",
   company: "Tulivo Digital",
   website: process.env.NEXT_PUBLIC_SITE_URL ?? "tulivodigital.com",
-  reportPages: 16,
+  reportPages: 26,
   /** Written out for the sign-in screen, e.g. "twice in any 30 days". */
   runsPerWindowLabel: `${
     Number(process.env.NEXT_PUBLIC_RUNS_PER_WINDOW ?? 2) === 2

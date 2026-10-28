@@ -9,12 +9,9 @@
 import { readFileSync, writeFileSync } from "node:fs";
 
 const FILES = [
-  ["italiana", "Italiana-Regular.ttf"],
-  ["interRegular", "Inter-Regular.ttf"],
-  ["interSemiBold", "Inter-SemiBold.ttf"],
-  ["interBold", "Inter-Bold.ttf"],
-  ["cormorantMedium", "CormorantGaramond-Medium.ttf"],
-  ["cormorantSemiBold", "CormorantGaramond-SemiBold.ttf"],
+  ["switzerRegular", "Switzer-Regular.ttf"],
+  ["switzerMedium", "Switzer-Medium.ttf"],
+  ["switzerSemiBold", "Switzer-SemiBold.ttf"],
 ];
 
 const fonts = FILES.map(([key, file]) => {
@@ -26,7 +23,12 @@ const gradient = readFileSync("scripts/lib/brand-gradient.mjs", "utf8").match(
   /"([A-Za-z0-9+/=]+)"/,
 )[1];
 
-const logo = readFileSync("brand/logos/tulivo-logo-white.png").toString("base64");
+const logoBytes = readFileSync("brand/logos/tulivo-logo-white.png");
+const logo = logoBytes.toString("base64");
+
+/* PNG keeps its dimensions in the IHDR chunk, at a fixed offset, so the ratio
+   comes from the file rather than from a number someone remembered. */
+const ratio = `${logoBytes.readUInt32BE(20)} / ${logoBytes.readUInt32BE(16)}`;
 
 writeFileSync(
   "src/lib/diagnostic/brandAssets.ts",
@@ -36,6 +38,10 @@ writeFileSync(
     `  Fonts are the subsets in brand/fonts/subset; the gradient is the still image\n` +
     `  rendered from the same CSS the website uses.\n*/\n\n` +
     `export const BRAND_FONTS: Record<string, { file: string; data: string }> = {\n${fonts}\n};\n\n` +
-    `export const GRADIENT = "${gradient}";\n`,
+    `export const GRADIENT = "${gradient}";\n\n` +
+    `/* The real logo file, never retyped, for the cover and the footers. */\n` +
+    `export const LOGO_WHITE = "data:image/png;base64,${logo}";\n\n` +
+    `/* Its own proportions, so the lockup is only ever sized by height. */\n` +
+    `export const LOGO_RATIO = ${ratio};\n`,
 );
 console.log("brandAssets.ts rebuilt");

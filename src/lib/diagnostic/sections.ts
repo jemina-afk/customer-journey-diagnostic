@@ -92,10 +92,14 @@ export const SECTIONS: Section[] = [
       "Local directory listings for your area and the work you do",
     ],
     purpose: "Be findable where clients are already looking",
+    project:
+      "A booking-first page for each service you sell, with your Google Business Profile claimed, filled in properly and pointing at it.",
     kpi: {
       name: "New enquiries a month",
       metric: "How many people reach out to you in a month, across every channel",
       why: "Everything downstream is capped by this number. Fixing conversion matters, but not if only a handful of people ever find you.",
+      benefit:
+        "Every other fix in this report is worth more once this number rises, because each one is working on a bigger pool of people. This is the stage that raises the ceiling on all the others.",
       supports: ["lead-sources", "reviews", "booking"],
       current: (answers) => {
         const sources = answer(answers, "lead-sources.sources");
@@ -104,10 +108,12 @@ export const SECTIONS: Section[] = [
       },
       target: () => "Three dependable routes, with Google as one of them",
       measure: {
-        what: "Enquiries received, split by where each one came from.",
+        what:
+          "Every enquiry you receive, where each one came from, and whether that person went on to book.",
         where:
-          "A one-line log per enquiry - date, source, did they book - plus your Google Business Profile insights for calls, direction requests and website clicks.",
-        cadence: "Count weekly. Review by source monthly.",
+          "Start a simple list. A spreadsheet or a notebook both work. Every time somebody contacts you, add one line with three things: today's date, how they found you (Google, Instagram, a referral, a passer-by), and later, whether they booked. For the Google side of it, sign in to your Google Business Profile, open the Performance tab, and you will see how many people rang you, asked for directions, or clicked through to your website that month.",
+        cadence:
+          "Add each enquiry to the list the day it arrives. On the first of each month, add up the previous month's total and see which source brought you the most paying clients.",
       },
     },
     questions: [
@@ -348,23 +354,30 @@ export const SECTIONS: Section[] = [
         "Enquiries are waiting hours or longer for a reply. This is almost certainly the most expensive gap in your journey: you're paying for attention and then losing it in the window that matters most.",
     },
     tools: [
-      "An instant auto-reply on Instagram, Facebook and your website form",
-      "A shared inbox that pulls every channel into one place",
-      "A saved reply template with your three most common answers",
+      "A chatbot on your website, Instagram and Facebook that answers price and availability on the spot and hands over a booking link",
+      "An instant auto-reply on every channel, if a chatbot is further than you want to go right now",
+      "A shared inbox that pulls every channel into one place, so no enquiry is sitting unseen on one phone",
+      "Three saved replies covering the questions you are asked most",
     ],
-    purpose: "Answer every enquiry the moment it lands",
+    purpose: "Answer every enquiry within minutes, at any hour",
+    project:
+      "A chatbot across your website, Instagram and Facebook that answers price and availability questions on its own and books people straight into your diary, with a shared inbox behind it so nothing sits unread.",
     kpi: {
       name: "Enquiry response time",
       metric: "How long a new enquiry waits before it gets a useful reply",
-      why: "It's the fastest-moving number you have: replies inside five minutes convert several times better than replies an hour later, and it costs nothing but a system.",
+      why: "This is the first few minutes after someone contacts you, and it is the fastest-moving number in the business. A reply inside five minutes converts several times better than the same reply an hour later, because the person is still sitting there with your competitors' pages open. It costs nothing but a system.",
+      benefit:
+        "Replying in minutes instead of hours wins back work you had already done the hard part for. It costs nothing once the system is in place, it runs while you are with a client, and people read a fast reply as a business that has its act together.",
       supports: ["lead-response", "lead-nurture", "booking"],
       current: (answers) => label(answers, "lead-response", "speed"),
       target: () => "Under five minutes, every time, including when you're with a client",
       measure: {
-        what: "Minutes between an enquiry landing and a useful reply going out.",
+        what:
+          "How many minutes pass between an enquiry arriving and a reply going out that actually answers the person.",
         where:
-          "The timestamps already in your inbox and your Instagram and Facebook threads. Take the last ten enquiries and write down the gap for each.",
-        cadence: "Weekly, on a sample of ten. Watch the worst one, not the average.",
+          "Your phone already keeps this for you. Open your last ten enquiries wherever they came in: Instagram messages, Facebook messages, email, your website form, missed calls. Each one shows the time it arrived and the time you answered. Write down the gap for all ten. Measure to the reply that answers their question and offers them a way to book. An automatic acknowledgement is not that reply, so do not stop the clock there.",
+        cadence:
+          "Once a week, on your most recent ten enquiries. Look at the slowest of the ten rather than the average, because the slowest one is the client who went elsewhere.",
       },
     },
     questions: [
@@ -400,7 +413,7 @@ export const SECTIONS: Section[] = [
             gap: "Same-day replies mean most enquiries sit unanswered for hours, by which point many have booked elsewhere.",
             fix: {
               action:
-                "Set up an instant auto-response on every channel, then batch personal replies twice a day at fixed times.",
+                "Put a chatbot on every channel that answers price, availability and what's involved, and offers a booking link, so the enquiry is dealt with in seconds instead of being queued for later.",
               impact:
                 "Turns a same-day business into a five-minute business without adding hours to your week.",
               effort: "quick",
@@ -413,7 +426,7 @@ export const SECTIONS: Section[] = [
             gap: "Enquiries wait a day or more, and most people booking a service will have chosen someone else by then.",
             fix: {
               action:
-                "Put an instant auto-reply on every enquiry channel this week, and set a single daily slot to clear the inbox properly.",
+                "Put something on every channel this week that answers the first question on its own - a chatbot if you can, an auto-reply with your prices and a booking link if not - so nobody is waiting on you to be free.",
               impact:
                 "This alone can recover a meaningful share of enquiries you're currently losing without ever seeing them.",
               effort: "quick",
@@ -474,7 +487,7 @@ export const SECTIONS: Section[] = [
             gap: "Enquiries that land while you're with a client sit untouched - and that's most of your working day.",
             fix: {
               action:
-                "Cover your working hours with an automated first response, so nobody waits for you to be free.",
+                "Cover every hour, not just your working ones, with a chatbot or auto-reply that can answer and book without you.",
               impact:
                 "Recovers the enquiries that arrive during your busiest, most profitable hours.",
               effort: "quick",
@@ -607,11 +620,15 @@ export const SECTIONS: Section[] = [
       "Email and SMS automation triggered by an unconverted enquiry",
       "A time-limited incentive for first-time bookings",
     ],
-    purpose: "Follow up until they decide",
+    purpose: "Keep talking to the people who did not book straight away",
+    project:
+      "An automated follow-up sequence, by email and text, that runs itself for every enquiry who did not book on the first reply.",
     kpi: {
       name: "Enquiry-to-client conversion",
       metric: "The share of enquiries that become paying clients",
-      why: "You've already paid for these people's attention. Lifting this number costs nothing extra and shows up in the diary within weeks.",
+      why: "This is the fortnight after that first reply, for everyone who did not book there and then. Most of them were not saying no, they were saying not yet, and then nobody asked again. You have already paid for their attention, so lifting this number costs nothing extra and shows up in the diary within weeks.",
+      benefit:
+        "The people in this group have already told you they are interested. Following up properly turns a chunk of them into clients without another pound spent on being found, and it stops your diary swinging between good months and quiet ones.",
       supports: ["lead-nurture", "lead-response", "booking"],
       current: (answers) => {
         const value = num(answers, "lead-nurture.conversion-rate");
@@ -623,10 +640,12 @@ export const SECTIONS: Section[] = [
         return `${Math.min(value + 15, 70)}%`;
       },
       measure: {
-        what: "The share of enquiries that become paying clients.",
+        what:
+          "Out of every hundred people who enquire, how many end up paying you for something.",
         where:
-          "Your enquiry log: enquiries in one column, first appointments in the other. Count last month's enquiries, not this month's - they need time to book.",
-        cadence: "Monthly, always a month behind.",
+          "Use the same enquiry list you started in stage one. Count how many enquiries you received last month. Then go through those same people and count how many have since had an appointment. Divide the second number by the first and multiply by a hundred. Use last month rather than this month, because people who enquired this week have not had time to decide yet.",
+        cadence:
+          "Once a month, always looking at the month before last month. Doing it any sooner makes your conversion rate look worse than it is.",
       },
     },
     questions: [
@@ -921,18 +940,24 @@ export const SECTIONS: Section[] = [
       "A single booking link used everywhere, so there's one route in",
     ],
     purpose: "Make booking effortless and always open",
+    project:
+      "Online booking that works at three in the morning, linked from every profile you have, taking a deposit at the point of booking.",
     kpi: {
       name: "Bookings taken without you",
       metric: "The share of appointments booked online, at any hour, with no messages in between",
       why: "Most personal appointments are booked outside working hours. Every booking that needs you is one you can lose to timing.",
+      benefit:
+        "Booking that works at any hour means the diary fills while you sleep, and it takes the back-and-forth messaging out of your evenings. You stop being the bottleneck in your own business.",
       supports: ["booking", "lead-response", "lead-sources"],
       current: (answers) => label(answers, "booking", "247"),
       target: () => "Every core service bookable 24/7 in two taps",
       measure: {
-        what: "The share of bookings made online, with no messages exchanged first.",
+        what:
+          "What share of your appointments the client booked themselves, without a single message passing between you first.",
         where:
-          "Your booking system's report of online bookings versus ones you entered by hand. If it doesn't split them, tally manual bookings for a fortnight.",
-        cadence: "Monthly.",
+          "If you use a booking system, open its reports and look for a split between bookings the client made online and bookings you typed in yourself. Most systems show this somewhere in reports or statistics. If yours does not, keep a tally for a fortnight: make a mark every time you enter a booking by hand, and count the total bookings over the same fortnight.",
+        cadence:
+          "Once a month. If you are tallying by hand instead, do a fortnight of it once a quarter rather than all year.",
       },
     },
     questions: [
@@ -1279,17 +1304,23 @@ export const SECTIONS: Section[] = [
       "Any forms or details you need, collected before arrival",
     ],
     purpose: "Prepare every client before they arrive",
+    project:
+      "An automatic confirmation the moment someone books, a 'what to expect' message before the day, and any forms you need collected in advance.",
     kpi: {
       name: "First-appointment attendance",
       metric: "The share of first-time bookings that arrive, prepared and on time",
       why: "First visits are where clients are most likely to get cold feet - and where a good experience turns into a rebooking.",
+      benefit:
+        "People who know what is coming turn up calmer, on time and ready, which makes the appointment itself better. A good first visit is also the single biggest predictor of a second one.",
       supports: ["confirmation", "reminders", "booking"],
       current: (answers) => label(answers, "confirmation", "confirmation"),
       target: () => "Automated confirmation, preparation and forms before every first visit",
       measure: {
-        what: "The share of first-time bookings that arrive, and how many forms are completed before the appointment.",
-        where: "Your booking system: new clients booked against new clients attended.",
-        cadence: "Monthly.",
+        what:
+          "What share of first-time bookings actually turn up, and how many of those people completed whatever you asked them for beforehand.",
+        where:
+          "In your booking system, filter last month down to new clients only. Count how many were booked. Then count how many of those are marked as attended. If you ask people to fill in a form or answer questions before they come, count how many arrived with it already done.",
+        cadence: "Once a month.",
       },
     },
     questions: [
@@ -1503,10 +1534,14 @@ export const SECTIONS: Section[] = [
       "An automatic message the same day someone misses an appointment",
     ],
     purpose: "Protect the diary you've already filled",
+    project:
+      "Automatic reminders at forty-eight and twenty-four hours, a cancellation policy shown at the point of booking, and a message that goes out the same day somebody misses.",
     kpi: {
       name: "No-show rate",
       metric: "The share of booked appointments that don't turn up or cancel too late to refill",
       why: "It's the most expensive number in the business: the client was won, the time was blocked, and there's nothing to sell in its place.",
+      benefit:
+        "Every no-show you prevent is money you had already earned, in time you had already set aside. Nothing else in this report pays back as quickly, and a fuller diary makes every other number easier to move.",
       supports: ["reminders", "confirmation", "booking"],
       current: (answers) => {
         const value = answer(answers, "reminders.noshow-rate");
@@ -1519,10 +1554,12 @@ export const SECTIONS: Section[] = [
         return value <= 5 ? "Held under 5%" : `Under ${Math.max(5, Math.round(value / 2))}%`;
       },
       measure: {
-        what: "Missed and late-cancelled appointments as a share of everything booked.",
+        what:
+          "What share of booked appointments were missed completely, or cancelled so late that you could not sell the time to anybody else.",
         where:
-          "Mark every no-show in the diary as it happens - most booking systems will then report the rate for you. Count late cancellations you couldn't refill as no-shows.",
-        cadence: "Tally weekly, work out the rate monthly.",
+          "Mark it in the diary the moment it happens. Most booking systems have a no-show button, and once you use it every time, the system will work the rate out for you. Treat a late cancellation as a no-show whenever you could not fill the slot. At the end of the month, divide the missed appointments by the total appointments booked and multiply by a hundred.",
+        cadence:
+          "Mark each one on the day it happens, while you remember. Work out the percentage once a month.",
       },
     },
     questions: [
@@ -1778,10 +1815,14 @@ export const SECTIONS: Section[] = [
       "A monthly slot for replying to every review you've received",
     ],
     purpose: "Build proof that does the selling for you",
+    project:
+      "An automatic review request after every appointment, pointing at a one-tap Google review link.",
     kpi: {
       name: "Google reviews",
       metric: "How many reviews you have, and how fast new ones arrive",
       why: "Reviews decide who gets clicked before anyone speaks to you - and they lift every other channel you run.",
+      benefit:
+        "Reviews do the convincing before you ever speak to someone, so enquiries arrive already half sold. They also lift every channel you run at once, including the ones you pay for.",
       supports: ["reviews", "retention", "confirmation"],
       current: (answers) => {
         const value = num(answers, "lead-sources.reviews-count");
@@ -1793,10 +1834,12 @@ export const SECTIONS: Section[] = [
         return value >= 25 ? "10 new reviews a quarter, on autopilot" : "25 reviews, then 10 a quarter";
       },
       measure: {
-        what: "Total reviews, new reviews this month, and your average rating.",
+        what:
+          "How many Google reviews you have altogether, how many of those arrived this month, and your average star rating.",
         where:
-          "Google Business Profile. Write down the same three numbers for your two closest competitors while you're there - your count only matters relative to theirs.",
-        cadence: "Monthly.",
+          "Search your own business name on Google, or sign in to your Google Business Profile and open the Reviews tab. Write the three numbers down. Then search for the two businesses you most often lose work to and write down the same three for each of them. Your review count only means something sitting next to theirs.",
+        cadence:
+          "Once a month, on roughly the same date each time, so the new-reviews number covers the same length of time.",
       },
     },
     questions: [
@@ -2019,10 +2062,14 @@ export const SECTIONS: Section[] = [
       "A simple referral reward for existing clients",
     ],
     purpose: "Turn first visits into regulars",
+    project:
+      "An automatic 'we have missed you' sequence for clients who have not been back, and a referral reward for the ones who do return.",
     kpi: {
       name: "Repeat client rate",
       metric: "The share of your appointments taken by clients who've been before",
       why: "Returning clients cost nothing to win, so this number goes almost straight to profit - and it steadies the quiet weeks.",
+      benefit:
+        "Clients who come back cost you nothing to win, so this money goes almost straight to profit. It also steadies the quiet weeks, which is what makes a business feel calm rather than hand to mouth.",
       supports: ["retention", "reviews", "confirmation"],
       current: (answers) => {
         const value = num(answers, "retention.repeat-rate");
@@ -2035,10 +2082,11 @@ export const SECTIONS: Section[] = [
       },
       measure: {
         what:
-          "The share of appointments taken by clients who have been before, and the share who rebook before they leave.",
+          "What share of your appointments are taken by somebody who has been to you before, and what share of clients leave with their next appointment already booked.",
         where:
-          "Your booking system's client report - new against returning. For rebooking, count it yourself for a fortnight: it's the number in-room habits move fastest.",
-        cadence: "Monthly for repeat rate, fortnightly when you're actively working on rebooking.",
+          "For the first number, your booking system almost certainly separates new clients from returning ones. Look for a client report, or a customer list with a first-visit date on it. For the second number, count it by hand for a fortnight: every time a client leaves, mark whether they walked out with a date in the diary. That second number moves fastest, because it is a habit rather than a system.",
+        cadence:
+          "The repeat rate once a month. The rebooking tally every fortnight, but only while you are actively working on it.",
       },
     },
     questions: [

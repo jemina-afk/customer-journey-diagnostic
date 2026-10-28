@@ -115,6 +115,8 @@ export interface Kpi {
   metric: string;
   /** Why this is the number worth chasing first. */
   why: string;
+  /** What actually changes in the business once this number moves. */
+  benefit: string;
   /** Stage ids whose fixes move this KPI, most important first. */
   supports: string[];
   /** Their number today, drawn from their answers where we asked for it. */
@@ -148,6 +150,11 @@ export interface Section {
   verdict: { strong: string; ok: string; weak: string };
   /** Tools worth considering for this stage. */
   tools: string[];
+  /**
+   * The thing worth building here, written as a project rather than a tip.
+   * Shown under the tools, with an offer of help setting it up.
+   */
+  project: string;
   /** What this stage contributes when it becomes a priority in a cycle. */
   purpose: string;
   /** The KPI this stage owns. */
@@ -182,6 +189,8 @@ export interface SectionResult {
   fixes: Fix[];
   verdict: string;
   tools: string[];
+  /** The project worth building at this stage. */
+  project: string;
   /** How to get the number that tells them this stage is improving. */
   measure: { what: string; where: string; cadence: string };
   answered: boolean;
@@ -224,6 +233,12 @@ export interface FocusCycle {
   kpi: string;
   metric: string;
   why: string;
+  /** What a 90-day focus is, for anyone who has not worked this way before. */
+  explainer: string;
+  /** How this number was picked, in enough detail to be checked. */
+  chosenBecause: string;
+  /** What changes once it moves. */
+  benefit: string;
   /** How to measure the focus KPI. */
   measure: { what: string; where: string; cadence: string };
   /** Where they are now, when we have a number for it. */
@@ -232,6 +247,11 @@ export interface FocusCycle {
   /** What moving it is worth over a year, when their numbers allow an estimate. */
   worth: number | null;
   priorities: CyclePriority[];
+  /**
+   * The stages this cycle deliberately leaves alone. They still need work;
+   * they are not what the next ninety days are for.
+   */
+  later: { stage: string; score: number; kpi: string; status: Status }[];
   /** The KPI the following cycle would take on. */
   next: { stage: string; kpi: string } | null;
 }

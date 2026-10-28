@@ -173,6 +173,7 @@ export function scoreSection(section: Section, answers: Answers): SectionResult 
     fixes,
     verdict,
     tools: section.tools,
+    project: section.project,
     measure: section.kpi.measure,
     answered: answeredCount > 0,
   };
@@ -275,7 +276,14 @@ function dedupeFixes(fixes: Fix[]): Fix[] {
   on. Priorities come from the stages the KPI actually depends on - so the work
   compounds on one number instead of being spread thinly across eight.
 */
-const WINDOWS = ["Weeks 1-2", "Weeks 3-6", "Weeks 7-10", "Weeks 11-13"];
+const MAX_PRIORITIES = 4;
+
+const WINDOWS: Record<number, string[]> = {
+  1: ["Weeks 1-13"],
+  2: ["Weeks 1-6", "Weeks 7-13"],
+  3: ["Weeks 1-4", "Weeks 5-9", "Weeks 10-13"],
+  4: ["Weeks 1-2", "Weeks 3-6", "Weeks 7-10", "Weeks 11-13"],
+};
 
 function buildCycle(
   priorities: SectionResult[],
@@ -301,7 +309,7 @@ function buildCycle(
   const cyclePriorities: CyclePriority[] = [];
 
   for (const id of [leadSection.id, ...supporting]) {
-    if (cyclePriorities.length >= WINDOWS.length) break;
+    if (cyclePriorities.length >= MAX_PRIORITIES) break;
     const section = SECTIONS.find((s) => s.id === id);
     const result = byId.get(id);
     if (!section || !result) continue;
@@ -318,10 +326,16 @@ function buildCycle(
     cyclePriorities.push({
       title: section.purpose,
       stage: section.title,
-      window: WINDOWS[cyclePriorities.length],
+      window: "",
       steps: steps.map((fix) => fix.action),
     });
   }
+
+  // The windows are only knowable once we know how many priorities there are.
+  const windows = WINDOWS[cyclePriorities.length] ?? WINDOWS[4];
+  cyclePriorities.forEach((priority, i) => {
+    priority.window = windows[i] ?? windows[windows.length - 1];
+  });
 
   // The next cycle takes the strongest remaining opportunity that this one
   // didn't already cover.
@@ -330,6 +344,17 @@ function buildCycle(
     .sort((a, b) => b.opportunity - a.opportunity)
     .map((result) => SECTIONS.find((s) => s.id === result.id))
     .find((section) => section && !covered.has(section.title) && section.id !== leadSection.id);
+
+  const inCycle = new Set(cyclePriorities.map((p) => p.stage));
+  const later = [...sections]
+    .filter((result) => !inCycle.has(result.title) && result.status !== "green")
+    .sort((a, b) => b.opportunity - a.opportunity)
+    .map((result) => ({
+      stage: result.title,
+      score: result.score,
+      status: result.status,
+      kpi: SECTIONS.find((s) => s.id === result.id)?.kpi.name ?? "",
+    }));
 
   const impact = estimateImpact(answers);
   const leakFor: Record<string, string> = {
@@ -342,11 +367,42 @@ function buildCycle(
     ? impact.leaks.find((leak) => leak.id === leakFor[leadSection.id])?.annual ?? null
     : null;
 
+  /*
+    Why this number and not one of the other seven. The pick is arithmetic, so
+    it is written out rather than asserted: weakest stage by weighted headroom
+    wins, and the supporting work is whatever else moves the same number.
+  */
+  const names = cyclePriorities.slice(1).map((p) => p.stage);
+  const supportingNames =
+    names.length > 1
+      ? `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`
+      : names[0] ?? "";
+  const chosenBecause =
+    `Each of the eight stages owns one number. ${leadSection.title} scored ` +
+    `${lead.score} out of 100, and because it carries more weight in your overall ` +
+    `score than most, that gap is costing you more than any other single stage. ` +
+    `So the number for this quarter is ${kpi.name}.` +
+    (supportingNames
+      ? ` The other priorities below were not picked for being weak on their own. ` +
+        `They were picked because the work they need also moves ${kpi.name}, so ` +
+        `${supportingNames} pull in the same direction rather than scattering your ` +
+        `effort across eight fronts.`
+      : "");
+
   return {
     stage: leadSection.title,
     kpi: kpi.name,
     metric: kpi.metric,
     why: kpi.why,
+    explainer:
+      "A 90-day focus is one number you agree to move over the next three months, " +
+      "with three or four pieces of work that all move that same number. Three " +
+      "months is long enough for a change to show up in your figures and short " +
+      "enough to hold your attention. The point is not to fix everything at once. " +
+      "It is to fix one thing properly, watch it move, and then take on the next.",
+    chosenBecause,
+    benefit: kpi.benefit,
+    later,
     measure: kpi.measure,
     current: kpi.current(answers),
     target: kpi.target(answers),

@@ -51,9 +51,10 @@ export const COL_W = PAGE_W - M * 2;
 
 /* ---------------------------------------------------------------- fonts */
 
-export const DISPLAY = "Italiana";
-export const SERIF = "Cormorant";
-export const SANS = "Inter";
+/* One typeface, as on the page. The role names stay, the family does not. */
+export const DISPLAY = "Switzer";
+export const SERIF = "Switzer";
+export const SANS = "Switzer";
 
 /** Registers the brand fonts on a jsPDF document. Call once, before drawing. */
 export function registerFonts(doc) {
@@ -62,12 +63,12 @@ export function registerFonts(doc) {
     doc.addFileToVFS(file, data);
     doc.addFont(file, name, style);
   };
-  add("italiana", DISPLAY, "normal");
-  add("interRegular", SANS, "normal");
-  add("interSemiBold", SANS, "semibold");
-  add("interBold", SANS, "bold");
-  add("cormorantMedium", SERIF, "normal");
-  add("cormorantSemiBold", SERIF, "bold");
+  /* jsPDF knows "normal" and "bold" and little else, so Switzer 500, the
+     weight headlines are set in, takes the bold slot, and 600 answers to
+     "semibold" where a heavier line is asked for. */
+  add("switzerRegular", SANS, "normal");
+  add("switzerMedium", SANS, "bold");
+  add("switzerSemiBold", SANS, "semibold");
 }
 
 /* --------------------------------------------------------------- assets */

@@ -441,13 +441,20 @@ export function ResultsScreen({
 
           <div className="mt-12">
             <Eyebrow>Your 90-day focus</Eyebrow>
-            <h2 className="mt-3 text-[26px] font-semibold tracking-[-0.025em] text-tulivo-ink">
+            <h2 className="mt-3 text-[30px] font-medium tracking-[-0.038em] text-tulivo-head">
               One number, three or four priorities
             </h2>
-            <p className="mt-3 max-w-[64ch] text-[15px] leading-relaxed text-tulivo-muted">
-              Everything in this cycle moves the same number. Spreading effort across eight stages is why
-              most improvement plans stall - this one compounds instead.
+            <p className="mt-4 max-w-[68ch] text-[16px] leading-[1.65] text-tulivo-muted">
+              {result.cycle.explainer}
             </p>
+            <div className="mt-5 max-w-[68ch] rounded-[4px] border-l-2 border-tulivo-purple/50 bg-tulivo-section/50 py-4 pl-5 pr-5">
+              <p className="text-[12px] font-medium uppercase tracking-[0.16em] text-tulivo-muted">
+                Why this number, and not one of the other seven
+              </p>
+              <p className="mt-2.5 text-[15px] leading-[1.65] text-tulivo-ink">
+                {result.cycle.chosenBecause}
+              </p>
+            </div>
 
             <Card className="mt-7 overflow-hidden border-tulivo-purple/25">
               <div className="grid gap-6 border-b border-tulivo-line bg-tulivo-section/50 p-6 sm:p-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-10">
@@ -459,7 +466,15 @@ export function ResultsScreen({
                     {result.cycle.kpi}
                   </h3>
                   <p className="mt-2 text-[14px] leading-relaxed text-tulivo-muted">{result.cycle.metric}</p>
-                  <p className="mt-4 text-[14.5px] leading-relaxed text-tulivo-ink">{result.cycle.why}</p>
+                  <p className="mt-4 text-[15px] leading-[1.6] text-tulivo-ink">{result.cycle.why}</p>
+                  <div className="mt-5 border-t border-tulivo-line pt-4">
+                    <p className="text-[12px] font-medium uppercase tracking-[0.16em] text-tulivo-muted">
+                      What you get when it moves
+                    </p>
+                    <p className="mt-2 text-[15px] leading-[1.6] text-tulivo-ink">
+                      {result.cycle.benefit}
+                    </p>
+                  </div>
                 </div>
 
                 <div className="grid gap-3 self-start">
@@ -481,19 +496,27 @@ export function ResultsScreen({
                       </p>
                     </div>
                   </div>
-                  <div className="rounded-[4px] border border-tulivo-line bg-tulivo-card p-4">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-tulivo-muted">
+                  <div className="rounded-[4px] border border-tulivo-line bg-tulivo-card p-5">
+                    <p className="text-[12px] font-medium uppercase tracking-[0.16em] text-tulivo-muted">
                       How to measure it
                     </p>
-                    <p className="mt-1.5 text-[13.5px] leading-relaxed text-tulivo-ink">
-                      {result.cycle.measure.what}
+                    <p className="mt-3 text-[15px] leading-relaxed text-tulivo-ink">
+                      Track the following data: {lowerFirst(result.cycle.measure.what)}
                     </p>
-                    <p className="mt-1.5 text-[12.5px] leading-relaxed text-tulivo-muted">
-                      {result.cycle.measure.where}
-                    </p>
-                    <p className="mt-1.5 text-[12.5px] font-medium text-tulivo-muted">
-                      {result.cycle.measure.cadence}
-                    </p>
+                    <div className="mt-4 space-y-3 border-t border-tulivo-hairline pt-4">
+                      <div>
+                        <p className="text-[13px] font-medium text-tulivo-head">Where to get it</p>
+                        <p className="mt-1 text-[14px] leading-relaxed text-tulivo-muted">
+                          {result.cycle.measure.where}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[13px] font-medium text-tulivo-head">How often to check</p>
+                        <p className="mt-1 text-[14px] leading-relaxed text-tulivo-muted">
+                          {result.cycle.measure.cadence}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                   {result.cycle.worth !== null && (
                     <div className="rounded-[4px] border border-tulivo-line bg-tulivo-card p-4">
@@ -540,6 +563,39 @@ export function ResultsScreen({
               </div>
             </Card>
 
+            {result.cycle.later.length > 0 && (
+              <Card className="mt-4 border-dashed p-6 sm:p-7">
+                <p className="text-[12px] font-medium uppercase tracking-[0.16em] text-tulivo-muted">
+                  Not this quarter, but still a concern
+                </p>
+                <p className="mt-3 max-w-[70ch] text-[15px] leading-[1.65] text-tulivo-ink">
+                  These stages also scored below where they should be. They are deliberately
+                  not in the plan above, because a quarter spent on everything is a quarter
+                  spent on nothing. Leave them until the number above has moved and held,
+                  then they become the next cycle.
+                </p>
+                <ul className="mt-5 grid gap-2.5 sm:grid-cols-2">
+                  {result.cycle.later.map((item) => (
+                    <li
+                      key={item.stage}
+                      className="flex items-baseline gap-3 rounded-[4px] bg-tulivo-section/50 px-4 py-3"
+                    >
+                      <StatusDot status={item.status} className="translate-y-[3px]" />
+                      <span className="flex-1 text-[14.5px] leading-snug text-tulivo-ink">
+                        {item.stage}
+                        <span className="mt-0.5 block text-[13px] text-tulivo-muted">
+                          {item.kpi}
+                        </span>
+                      </span>
+                      <span className="tabular text-[14px] font-medium text-tulivo-muted">
+                        {item.score}/100
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+
             {result.cycle.next && (
               <Card className="mt-4 flex flex-col gap-3 border-dashed p-6 sm:flex-row sm:items-center sm:justify-between sm:p-7">
                 <div>
@@ -563,9 +619,15 @@ export function ResultsScreen({
       {/* ---------- Section-by-section ---------- */}
       <section className="mt-14">
         <Eyebrow>The detail</Eyebrow>
-        <h2 className="mt-3 text-[26px] font-semibold tracking-[-0.025em] text-tulivo-ink sm:text-[30px]">
+        <h2 className="mt-3 text-[30px] font-medium tracking-[-0.038em] text-tulivo-head">
           Stage-by-stage analysis
         </h2>
+        <p className="mt-4 max-w-[70ch] text-[16px] leading-[1.65] text-tulivo-muted">
+          This is the reference section, not the plan. Every one of the eight stages is
+          written up here, whether it needs work or not, so you can look anything up when
+          you come to it. What to actually do over the next three months is the 90-day
+          focus above. If the two ever seem to disagree, follow the 90-day focus.
+        </p>
         <div className="mt-7 space-y-4">
           {result.sections.map((section) => (
             <Card key={section.id} className="p-6 sm:p-8">
@@ -777,34 +839,72 @@ function SectionDetail({ section }: { section: SectionResult }) {
             </li>
           )}
         </ol>
-        <div className="mt-5 rounded-[4px] border border-tulivo-line bg-tulivo-card p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-tulivo-muted">
+        <div className="mt-6 rounded-[4px] border border-tulivo-line bg-tulivo-card p-5">
+          <p className="text-[12px] font-medium uppercase tracking-[0.16em] text-tulivo-muted">
             How you&apos;ll know it&apos;s working
           </p>
-          <p className="mt-2 text-[14px] leading-relaxed text-tulivo-ink">{section.measure.what}</p>
-          <p className="mt-2 text-[13px] leading-relaxed text-tulivo-muted">
-            <span className="font-medium text-tulivo-ink">Where from:</span> {section.measure.where}
+          <p className="mt-3 text-[15px] leading-relaxed text-tulivo-ink">
+            Track the following data: {lowerFirst(section.measure.what)}
           </p>
-          <p className="mt-1.5 text-[13px] leading-relaxed text-tulivo-muted">
-            <span className="font-medium text-tulivo-ink">How often:</span> {section.measure.cadence}
-          </p>
+          <div className="mt-4 space-y-3 border-t border-tulivo-hairline pt-4">
+            <div>
+              <p className="text-[13px] font-medium text-tulivo-head">Where to get it</p>
+              <p className="mt-1 text-[14px] leading-relaxed text-tulivo-muted">
+                {section.measure.where}
+              </p>
+            </div>
+            <div>
+              <p className="text-[13px] font-medium text-tulivo-head">How often to check</p>
+              <p className="mt-1 text-[14px] leading-relaxed text-tulivo-muted">
+                {section.measure.cadence}
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="mt-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-tulivo-faint">
+        <div className="mt-6 rounded-[4px] bg-tulivo-section/60 p-5">
+          <p className="text-[12px] font-medium uppercase tracking-[0.16em] text-tulivo-muted">
             Tools worth considering
           </p>
-          <ul className="mt-2 space-y-1.5">
+          <ul className="mt-3 space-y-2.5">
             {section.tools.map((tool) => (
-              <li key={tool} className="text-[13px] leading-relaxed text-tulivo-muted">
-                · {tool}
+              <li
+                key={tool}
+                className="flex gap-3 text-[15px] leading-relaxed text-tulivo-ink"
+              >
+                <span className="mt-[9px] h-[5px] w-[5px] shrink-0 rounded-full bg-tulivo-purple" />
+                <span>{tool}</span>
               </li>
             ))}
           </ul>
+          <div className="mt-5 border-t border-tulivo-line pt-4">
+            <p className="text-[13px] font-medium text-tulivo-head">
+              Worth considering as a project
+            </p>
+            <p className="mt-1.5 text-[14px] leading-relaxed text-tulivo-muted">
+              {section.project}
+            </p>
+            <p className="mt-2.5 text-[14px] leading-relaxed text-tulivo-muted">
+              If you&apos;d like help setting it up, email{" "}
+              <a
+                href={`mailto:${DIAGNOSTIC.contactEmail}`}
+                className="font-medium text-tulivo-head underline underline-offset-4"
+              >
+                {DIAGNOSTIC.contactEmail}
+              </a>
+              .
+            </p>
+          </div>
         </div>
       </div>
     </div>
   );
+}
+
+/* "Every enquiry you receive..." reads wrong after a colon, so the sentence
+   is lowered into the lead-in rather than written twice in the data. */
+function lowerFirst(text: string): string {
+  return text.charAt(0).toLowerCase() + text.slice(1);
 }
 
 function CheckMark() {

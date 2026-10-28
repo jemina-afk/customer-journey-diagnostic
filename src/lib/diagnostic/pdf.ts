@@ -65,9 +65,11 @@ export async function buildReport(
   whyItMattersPage(doc, profile);
   executiveSummary(doc, result, profile, answers);
   journeyMapPage(doc, result, profile);
-  result.sections.forEach((section, i) => sectionPage(doc, section, profile, i + 1));
+  focusIntroPage(doc, result, profile);
   actionPlanPage(doc, result, profile);
   measurementPage(doc, result, profile);
+  stageReviewIntroPage(doc, result, profile);
+  result.sections.forEach((section, i) => sectionPage(doc, section, profile, i + 1));
   nextStepsPage(doc, result, profile);
   aboutPage(doc, profile);
 
@@ -107,9 +109,11 @@ export function fileName(profile: Profile): string {
 function registerFonts(doc: Doc) {
   Object.entries(BRAND_FONTS).forEach(([key, { file, data }]) => {
     doc.addFileToVFS(file, data);
-    const family = key === "italiana" ? DISPLAY : key.startsWith("cormorant") ? SERIF : SANS;
-    const style = key.endsWith("Bold") || key.endsWith("SemiBold") ? "bold" : "normal";
-    doc.addFont(file, family, style);
+    /* Switzer 500 is what headlines and card titles are set in, so it is
+       registered as the family's "bold", and 600 where more weight is asked
+       for. jsPDF only knows normal and bold, so Medium takes the bold slot. */
+    const style = key === "switzerRegular" ? "normal" : "bold";
+    doc.addFont(file, SANS, style);
   });
 }
 
@@ -182,6 +186,18 @@ function eyebrow(doc: Doc, text: string, x: number, y: number, colour: RGB = PUR
   doc.line(x, y - 1.2, x + 7, y - 1.2);
   setText(doc, 8.5, onDark ? MUTED_ON_NAVY : MUTED);
   doc.text(text, x + 10, y);
+}
+
+/** A filled circle in one call, for list markers. */
+function fillCircle(doc: Doc, x: number, y: number, r: number, colour: RGB) {
+  doc.setFillColor(colour[0], colour[1], colour[2]);
+  doc.circle(x, y, r, "F");
+}
+
+/** A filled rectangle in one call, since jsPDF needs the colour set first. */
+function fillRect(doc: Doc, x: number, y: number, w: number, h: number, colour: RGB) {
+  doc.setFillColor(colour[0], colour[1], colour[2]);
+  doc.rect(x, y, w, h, "F");
 }
 
 function rule(doc: Doc, y: number, x = M, w = COL_W, colour: RGB = LINE) {
@@ -731,30 +747,206 @@ function sectionPage(doc: Doc, section: SectionResult, profile: Profile, index: 
     ) + 6;
   }
 
-  // The foot of every stage page: how to measure it, then what to measure with.
-  const footY = Math.max(y + 4, 232);
-  rule(doc, footY - 6);
-  eyebrow(doc, "How you'll know it's working", M, footY, PURPLE);
-  let my = paragraph(doc, section.measure.what, M, footY + 6, COL_W, {
-    size: 8.5,
-    colour: INK,
-    leading: 4,
-  });
-  my = paragraph(doc, `Where from: ${section.measure.where}`, M, my + 1.5, COL_W, {
-    size: 8,
+  /*
+    The foot of every stage page: the number to watch, where to find it, how
+    often to look, the tools, and the thing worth building. Written out in
+    full rather than abbreviated, which means it no longer always fits under
+    the fixes - so it flows onto a second page when it has to.
+  */
+  doc.addPage();
+  pageFurniture(doc, profile, section.title);
+
+  eyebrow(doc, section.title, M, 30, FAINT);
+  setText(doc, 22, INK, { font: DISPLAY });
+  doc.text("How you'll know it's working", M, 41);
+
+  let fy = 54;
+  fy = paragraph(
+    doc,
+    `Track the following data: ${lowerFirst(section.measure.what)}`,
+    M,
+    fy,
+    COL_W,
+    { size: 11, colour: INK, leading: 5.2 },
+  );
+
+  fy += 10;
+  rule(doc, fy - 4);
+  setText(doc, 9, INK, "bold");
+  doc.text("Where to get it", M, fy + 2);
+  fy = paragraph(doc, section.measure.where, M, fy + 8, COL_W, {
+    size: 10,
     colour: MUTED,
-    leading: 3.8,
-  });
-  my = paragraph(doc, `How often: ${section.measure.cadence}`, M, my + 1, COL_W, {
-    size: 8,
-    colour: MUTED,
-    leading: 3.8,
+    leading: 4.9,
   });
 
-  eyebrow(doc, "Tools worth considering", M, my + 7, FAINT);
-  let ty = my + 12;
-  section.tools.slice(0, 3).forEach((tool) => {
-    ty = paragraph(doc, `· ${tool}`, M, ty, COL_W, { size: 8, colour: MUTED, leading: 3.8 }) + 0.5;
+  fy += 8;
+  setText(doc, 9, INK, "bold");
+  doc.text("How often to check", M, fy);
+  fy = paragraph(doc, section.measure.cadence, M, fy + 6, COL_W, {
+    size: 10,
+    colour: MUTED,
+    leading: 4.9,
+  });
+
+  fy += 14;
+  rule(doc, fy - 6);
+  eyebrow(doc, "Tools worth considering", M, fy, PURPLE);
+  fy += 9;
+  section.tools.forEach((tool) => {
+    // The marker belongs beside the first line, so it is placed from the y the
+    // paragraph started at, not the y it ended on.
+    fillCircle(doc, M + 1.6, fy - 1.4, 1.1, PURPLE);
+    fy = paragraph(doc, tool, M + 6, fy, COL_W - 6, {
+      size: 10,
+      colour: INK,
+      leading: 4.9,
+    });
+    fy += 4;
+  });
+
+  fy += 8;
+  const projectLines = (() => {
+    setText(doc, 10.5, INK, "normal");
+    return doc.splitTextToSize(section.project, COL_W - 14) as string[];
+  })();
+  const projectH = 28 + projectLines.length * 5;
+  fillRect(doc, M, fy, COL_W, projectH, WARM_GREY);
+  fillRect(doc, M, fy, 1.6, projectH, PURPLE);
+  setText(doc, 7.5, INK, "bold");
+  doc.text("WORTH CONSIDERING AS A PROJECT", M + 7, fy + 8, { charSpace: 0.6 });
+  const pEnd = paragraph(doc, section.project, M + 7, fy + 15, COL_W - 14, {
+    size: 10.5,
+    colour: INK,
+    leading: 5,
+  });
+  paragraph(
+    doc,
+    `If you'd like help setting it up, email ${DIAGNOSTIC.contactEmail}.`,
+    M + 7,
+    pEnd + 3,
+    COL_W - 14,
+    { size: 9.5, colour: MUTED, leading: 4.6 },
+  );
+}
+
+/* "Every enquiry you receive..." reads wrong after a colon. */
+function lowerFirst(text: string): string {
+  return text.charAt(0).toLowerCase() + text.slice(1);
+}
+
+/*
+  Before the plan itself: what a 90-day focus is, why this number and not one
+  of the other seven, what moving it gets them, and which stages this quarter
+  is deliberately leaving alone.
+*/
+function focusIntroPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
+  doc.addPage();
+  pageFurniture(doc, profile, "Your 90-day focus");
+  const cycle = result.cycle;
+
+  eyebrow(doc, "What happens next", M, 30);
+  setText(doc, 26, INK, { font: DISPLAY });
+  doc.text("Your 90-day focus", M, 41);
+
+  let y = paragraph(doc, cycle.explainer, M, 54, COL_W, {
+    size: 10.5,
+    colour: INK,
+    leading: 5.2,
+  });
+
+  y += 10;
+  doc.setFillColor(WARM_GREY[0], WARM_GREY[1], WARM_GREY[2]);
+  const whyLines = (() => {
+    setText(doc, 9.5, INK, "normal");
+    return doc.splitTextToSize(cycle.chosenBecause, COL_W - 14) as string[];
+  })();
+  const whyH = 18 + whyLines.length * 4.6;
+  doc.rect(M, y, COL_W, whyH, "F");
+  fillRect(doc, M, y, 1.6, whyH, PURPLE);
+  setText(doc, 7.5, INK, "bold");
+  doc.text("WHY THIS NUMBER, AND NOT ONE OF THE OTHER SEVEN", M + 7, y + 8, { charSpace: 0.6 });
+  paragraph(doc, cycle.chosenBecause, M + 7, y + 15, COL_W - 14, {
+    size: 9.5,
+    colour: INK,
+    leading: 4.6,
+  });
+  y += whyH + 12;
+
+  eyebrow(doc, "What you get when it moves", M, y, PURPLE);
+  y = paragraph(doc, cycle.benefit, M, y + 8, COL_W, {
+    size: 10,
+    colour: INK,
+    leading: 4.9,
+  });
+
+  if (cycle.later.length > 0) {
+    y += 12;
+    eyebrow(doc, "Not this quarter, but still a concern", M, y, FAINT);
+    y = paragraph(
+      doc,
+      "These stages also scored below where they should be. They are deliberately not in the plan, because a quarter spent on everything is a quarter spent on nothing. Leave them until the number above has moved and held, then they become the next cycle.",
+      M,
+      y + 8,
+      COL_W,
+      { size: 9, colour: MUTED, leading: 4.3 },
+    );
+    y += 5;
+    cycle.later.forEach((item) => {
+      doc.setFillColor(WARM_GREY[0], WARM_GREY[1], WARM_GREY[2]);
+      doc.rect(M, y, COL_W, 11, "F");
+      fillRect(doc, M + 4, y + 4.4, 2.2, 2.2, statusColour(item.status));
+      setText(doc, 9.5, INK, "bold");
+      doc.text(item.stage, M + 9, y + 5);
+      setText(doc, 8, MUTED, "normal");
+      doc.text(item.kpi, M + 9, y + 9);
+      setText(doc, 9.5, MUTED, "bold");
+      doc.text(`${item.score}/100`, PAGE_W - M - 5, y + 7, { align: "right" });
+      y += 13;
+    });
+  }
+}
+
+/* A divider, so the eight write-ups are not mistaken for the plan. */
+function stageReviewIntroPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
+  doc.addPage();
+  pageFurniture(doc, profile, "Stage-by-stage analysis");
+
+  eyebrow(doc, "The detail", M, 30);
+  setText(doc, 26, INK, { font: DISPLAY });
+  doc.text("Stage-by-stage analysis", M, 41);
+
+  let y = paragraph(
+    doc,
+    "The rest of this report is reference, not plan. All eight stages are written up over the following pages, whether they need work or not, so you can look any one of them up when you come to it.",
+    M,
+    54,
+    COL_W,
+    { size: 10.5, colour: INK, leading: 5.2 },
+  );
+  y = paragraph(
+    doc,
+    `What to actually do over the next three months is the 90-day focus you have just read: ${result.cycle.kpi}, and the priorities underneath it. If the two ever seem to disagree, follow the 90-day focus.`,
+    M,
+    y + 6,
+    COL_W,
+    { size: 10.5, colour: INK, leading: 5.2 },
+  );
+
+  y += 12;
+  rule(doc, y);
+  y += 10;
+  eyebrow(doc, "How each stage is laid out", M, y, FAINT);
+  y += 8;
+  [
+    "The score, and what it means in practice",
+    "What is working, so you keep doing it",
+    "What is leaking, named rather than hinted at",
+    "What to do about it, in order",
+    "The one number that tells you it is working, where to find it and how often to look",
+    "Tools worth considering, and the thing worth building properly",
+  ].forEach((line) => {
+    y = bullet(doc, line, M, y, COL_W, PURPLE) + 2;
   });
 }
 
@@ -768,7 +960,7 @@ function actionPlanPage(doc: Doc, result: DiagnosticResult, profile: Profile) {
   doc.text("One number, three or four priorities", M, 40);
   paragraph(
     doc,
-    "Every priority in this cycle moves the same number. Spreading effort across eight stages at once is why most improvement plans stall; this compounds instead.",
+    `Everything below moves ${cycle.kpi}. The windows add up to the whole thirteen weeks, so this is the quarter, not the first fortnight of it.`,
     M,
     50,
     COL_W,
